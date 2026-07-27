@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import FocusGrid from '../components/FocusGrid.astro';
+import PostCard from '../components/PostCard.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { ABOUT, PROJECTS, SITE } from '../consts';
+import { getPosts, leadPostId } from '../lib/posts';
+
+const posts = (await getPosts()).slice(0, 3);
+const lead = leadPostId(posts);
+---
+
+<BaseLayout>
+  <Hero />
+
+  <section id="focus" class="shell scroll-mt-28 py-24">
+    <SectionHeading
+      index="01 / Focus"
+      title="What I work on"
+      lede="Four areas that keep overlapping in practice — a dropped frame and a stalled training step usually turn out to be the same class of problem."
+    />
+    <FocusGrid />
+  </section>
+
+  {
+    PROJECTS.length > 0 && (
+      <section id="projects" class="shell scroll-mt-28 py-24">
+        <SectionHeading index="02 / Projects" title="Selected work" />
+        <div class="border-t border-line">
+          {PROJECTS.map((project, i) => (
+            <a
+              href={project.href}
+              class="reveal group grid grid-cols-[3rem_1fr_auto] items-center gap-6 border-b border-line py-8 transition-[padding] duration-300 hover:px-4"
+              style={`--reveal-delay:${i * 70}ms`}
+            >
+              <span class="label">{String(i + 1).padStart(2, '0')}</span>
+              <div>
+                <span class="font-mono text-[0.7rem] tracking-wider text-accent">{project.type}</span>
+                <h3 class="mt-2 text-2xl">{project.title}</h3>
+                <p class="mt-2 max-w-[70ch] text-[0.9rem] leading-relaxed text-muted">
+                  {project.description}
+                </p>
+              </div>
+              <span class="label hidden sm:block">{project.status}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section id="writing" class="shell scroll-mt-28 py-24">
+    <SectionHeading
+      index="03 / Writing"
+      title="Recent notes"
+      lede="Longer pieces on problems that took more than an afternoon to understand."
+    />
+    <div class="grid gap-5 sm:grid-cols-2">
+      {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} delay={i * 80} />)}
+    </div>
+    <div class="mt-10">
+      <a
+        href="/blog"
+        class="inline-flex items-center gap-2 border-b border-line-strong pb-1.5 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
+      >
+        All posts
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="about" class="scroll-mt-28 border-y border-line bg-surface py-24">
+    <div class="shell">
+      <SectionHeading index="04 / About" title="About" />
+      <div class="grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
+        <p class="reveal font-display text-[clamp(1.6rem,3vw,2.4rem)] leading-[1.35]">
+          {ABOUT.lead}
+        </p>
+        <div class="reveal" style="--reveal-delay:120ms">
+          {
+            ABOUT.paragraphs.map((paragraph) => (
+              <p class="mb-5 leading-[1.85] text-muted">{paragraph}</p>
+            ))
+          }
+          <dl class="mt-9 border-t border-line">
+            {
+              ABOUT.specs.map((spec) => (
+                <div class="flex items-baseline justify-between gap-6 border-b border-line py-3.5">
+                  <dt class="label">{spec.label}</dt>
+                  <dd class="text-right font-mono text-[0.8rem]">{spec.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="shell py-28">
+    <div class="reveal flex flex-col justify-between gap-10 md:flex-row md:items-end">
+      <div>
+        <p class="label flex items-center gap-3">
+          <span class="inline-block h-px w-6 bg-accent"></span>
+          05 / Contact
+        </p>
+        <h2 class="mt-4 max-w-[16ch] text-[clamp(2.25rem,5vw,4rem)] leading-[1.05]">
+          Say hello, or read the source.
+        </h2>
+      </div>
+      <div class="flex flex-col items-start gap-4 md:items-end">
+        <a
+          href={SITE.github}
+          target="_blank"
+          rel="noreferrer"
+          class="inline-flex h-12 items-center gap-3 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface transition-colors hover:bg-accent-deep"
+        >
+          GitHub {SITE.handle}
+        </a>
+        <a
+          href={SITE.repository}
+          target="_blank"
+          rel="noreferrer"
+          class="border-b border-line-strong pb-1.5 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
+        >
+          This site's source
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

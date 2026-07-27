@@ -1,0 +1,67 @@
+import { useEffect, useState } from 'react';
+
+type Theme = 'light' | 'dark';
+
+/**
+ * The initial resolve happens in a blocking inline script in BaseLayout, so this
+ * island only has to read what that script already decided and keep it in sync.
+ */
+export default function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>('light');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setTheme((document.documentElement.dataset.theme as Theme) ?? 'light');
+    setMounted(true);
+  }, []);
+
+  const toggle = () => {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    setTheme(next);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      className="grid size-9 place-items-center rounded-[0.7rem] border border-line bg-surface text-ink transition-colors duration-200 hover:border-line-strong"
+    >
+      {/* Rendered invisible until mounted so the server-rendered icon can't
+          contradict the theme the inline script picked. */}
+      <span className={mounted ? 'contents' : 'invisible contents'}>
+        {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+      </span>
+    </button>
+  );
+}
+
+const iconProps = {
+  viewBox: '0 0 24 24',
+  className: 'size-4',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.7,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
+};
+
+function SunIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M20.5 14.1A8.5 8.5 0 0 1 9.9 3.5 8.5 8.5 0 1 0 20.5 14.1Z" />
+    </svg>
+  );
+}

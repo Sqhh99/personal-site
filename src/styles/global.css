@@ -1,0 +1,326 @@
+@import 'tailwindcss';
+
+/* Theme is driven by a `data-theme` attribute on <html> rather than the OS query,
+   so the toggle can override the system preference. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ---------------------------------------------------------------------------
+   Palette — warm ivory / ink / coral. Deliberately no pure #000 or #fff.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --bg: #f0eee6;
+  --surface: #faf9f5;
+  --surface-sunk: #e8e5da;
+  --ink: #141413;
+  --muted: #6b6862;
+  --faint: #8f8b81;
+  --border: #dad7cd;
+  --border-strong: #c6c2b6;
+  --accent: #cc785c;
+  --accent-deep: #bd5d3a;
+  --kraft: #d4a27f;
+  --manilla: #ebdbbc;
+  --shadow: 0 1px 2px rgb(20 20 19 / 0.04), 0 12px 32px rgb(20 20 19 / 0.06);
+  --shadow-lg: 0 2px 6px rgb(20 20 19 / 0.05), 0 24px 60px rgb(20 20 19 / 0.1);
+}
+
+[data-theme='dark'] {
+  --bg: #1f1e1d;
+  --surface: #262624;
+  --surface-sunk: #191817;
+  --ink: #f0eee6;
+  --muted: #a3a096;
+  --faint: #7d7a72;
+  --border: #3a3835;
+  --border-strong: #4d4a45;
+  --accent: #d97757;
+  --accent-deep: #e0906f;
+  --kraft: #d4a27f;
+  --manilla: #ebdbbc;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.35), 0 24px 60px rgb(0 0 0 / 0.45);
+}
+
+/* `inline` so utilities compile to `var(--bg)` and follow the theme swap at
+   runtime, instead of baking in whatever the light value was at build time. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-kraft: var(--kraft);
+  --color-manilla: var(--manilla);
+
+  --font-display: 'Newsreader Variable', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --shadow-card: var(--shadow);
+  --shadow-float: var(--shadow-lg);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--surface);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+   --------------------------------------------------------------------------- */
+
+@utility shell {
+  width: min(72rem, 100% - 2.5rem);
+  margin-inline: auto;
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Fades content in on scroll; `.is-visible` is applied by an IntersectionObserver
+   in BaseLayout. */
+@utility reveal {
+  opacity: 0;
+  transform: translateY(1.25rem);
+  transition:
+    opacity 700ms var(--ease-out-quint) var(--reveal-delay, 0ms),
+    transform 700ms var(--ease-out-quint) var(--reveal-delay, 0ms);
+}
+
+/* Unlayered, so it outranks the utility above regardless of source order. */
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Hero backdrop — written here rather than as Tailwind arbitrary values so the
+   -webkit- mask prefixes (still required by Safari) are actually emitted.
+   --------------------------------------------------------------------------- */
+
+.hero-backdrop {
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+
+.hero-wash {
+  background:
+    radial-gradient(
+      60% 50% at 78% 28%,
+      color-mix(in srgb, var(--kraft) 38%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 40% at 20% 10%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    );
+}
+
+.hero-field {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 38%);
+  mask-image: linear-gradient(to right, transparent, #000 38%);
+}
+
+/* ---------------------------------------------------------------------------
+   Prose — hand-rolled rather than @tailwindcss/typography so the article
+   rhythm matches the rest of the design exactly.
+   --------------------------------------------------------------------------- */
+
+.prose {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+.prose > * + * {
+  margin-top: 1.4em;
+}
+
+.prose h2 {
+  margin-top: 2.4em;
+  margin-bottom: -0.4em;
+  font-size: 1.75rem;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.prose h3 {
+  margin-top: 2em;
+  margin-bottom: -0.5em;
+  font-size: 1.3125rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose a {
+  color: var(--accent-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li + li {
+  margin-top: 0.5em;
+}
+
+.prose li::marker {
+  color: var(--accent);
+}
+
+.prose blockquote {
+  padding-left: 1.25em;
+  border-left: 2px solid var(--accent);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-block: 2.5em;
+}
+
+.prose :not(pre) > code {
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--surface-sunk);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.prose pre {
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--surface-sunk) !important;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+/* Shiki emits both themes; show whichever matches the active one. */
+[data-theme='dark'] .prose .astro-code,
+[data-theme='dark'] .prose .astro-code span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.6em 0.8em;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.prose th {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose img {
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+}

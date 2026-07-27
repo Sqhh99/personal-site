@@ -2,10 +2,35 @@
   "name": "personal-site",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.6",
+    "@astrojs/react": "^4.4.0",
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.6.0",
+    "@fontsource-variable/inter": "^5.2.6",
+    "@fontsource-variable/newsreader": "^5.2.5",
+    "@react-three/fiber": "^9.3.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "astro": "^5.14.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.14",
+    "three": "^0.180.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.9.2",
     "wrangler": "^4.26.0"
   }
 }

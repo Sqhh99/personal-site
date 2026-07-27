@@ -1,126 +1,87 @@
 # personal-site
 
-一个不依赖博客框架的个人介绍与技术博客网站，使用原生 HTML、CSS、JavaScript 和 Markdown 构建，可直接部署到 Cloudflare。
+Personal site and engineering blog — notes on WebRTC, PyTorch, web engineering and systems.
+Built with Astro, deployed as static files to Cloudflare.
 
-## 项目结构
+**Stack:** Astro · TypeScript · Tailwind CSS v4 · MDX content collections · React islands ·
+React Three Fiber · Cloudflare Workers Static Assets
 
-```text
-personal-site/
-├── site/                         # 可直接托管的网站目录
-│   ├── index.html
-│   ├── favicon.svg
-│   ├── assets/
-│   │   ├── config.js            # 个人信息、项目和文章索引
-│   │   ├── main.js              # 页面逻辑、搜索、主题和文章渲染
-│   │   └── style.css            # 全部样式
-│   └── content/posts/           # Markdown 文章
-├── package.json                 # 可选：Wrangler 部署
-├── wrangler.jsonc               # Cloudflare Workers Static Assets 配置
-└── README.md
-```
-
-## 本地预览
-
-不要直接双击 `index.html`，因为浏览器会限制 Markdown 文件读取。进入项目目录后运行：
-
-```bash
-python -m http.server 5173 -d site
-```
-
-然后访问：
+## Structure
 
 ```text
-http://localhost:5173
+src/
+├── consts.ts            # site metadata, nav, focus areas, about copy
+├── content.config.ts    # blog collection + frontmatter schema
+├── content/blog/        # posts (.md / .mdx)
+├── lib/posts.ts         # post queries, reading time, date formatting
+├── styles/global.css    # palette tokens, base styles, prose
+├── layouts/             # BaseLayout
+├── components/
+│   ├── *.astro          # static markup — ships no JavaScript
+│   └── react/           # the only interactive parts
+└── pages/               # routes, plus rss.xml.ts
+public/                  # favicon, robots.txt — copied verbatim
 ```
 
-也可以使用 VS Code 的 Live Server 插件打开 `site/index.html`。
+## Commands
 
-## 修改个人信息
+| Command | Does |
+| --- | --- |
+| `npm install` | Install dependencies |
+| `npm run dev` | Dev server on <http://localhost:4321> |
+| `npm run build` | Static build into `dist/` |
+| `npm run preview` | Serve the built output |
+| `npm run check` | Type-check `.astro` and `.ts` |
+| `npm run deploy` | Build, then `wrangler deploy` |
 
-编辑：
+## Adding a post
 
-```text
-site/assets/config.js
-```
-
-可修改姓名、简介、GitHub 地址、关注方向、项目和文章索引。SEO 标题与描述位于 `site/index.html`。
-
-## 添加文章
-
-第一步，在 `site/content/posts/` 中创建 Markdown 文件，例如：
+Create `src/content/blog/my-post.md` — the filename becomes the URL (`/blog/my-post/`):
 
 ```markdown
 ---
-title: 文章标题
+title: Post title
+description: One sentence, used for the card and the meta description.
 date: 2026-07-27
-tag: 软件工程
-summary: 文章摘要
-readTime: 5 分钟
+tag: WebRTC
 featured: false
 ---
 
-# 文章标题
-
-正文内容……
+Body text…
 ```
 
-第二步，在 `site/assets/config.js` 的 `posts` 数组中添加索引：
+`tag` must be one of the values in `TAGS` in `src/consts.ts`; anything else fails the build
+rather than silently rendering an empty filter. `draft: true` hides a post from production
+builds but keeps it visible in `npm run dev`. Reading time is computed from the body — there
+is nothing to keep in sync.
 
-```js
-{
-  slug: 'my-new-post',
-  title: '文章标题',
-  date: '2026-07-27',
-  tag: '软件工程',
-  summary: '文章摘要',
-  readTime: '5 分钟',
-  featured: false,
-  file: './content/posts/my-new-post.md',
-}
-```
+## Interactivity
 
-## 上传到 GitHub
+Three components ship JavaScript, each as its own island:
 
-解压后，在 `personal-site` 目录执行：
+- `ThemeToggle` (`client:load`) — the initial theme is resolved by a blocking inline script in
+  `BaseLayout.astro` so the palette never flashes.
+- `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
+  server-rendered; the island only toggles visibility, so every post stays in the HTML.
+- `WaveField` (`client:visible`) — the shader field on the home page. Three.js loads as a
+  separate chunk only when the hero is in view, and the animation freezes under
+  `prefers-reduced-motion`. A CSS gradient stands in if it never loads.
+
+## Configuration
+
+- **Domain** — `site` in `astro.config.mjs`. Sitemap, RSS and canonical URLs all derive from
+  it, so it is the only place the origin is written down. **Change it before deploying.**
+- **Content** — name, links, nav, focus areas and About copy live in `src/consts.ts`.
+- **Palette** — CSS custom properties at the top of `src/styles/global.css`, exposed to
+  Tailwind via `@theme inline` so light and dark swap at runtime.
+
+## Deploying to Cloudflare
+
+**Git integration** — connect the repo; build command `npm run build`, output directory
+`dist`.
+
+**Wrangler** — `wrangler.jsonc` already points at `dist`:
 
 ```bash
-git init
-git add .
-git commit -m "feat: initialize personal site"
-git branch -M main
-git remote add origin https://github.com/Sqhh99/personal-site.git
-git push -u origin main
-```
-
-如果提示远程地址已经存在：
-
-```bash
-git remote set-url origin https://github.com/Sqhh99/personal-site.git
-git push -u origin main
-```
-
-## 部署到 Cloudflare
-
-### 直接上传
-
-在 Cloudflare 创建页面中选择 `Upload your static files`，上传 `site` 文件夹中的全部内容。
-
-### 连接 GitHub
-
-连接 `Sqhh99/personal-site` 后，静态输出目录填写：
-
-```text
-site
-```
-
-该项目不需要构建命令。
-
-### Wrangler 部署
-
-```bash
-npm install
-npx wrangler login
 npm run deploy
 ```
-
-`wrangler.jsonc` 已将静态资源目录配置为 `site`。

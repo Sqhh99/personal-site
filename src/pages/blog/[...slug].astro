@@ -1,0 +1,88 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../consts';
+import { formatDate, getPosts, isoDate, readingTime, type Post } from '../../lib/posts';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      prev: posts[index + 1] ?? null,
+      next: posts[index - 1] ?? null,
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: Post;
+  prev: Post | null;
+  next: Post | null;
+}
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const { title, description, tag, date } = post.data;
+---
+
+<BaseLayout
+  title={`${title} — ${SITE.name}`}
+  description={description}
+  ogType="article"
+  publishedAt={date}
+>
+  <article class="shell py-16">
+    <a
+      href="/blog"
+      class="inline-flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:text-ink"
+    >
+      <span aria-hidden="true">←</span> All posts
+    </a>
+
+    <header class="mt-10 max-w-[46rem] border-b border-line pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <span
+          class="rounded-full border border-line px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-accent"
+        >
+          {tag}
+        </span>
+        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
+        <span class="label">{readingTime(post.body)}</span>
+      </div>
+      <h1 class="mt-6 text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05]">{title}</h1>
+      <p class="mt-6 max-w-[58ch] text-lg leading-relaxed text-muted">{description}</p>
+    </header>
+
+    <div class="prose mt-12 max-w-[46rem]">
+      <Content />
+    </div>
+
+    <nav
+      class="mt-20 grid gap-4 border-t border-line pt-8 sm:grid-cols-2"
+      aria-label="More posts"
+    >
+      {
+        prev && (
+          <a href={`/blog/${prev.id}/`} class="group rounded-xl border border-line bg-surface p-5 transition-colors hover:border-line-strong">
+            <span class="label">← Previous</span>
+            <p class="mt-2 font-display text-lg leading-snug">{prev.data.title}</p>
+          </a>
+        )
+      }
+      {
+        next && (
+          <a
+            href={`/blog/${next.id}/`}
+            class="group rounded-xl border border-line bg-surface p-5 transition-colors hover:border-line-strong sm:col-start-2 sm:text-right"
+          >
+            <span class="label">Next →</span>
+            <p class="mt-2 font-display text-lg leading-snug">{next.data.title}</p>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</BaseLayout>

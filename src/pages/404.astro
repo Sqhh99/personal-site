@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout title={`Not found — ${SITE.name}`} description="That page doesn't exist.">
+  <div class="shell flex min-h-[60svh] flex-col justify-center py-24">
+    <p class="label">Error 404</p>
+    <h1 class="mt-4 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.03]">
+      That page isn't here.
+    </h1>
+    <p class="mt-6 max-w-[46ch] text-lg leading-relaxed text-muted">
+      The link may be out of date, or the post may have been renamed. The writing index is
+      probably what you want.
+    </p>
+    <div class="mt-10 flex flex-wrap items-center gap-5">
+      <a
+        href="/blog"
+        class="inline-flex h-12 items-center rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface transition-colors hover:bg-accent-deep"
+      >
+        Browse the writing
+      </a>
+      <a
+        href="/"
+        class="border-b border-line-strong pb-1.5 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
+      >
+        Back home
+      </a>
+    </div>
+  </div>
+</BaseLayout>

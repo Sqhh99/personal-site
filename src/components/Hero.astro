@@ -1,0 +1,83 @@
+---
+import WaveField from './react/WaveField';
+import { SITE } from '../consts';
+
+const chips = ['WebRTC', 'PyTorch', 'TypeScript', 'Systems'];
+---
+
+<section class="relative isolate overflow-hidden">
+  <div class="hero-backdrop pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+    {/* Static wash: visible immediately, and the whole visual if WebGL or the
+        three.js chunk never arrives. */}
+    <div class="hero-wash absolute inset-0 opacity-70"></div>
+    <div class="hero-field absolute inset-0 opacity-90">
+      <WaveField client:visible />
+    </div>
+  </div>
+
+  <div class="shell relative flex min-h-[min(46rem,88svh)] flex-col justify-center py-20">
+    <p
+      class="reveal inline-flex w-fit items-center gap-2.5 rounded-full border border-line bg-surface px-3.5 py-1.5 font-mono text-[0.68rem] tracking-[0.12em] text-muted uppercase"
+    >
+      <span class="relative flex size-1.5">
+        <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-70"></span>
+        <span class="relative inline-flex size-1.5 rounded-full bg-accent"></span>
+      </span>
+      {SITE.role}
+    </p>
+
+    <h1
+      class="reveal mt-7 max-w-[19ch] text-[clamp(2.75rem,7vw,5.25rem)] leading-[0.98]"
+      style="--reveal-delay:80ms"
+    >
+      Notes on <em class="text-accent">realtime media</em>, deep learning, and the parts of the
+      web that resist abstraction.
+    </h1>
+
+    <p
+      class="reveal mt-8 max-w-[54ch] text-lg leading-relaxed text-muted"
+      style="--reveal-delay:160ms"
+    >
+      I'm {SITE.name}, a software engineer working on WebRTC pipelines, PyTorch training and
+      inference, and the performance work that sits underneath both. This is where I write the
+      details down.
+    </p>
+
+    <div class="reveal mt-10 flex flex-wrap items-center gap-5" style="--reveal-delay:240ms">
+      <a
+        href="/blog"
+        class="group inline-flex h-12 items-center gap-3 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface transition-transform duration-300 hover:-translate-y-0.5 hover:bg-accent-deep"
+      >
+        Read the writing
+        <svg
+          viewBox="0 0 24 24"
+          class="size-4 transition-transform duration-300 group-hover:translate-x-1"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14M13 6l6 6-6 6"></path>
+        </svg>
+      </a>
+      <a
+        href="#focus"
+        class="border-b border-line-strong pb-1.5 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
+      >
+        What I work on
+      </a>
+    </div>
+
+    <ul class="reveal mt-14 flex flex-wrap gap-2" style="--reveal-delay:320ms" aria-label="Topics">
+      {
+        chips.map((chip) => (
+          <li class="rounded-full border border-line bg-surface/70 px-3 py-1.5 font-mono text-[0.65rem] tracking-wider text-muted backdrop-blur">
+            {chip}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

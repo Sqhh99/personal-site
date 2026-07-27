@@ -3,7 +3,9 @@
   "name": "personal-site",
   "compatibility_date": "2026-07-27",
   "assets": {
-    "directory": "./site",
-    "not_found_handling": "single-page-application"
+    // Astro's static build output.
+    "directory": "./dist",
+    // Astro emits a real 404.html, so serve that rather than rewriting to index.html.
+    "not_found_handling": "404-page"
   }
 }
