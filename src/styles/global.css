@@ -5,45 +5,51 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ---------------------------------------------------------------------------
-   Palette — warm ivory / ink / coral. Deliberately no pure #000 or #fff.
+   Palette — Refined warm ivory / ink / coral system with dark slate mode.
+   Deliberately no pure #000 or #fff.
    --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #f0eee6;
+  --bg: #f5f3ec;
   --surface: #faf9f5;
-  --surface-sunk: #e8e5da;
+  --surface-sunk: #ece9df;
+  --surface-glass: rgba(250, 249, 245, 0.75);
   --ink: #141413;
-  --muted: #6b6862;
-  --faint: #8f8b81;
-  --border: #dad7cd;
-  --border-strong: #c6c2b6;
+  --muted: #5e5b55;
+  --faint: #858177;
+  --border: #dfdcd3;
+  --border-strong: #c8c4b7;
   --accent: #cc785c;
-  --accent-deep: #bd5d3a;
+  --accent-deep: #b35b3d;
+  --accent-glow: rgba(204, 120, 92, 0.15);
   --kraft: #d4a27f;
   --manilla: #ebdbbc;
-  --shadow: 0 1px 2px rgb(20 20 19 / 0.04), 0 12px 32px rgb(20 20 19 / 0.06);
-  --shadow-lg: 0 2px 6px rgb(20 20 19 / 0.05), 0 24px 60px rgb(20 20 19 / 0.1);
+  --code-bg: #1e1e1e;
+  --shadow: 0 2px 4px rgb(20 20 19 / 0.03), 0 12px 32px rgb(20 20 19 / 0.05);
+  --shadow-lg: 0 4px 12px rgb(20 20 19 / 0.04), 0 24px 48px rgb(20 20 19 / 0.08);
 }
 
 [data-theme='dark'] {
-  --bg: #1f1e1d;
-  --surface: #262624;
-  --surface-sunk: #191817;
-  --ink: #f0eee6;
-  --muted: #a3a096;
-  --faint: #7d7a72;
-  --border: #3a3835;
-  --border-strong: #4d4a45;
+  --bg: #161514;
+  --surface: #1f1d1b;
+  --surface-sunk: #121110;
+  --surface-glass: rgba(31, 29, 27, 0.75);
+  --ink: #f2f0e9;
+  --muted: #a19d93;
+  --faint: #78746b;
+  --border: #2e2b27;
+  --border-strong: #44403a;
   --accent: #d97757;
-  --accent-deep: #e0906f;
+  --accent-deep: #e88a6b;
+  --accent-glow: rgba(217, 119, 87, 0.2);
   --kraft: #d4a27f;
   --manilla: #ebdbbc;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.35);
-  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.35), 0 24px 60px rgb(0 0 0 / 0.45);
+  --code-bg: #121110;
+  --shadow: 0 2px 4px rgb(0 0 0 / 0.25), 0 12px 32px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.3), 0 24px 48px rgb(0 0 0 / 0.45);
 }
 
-/* `inline` so utilities compile to `var(--bg)` and follow the theme swap at
-   runtime, instead of baking in whatever the light value was at build time. */
+/* `inline` so utilities compile to `var(--bg)` and follow theme swap at runtime */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -66,6 +72,7 @@
   --shadow-float: var(--shadow-lg);
 
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ---------------------------------------------------------------------------
@@ -84,7 +91,9 @@
     color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 
   h1,
@@ -93,7 +102,7 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     text-wrap: balance;
   }
 
@@ -102,14 +111,33 @@
   }
 
   ::selection {
-    background-color: var(--accent);
-    color: var(--surface);
+    background-color: var(--accent-glow);
+    color: var(--ink);
   }
 
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
-    border-radius: 4px;
+    border-radius: 6px;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--border-strong) 70%, transparent);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--faint);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -144,78 +172,75 @@
   color: var(--faint);
 }
 
-/* Fades content in on scroll; `.is-visible` is applied by an IntersectionObserver
-   in BaseLayout. */
+/* Fades content in on scroll; `.is-visible` is applied by IntersectionObserver */
 @utility reveal {
   opacity: 0;
   transform: translateY(1.25rem);
   transition:
-    opacity 700ms var(--ease-out-quint) var(--reveal-delay, 0ms),
-    transform 700ms var(--ease-out-quint) var(--reveal-delay, 0ms);
+    opacity 700ms var(--ease-spring) var(--reveal-delay, 0ms),
+    transform 700ms var(--ease-spring) var(--reveal-delay, 0ms);
 }
 
-/* Unlayered, so it outranks the utility above regardless of source order. */
 .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
 /* ---------------------------------------------------------------------------
-   Hero backdrop — written here rather than as Tailwind arbitrary values so the
-   -webkit- mask prefixes (still required by Safari) are actually emitted.
+   Hero backdrops
    --------------------------------------------------------------------------- */
 
 .hero-backdrop {
-  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
-  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
 }
 
 .hero-wash {
   background:
     radial-gradient(
-      60% 50% at 78% 28%,
-      color-mix(in srgb, var(--kraft) 38%, transparent),
+      65% 55% at 75% 25%,
+      color-mix(in srgb, var(--kraft) 32%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      45% 40% at 20% 10%,
-      color-mix(in srgb, var(--accent) 16%, transparent),
+      50% 45% at 18% 12%,
+      color-mix(in srgb, var(--accent) 18%, transparent),
       transparent 70%
     );
 }
 
 .hero-field {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 38%);
-  mask-image: linear-gradient(to right, transparent, #000 38%);
+  -webkit-mask-image: linear-gradient(to right, transparent 5%, #000 35%);
+  mask-image: linear-gradient(to right, transparent 5%, #000 35%);
 }
 
 /* ---------------------------------------------------------------------------
-   Prose — hand-rolled rather than @tailwindcss/typography so the article
-   rhythm matches the rest of the design exactly.
+   Prose — Hand-crafted editorial typography rhythm for long technical posts.
    --------------------------------------------------------------------------- */
 
 .prose {
   font-size: 1.0625rem;
-  line-height: 1.75;
+  line-height: 1.8;
   color: var(--muted);
 }
 
 .prose > * + * {
-  margin-top: 1.4em;
+  margin-top: 1.5em;
 }
 
 .prose h2 {
-  margin-top: 2.4em;
-  margin-bottom: -0.4em;
-  font-size: 1.75rem;
+  margin-top: 2.6em;
+  margin-bottom: -0.2em;
+  font-size: 1.85rem;
   line-height: 1.25;
   color: var(--ink);
+  letter-spacing: -0.02em;
 }
 
 .prose h3 {
-  margin-top: 2em;
-  margin-bottom: -0.5em;
-  font-size: 1.3125rem;
+  margin-top: 2.1em;
+  margin-bottom: -0.3em;
+  font-size: 1.35rem;
   line-height: 1.35;
   color: var(--ink);
 }
@@ -228,12 +253,14 @@
 .prose a {
   color: var(--accent-deep);
   text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: text-decoration-color 200ms ease, color 200ms ease;
 }
 
 .prose a:hover {
+  color: var(--accent);
   text-decoration-color: var(--accent);
 }
 
@@ -256,44 +283,56 @@
 
 .prose li::marker {
   color: var(--accent);
+  font-weight: 600;
 }
 
 .prose blockquote {
-  padding-left: 1.25em;
-  border-left: 2px solid var(--accent);
+  position: relative;
+  margin-block: 2em;
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 0.75rem 0.75rem 0;
+  background-color: color-mix(in srgb, var(--surface-sunk) 60%, transparent);
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  line-height: 1.5;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  font-style: italic;
 }
 
 .prose hr {
   border: 0;
   border-top: 1px solid var(--border);
-  margin-block: 2.5em;
+  margin-block: 3em;
 }
 
+/* Inline Code */
 .prose :not(pre) > code {
-  padding: 0.15em 0.4em;
+  padding: 0.2em 0.45em;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0.35rem;
   background-color: var(--surface-sunk);
-  color: var(--ink);
+  color: var(--accent-deep);
   font-family: var(--font-mono);
   font-size: 0.85em;
+  font-weight: 500;
 }
 
+/* Code Blocks with Header & macOS Dots styling */
 .prose pre {
-  padding: 1.15rem 1.25rem;
+  position: relative;
+  margin-block: 2em;
+  padding: 1.25rem 1.35rem;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
   background-color: var(--surface-sunk) !important;
   overflow-x: auto;
   font-size: 0.875rem;
-  line-height: 1.65;
+  line-height: 1.7;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.04);
 }
 
-/* Shiki emits both themes; show whichever matches the active one. */
+/* Shiki theme dual support */
 [data-theme='dark'] .prose .astro-code,
 [data-theme='dark'] .prose .astro-code span {
   color: var(--shiki-dark) !important;
@@ -304,23 +343,43 @@
 
 .prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-block: 2em;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
   font-size: 0.9375rem;
 }
 
 .prose th,
 .prose td {
-  padding: 0.6em 0.8em;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   text-align: left;
 }
 
 .prose th {
+  background-color: var(--surface-sunk);
   color: var(--ink);
   font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.prose tr:last-child td {
+  border-bottom: none;
+}
+
+.prose tr:nth-child(even) td {
+  background-color: color-mix(in srgb, var(--surface-sunk) 30%, transparent);
 }
 
 .prose img {
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
   border: 1px solid var(--border);
+  margin-block: 2em;
+  box-shadow: var(--shadow);
 }

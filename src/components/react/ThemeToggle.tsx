@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
-/**
- * The initial resolve happens in a blocking inline script in BaseLayout, so this
- * island only has to read what that script already decided and keep it in sync.
- */
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
@@ -27,12 +23,16 @@ export default function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="grid size-9 place-items-center rounded-[0.7rem] border border-line bg-surface text-ink transition-colors duration-200 hover:border-line-strong"
+      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      className="group relative grid size-9 place-items-center rounded-xl border border-line bg-surface/90 text-ink shadow-xs transition-all duration-300 hover:border-line-strong hover:bg-surface-sunk/50 hover:scale-105 active:scale-95"
     >
-      {/* Rendered invisible until mounted so the server-rendered icon can't
-          contradict the theme the inline script picked. */}
       <span className={mounted ? 'contents' : 'invisible contents'}>
-        {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        <span className={`transition-transform duration-500 ease-out ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0 absolute'}`}>
+          <SunIcon />
+        </span>
+        <span className={`transition-transform duration-500 ease-out ${theme === 'light' ? 'rotate-0 scale-100' : '-rotate-90 scale-0 absolute'}`}>
+          <MoonIcon />
+        </span>
       </span>
     </button>
   );
@@ -40,7 +40,7 @@ export default function ThemeToggle() {
 
 const iconProps = {
   viewBox: '0 0 24 24',
-  className: 'size-4',
+  className: 'size-4 transition-colors group-hover:text-accent',
   fill: 'none',
   stroke: 'currentColor',
   strokeWidth: 1.7,

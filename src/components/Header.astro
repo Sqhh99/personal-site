@@ -10,50 +10,57 @@ const isActive = (href: string) =>
 
 <header
   id="site-header"
-  class="sticky top-0 z-50 border-b border-transparent transition-colors duration-300"
+  class="sticky top-0 z-50 border-b border-transparent transition-all duration-300"
 >
-  <div class="shell flex min-h-[4.5rem] items-center gap-6">
+  <div class="shell flex min-h-[4.5rem] items-center justify-between gap-6">
     <a href="/" class="group flex items-center gap-3" aria-label={`${SITE.name} — home`}>
       <span
-        class="grid size-9 place-items-center rounded-[0.7rem] bg-accent font-display text-[0.9rem] text-surface transition-transform duration-500 group-hover:-rotate-6"
+        class="grid size-9 place-items-center rounded-xl bg-accent font-display text-[1rem] font-bold text-surface shadow-sm transition-all duration-500 group-hover:-rotate-6 group-hover:scale-105 group-hover:bg-accent-deep"
       >
         X
       </span>
       <span class="grid leading-tight">
-        <strong class="font-display text-[0.95rem] font-medium">{SITE.name}</strong>
-        <span class="mt-0.5 font-mono text-[0.6rem] tracking-[0.14em] text-faint uppercase">
+        <strong class="font-display text-[0.98rem] font-medium tracking-tight text-ink group-hover:text-accent transition-colors">
+          {SITE.name}
+        </strong>
+        <span class="mt-0.5 font-mono text-[0.6rem] tracking-[0.16em] text-faint uppercase">
           Engineering Notes
         </span>
       </span>
     </a>
 
-    <nav class="hidden items-center gap-1 md:mx-auto md:flex" aria-label="Primary">
+    <nav class="hidden items-center gap-1.5 rounded-full border border-line/60 bg-surface/70 p-1.5 backdrop-blur-md md:flex shadow-xs" aria-label="Primary">
       {
-        NAV.map((item) => (
-          <a
-            href={item.href}
-            aria-current={isActive(item.href) ? 'page' : undefined}
-            class:list={[
-              'rounded-full px-3.5 py-2 text-sm transition-colors duration-200 hover:text-ink',
-              isActive(item.href) ? 'text-ink' : 'text-muted',
-            ]}
-          >
-            {item.label}
-          </a>
-        ))
+        NAV.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <a
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'relative rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200',
+                active
+                  ? 'bg-surface text-ink shadow-xs border border-line/80 font-semibold'
+                  : 'text-muted hover:text-ink hover:bg-surface-sunk/60',
+              ]}
+            >
+              {item.label}
+            </a>
+          );
+        })
       }
     </nav>
 
-    <div class="ml-auto flex items-center gap-2 md:ml-0">
+    <div class="flex items-center gap-2.5">
       <ThemeToggle client:load />
 
       <a
         href={SITE.github}
         target="_blank"
         rel="noreferrer"
-        class="hidden h-9 items-center gap-2 rounded-[0.7rem] border border-line bg-surface px-3.5 font-mono text-[0.7rem] tracking-wider text-ink transition-colors duration-200 hover:border-line-strong sm:inline-flex"
+        class="hidden h-9 items-center gap-2 rounded-xl border border-line bg-surface/90 px-3.5 font-mono text-[0.725rem] tracking-wider text-ink transition-all duration-200 hover:border-line-strong hover:bg-surface-sunk/50 hover:shadow-xs sm:inline-flex"
       >
-        <svg viewBox="0 0 24 24" class="size-4 fill-current" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="size-4 fill-current text-muted transition-colors group-hover:text-ink" aria-hidden="true">
           <path
             d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.35 1.08 2.92.83.09-.64.35-1.08.64-1.33-2.22-.25-4.55-1.1-4.55-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"
           ></path>
@@ -67,7 +74,7 @@ const isActive = (href: string) =>
         aria-expanded="false"
         aria-controls="mobile-nav"
         aria-label="Open menu"
-        class="grid size-9 place-items-center rounded-[0.7rem] border border-line bg-surface text-ink transition-colors duration-200 hover:border-line-strong md:hidden"
+        class="grid size-9 place-items-center rounded-xl border border-line bg-surface text-ink transition-colors duration-200 hover:border-line-strong md:hidden"
       >
         <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
           <path d="M4 8h16M4 16h16"></path>
@@ -78,19 +85,19 @@ const isActive = (href: string) =>
 
   <nav
     id="mobile-nav"
-    class="grid grid-rows-[0fr] overflow-hidden border-t-0 border-line bg-bg/95 backdrop-blur transition-[grid-template-rows] duration-300 md:hidden"
+    class="grid grid-rows-[0fr] overflow-hidden border-t-0 border-line bg-bg/95 backdrop-blur-xl transition-[grid-template-rows] duration-300 md:hidden"
     aria-label="Primary (mobile)"
   >
     <div class="min-h-0 overflow-hidden">
-      <div class="shell flex flex-col py-2">
+      <div class="shell flex flex-col py-3">
         {
           NAV.map((item) => (
-            <a href={item.href} class="border-b border-line py-3.5 font-display text-lg last:border-b-0">
+            <a href={item.href} class="border-b border-line/60 py-3.5 font-display text-lg text-ink hover:text-accent transition-colors last:border-b-0">
               {item.label}
             </a>
           ))
         }
-        <a href={SITE.github} target="_blank" rel="noreferrer" class="py-3.5 font-display text-lg">
+        <a href={SITE.github} target="_blank" rel="noreferrer" class="py-3.5 font-display text-lg text-ink hover:text-accent transition-colors">
           GitHub
         </a>
       </div>
@@ -106,8 +113,6 @@ const isActive = (href: string) =>
   const setOpen = (open: boolean) => {
     nav.classList.toggle('grid-rows-[1fr]', open);
     nav.classList.toggle('grid-rows-[0fr]', !open);
-    // Inline, not a utility class: `border-t` and `border-t-0` both set
-    // border-top-width, so which one won would depend on stylesheet order.
     nav.style.borderTopWidth = open ? '1px' : '0';
     button.setAttribute('aria-expanded', String(open));
     button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
@@ -118,13 +123,14 @@ const isActive = (href: string) =>
     if ((event.target as HTMLElement).closest('a')) setOpen(false);
   });
 
-  // Only draw the header's rule once the page has actually scrolled under it.
+  // Only draw header's border and backdrop once page has scrolled
   const onScroll = () => {
     const stuck = window.scrollY > 16;
     header.classList.toggle('border-line', stuck);
     header.classList.toggle('border-transparent', !stuck);
-    header.classList.toggle('bg-bg/80', stuck);
-    header.classList.toggle('backdrop-blur-xl', stuck);
+    header.classList.toggle('bg-bg/85', stuck);
+    header.classList.toggle('backdrop-blur-md', stuck);
+    header.classList.toggle('shadow-xs', stuck);
   };
 
   onScroll();

@@ -34,41 +34,67 @@ const { title, description, tag, date } = post.data;
   ogType="article"
   publishedAt={date}
 >
-  <article class="shell py-16">
+  <!-- Top Reading Progress Indicator -->
+  <div id="read-progress" class="fixed top-0 left-0 z-50 h-[3px] bg-accent transition-all duration-150 w-0" aria-hidden="true"></div>
+
+  <article class="shell py-12 sm:py-16">
     <a
       href="/blog"
-      class="inline-flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:text-ink"
+      class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
     >
-      <span aria-hidden="true">←</span> All posts
+      <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span> Back to all writing
     </a>
 
-    <header class="mt-10 max-w-[46rem] border-b border-line pb-10">
+    <header class="mt-8 max-w-[46rem] border-b border-line pb-10">
       <div class="flex flex-wrap items-center gap-3">
         <span
-          class="rounded-full border border-line px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-accent"
+          class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium"
         >
+          <span class="size-1.5 rounded-full bg-accent"></span>
           {tag}
         </span>
         <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
-        <span class="label">{readingTime(post.body)}</span>
+        <span class="label flex items-center gap-1">
+          <svg viewBox="0 0 24 24" class="size-3 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {readingTime(post.body)}
+        </span>
       </div>
-      <h1 class="mt-6 text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05]">{title}</h1>
-      <p class="mt-6 max-w-[58ch] text-lg leading-relaxed text-muted">{description}</p>
+      <h1 class="mt-6 text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05] font-display text-ink">{title}</h1>
+      <p class="mt-6 max-w-[58ch] text-lg leading-relaxed text-muted font-sans">{description}</p>
     </header>
 
     <div class="prose mt-12 max-w-[46rem]">
       <Content />
     </div>
 
+    <!-- Author & Footer info -->
+    <div class="mt-16 max-w-[46rem] rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
+      <div class="flex items-center gap-4">
+        <div class="grid size-11 place-items-center rounded-xl bg-accent font-display text-lg font-bold text-surface">
+          X
+        </div>
+        <div>
+          <h4 class="font-display text-base font-medium text-ink">{SITE.name}</h4>
+          <p class="text-xs text-muted font-sans">{SITE.role} · {SITE.tagline}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Navigation -->
     <nav
-      class="mt-20 grid gap-4 border-t border-line pt-8 sm:grid-cols-2"
+      class="mt-12 max-w-[46rem] grid gap-4 border-t border-line pt-8 sm:grid-cols-2"
       aria-label="More posts"
     >
       {
         prev && (
-          <a href={`/blog/${prev.id}/`} class="group rounded-xl border border-line bg-surface p-5 transition-colors hover:border-line-strong">
-            <span class="label">← Previous</span>
-            <p class="mt-2 font-display text-lg leading-snug">{prev.data.title}</p>
+          <a href={`/blog/${prev.id}/`} class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float">
+            <span class="label flex items-center gap-1 text-accent">
+              <span class="transition-transform group-hover:-translate-x-1">←</span> Previous Note
+            </span>
+            <p class="mt-2 font-display text-lg leading-snug text-ink group-hover:text-accent transition-colors">{prev.data.title}</p>
           </a>
         )
       }
@@ -76,13 +102,53 @@ const { title, description, tag, date } = post.data;
         next && (
           <a
             href={`/blog/${next.id}/`}
-            class="group rounded-xl border border-line bg-surface p-5 transition-colors hover:border-line-strong sm:col-start-2 sm:text-right"
+            class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float sm:col-start-2 sm:text-right"
           >
-            <span class="label">Next →</span>
-            <p class="mt-2 font-display text-lg leading-snug">{next.data.title}</p>
+            <span class="label flex items-center justify-end gap-1 text-accent">
+              Next Note <span class="transition-transform group-hover:translate-x-1">→</span>
+            </span>
+            <p class="mt-2 font-display text-lg leading-snug text-ink group-hover:text-accent transition-colors">{next.data.title}</p>
           </a>
         )
       }
     </nav>
   </article>
+
+  <script>
+    // Reading progress bar
+    const progress = document.getElementById('read-progress');
+    const updateProgress = () => {
+      if (!progress) return;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      const current = window.scrollY;
+      const pct = total > 0 ? (current / total) * 100 : 0;
+      progress.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // Code copy buttons enhancement
+    document.querySelectorAll('.prose pre').forEach((pre) => {
+      const code = pre.querySelector('code');
+      if (!code) return;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.ariaLabel = 'Copy code';
+      button.className =
+        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 rounded-md border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted backdrop-blur transition-all hover:border-line-strong hover:text-ink';
+      button.innerHTML = '<span>Copy</span>';
+
+      pre.classList.add('group');
+      pre.appendChild(button);
+
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(code.innerText);
+        button.innerHTML = '<span class="text-accent">Copied!</span>';
+        setTimeout(() => {
+          button.innerHTML = '<span>Copy</span>';
+        }, 2000);
+      });
+    });
+  </script>
 </BaseLayout>

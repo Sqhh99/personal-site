@@ -21,13 +21,14 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
   data-tag={tag}
   data-search={search}
   class:list={[
-    'reveal group relative flex flex-col rounded-2xl border border-line bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-float',
-    feature ? 'p-8 sm:col-span-2 sm:p-10' : 'p-7',
+    'reveal group relative flex flex-col rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-float',
+    feature ? 'p-8 sm:col-span-2 sm:p-10 border-line-strong/60 shadow-xs' : 'p-7',
   ]}
   style={`--reveal-delay:${delay}ms`}
 >
   <div class="flex items-center justify-between gap-4">
-    <span class="rounded-full border border-line px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-accent">
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium">
+      <span class="size-1.5 rounded-full bg-accent"></span>
       {tag}
     </span>
     <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
@@ -35,34 +36,40 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
 
   <h3
     class:list={[
-      'mt-auto pt-10 leading-[1.15]',
+      'mt-8 leading-[1.18] font-display text-ink group-hover:text-accent transition-colors',
       feature ? 'text-3xl sm:text-[2.6rem]' : 'text-2xl',
     ]}
   >
-    <a href={`/blog/${post.id}/`} class="after:absolute after:inset-0">
+    <a href={`/blog/${post.id}/`} class="after:absolute after:inset-0 focus:outline-none">
       {title}
     </a>
   </h3>
 
   <p
     class:list={[
-      'mt-4 max-w-[58ch] leading-relaxed text-muted',
-      feature ? 'text-base' : 'text-[0.9rem]',
+      'mt-4 max-w-[58ch] leading-relaxed text-muted font-sans',
+      feature ? 'text-base' : 'text-[0.925rem]',
     ]}
   >
     {description}
   </p>
 
-  <div class="mt-8 flex items-center justify-between gap-4 border-t border-line pt-5">
-    <span class="label">{readingTime(post.body)}</span>
-    <span class="inline-flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-ink">
-      Read
+  <div class="mt-8 flex items-center justify-between gap-4 border-t border-line/70 pt-5">
+    <span class="label flex items-center gap-1.5">
+      <svg viewBox="0 0 24 24" class="size-3.5 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      {readingTime(post.body)}
+    </span>
+    <span class="inline-flex items-center gap-2 font-mono text-[0.725rem] font-medium tracking-wider text-ink group-hover:text-accent transition-colors">
+      Read post
       <svg
         viewBox="0 0 24 24"
-        class="size-4 transition-transform duration-300 group-hover:translate-x-1"
+        class="size-4 transition-transform duration-300 group-hover:translate-x-1.5"
         fill="none"
         stroke="currentColor"
-        stroke-width="1.7"
+        stroke-width="1.8"
         stroke-linecap="round"
         stroke-linejoin="round"
         aria-hidden="true"

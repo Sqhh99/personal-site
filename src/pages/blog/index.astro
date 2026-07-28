@@ -8,7 +8,7 @@ import { getPosts, leadPostId } from '../../lib/posts';
 const posts = await getPosts();
 const lead = leadPostId(posts);
 
-// Only offer tags that actually have posts, in the canonical order.
+// Only offer tags that actually have posts, in canonical order.
 const used = new Set(posts.map((post) => post.data.tag));
 const tags = TAGS.filter((tag) => used.has(tag));
 ---
@@ -17,29 +17,29 @@ const tags = TAGS.filter((tag) => used.has(tag));
   title={`Writing — ${SITE.name}`}
   description="Engineering notes on WebRTC, PyTorch, web performance and systems."
 >
-  <div class="shell py-20">
-    <header class="reveal max-w-[46ch]">
+  <div class="shell py-16 md:py-24">
+    <header class="reveal max-w-[48ch]">
       <p class="label flex items-center gap-3">
         <span class="inline-block h-px w-6 bg-accent"></span>
         Writing
       </p>
-      <h1 class="mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02]">Engineering notes</h1>
+      <h1 class="mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">Engineering notes</h1>
       <p class="mt-6 text-lg leading-relaxed text-muted">
-        {posts.length} posts on realtime media, deep learning, and the performance work underneath
+        {posts.length} articles on realtime media, deep learning, and the performance work underneath
         both.
       </p>
     </header>
 
-    <div class="reveal mt-14" style="--reveal-delay:80ms">
+    <div class="reveal mt-12" style="--reveal-delay:80ms">
       <PostFilter client:load tags={tags} targetId="post-grid" emptyId="post-empty" />
     </div>
 
-    <div id="post-grid" class="mt-10 grid gap-5 sm:grid-cols-2">
+    <div id="post-grid" class="mt-10 grid gap-6 sm:grid-cols-2">
       {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} delay={i * 60} />)}
     </div>
 
-    <p id="post-empty" hidden class="py-20 text-center font-mono text-sm text-faint">
-      No posts match that filter.
-    </p>
+    <div id="post-empty" hidden class="py-24 text-center">
+      <p class="font-mono text-sm text-faint">No posts match that filter.</p>
+    </div>
   </div>
 </BaseLayout>

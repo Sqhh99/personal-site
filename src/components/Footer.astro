@@ -4,17 +4,20 @@ import { SITE } from '../consts';
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-24 border-t border-line">
+<footer class="mt-28 border-t border-line bg-surface/30">
   <div
-    class="shell flex flex-col gap-4 py-8 font-mono text-[0.7rem] tracking-wide text-faint sm:flex-row sm:items-center sm:justify-between"
+    class="shell flex flex-col gap-4 py-10 font-mono text-[0.7rem] tracking-wide text-faint sm:flex-row sm:items-center sm:justify-between"
   >
     <p>© {year} {SITE.name} · Built with Astro, deployed on Cloudflare</p>
-    <div class="flex items-center gap-5">
-      <a href="/rss.xml" class="transition-colors hover:text-ink">RSS</a>
-      <a href={SITE.repository} target="_blank" rel="noreferrer" class="transition-colors hover:text-ink">
+    <div class="flex items-center gap-6">
+      <a href="/rss.xml" class="transition-colors hover:text-accent">RSS</a>
+      <a href={SITE.repository} target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">
         Source
       </a>
-      <a href="#main" class="transition-colors hover:text-ink">Back to top ↑</a>
+      <a href="#main" class="group inline-flex items-center gap-1 transition-colors hover:text-accent">
+        Back to top
+        <span class="transition-transform duration-300 group-hover:-translate-y-0.5" aria-hidden="true">↑</span>
+      </a>
     </div>
   </div>
 </footer>
