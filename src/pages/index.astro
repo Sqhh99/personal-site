@@ -1,143 +1,29 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
-import FocusGrid from '../components/FocusGrid.astro';
 import PostCard from '../components/PostCard.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import { PROJECTS, SITE } from '../consts';
 import { getPosts, leadPostId } from '../lib/posts';
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
 const lang: Language = 'en';
 const t = useTranslations(lang);
-const posts = (await getPosts(lang)).slice(0, 3);
+const posts = await getPosts(lang);
 const lead = leadPostId(posts);
-const aboutParagraphs = t('about.paragraphs');
-const aboutSpecs = t('about.specs');
 ---
 
 <BaseLayout lang={lang}>
   <Hero lang={lang} />
 
-  <section id="focus" class="shell scroll-mt-28 py-24">
-    <SectionHeading
-      index={t('focus.index')}
-      title={t('focus.title')}
-      lede={t('focus.lede')}
-    />
-    <FocusGrid lang={lang} />
-  </section>
-
-  {
-    PROJECTS.length > 0 && (
-      <section id="projects" class="shell scroll-mt-28 py-24">
-        <SectionHeading index="02 / Projects" title="Selected work" />
-        <div class="border-t border-line">
-          {PROJECTS.map((project, i) => (
-            <a
-              href={project.href}
-              class="reveal group grid grid-cols-[3rem_1fr_auto] items-center gap-6 border-b border-line py-8 transition-all duration-300 hover:px-4 hover:bg-surface/50"
-              style={`--reveal-delay:${i * 70}ms`}
-            >
-              <span class="label">{String(i + 1).padStart(2, '0')}</span>
-              <div>
-                <span class="font-mono text-[0.7rem] tracking-wider text-accent">{project.type}</span>
-                <h3 class="mt-2 text-2xl font-display group-hover:text-accent transition-colors">{project.title}</h3>
-                <p class="mt-2 max-w-[70ch] text-[0.9rem] leading-relaxed text-muted">
-                  {project.description}
-                </p>
-              </div>
-              <span class="label hidden sm:block">{project.status}</span>
-            </a>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  <section id="writing" class="shell scroll-mt-28 py-24">
+  <section id="writing" class="shell py-16 sm:py-20">
     <SectionHeading
       index={t('writing.index')}
       title={t('writing.title')}
       lede={t('writing.lede')}
     />
     <div class="grid gap-6 sm:grid-cols-2">
-      {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} delay={i * 80} lang={lang} />)}
-    </div>
-    <div class="mt-12 text-center sm:text-left">
-      <a
-        href="/blog/"
-        class="group inline-flex items-center gap-2.5 rounded-full border border-line bg-surface px-5 py-2.5 font-mono text-[0.75rem] tracking-wider text-muted shadow-2xs transition-all duration-200 hover:border-line-strong hover:text-ink hover:bg-surface-sunk/40"
-      >
-        {t('writing.viewAll')}
-        <span class="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">→</span>
-      </a>
-    </div>
-  </section>
-
-  <section id="about" class="scroll-mt-28 border-y border-line bg-surface/60 backdrop-blur-xs py-24">
-    <div class="shell">
-      <SectionHeading index={t('about.index')} title={t('about.title')} />
-      <div class="grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
-        <p class="reveal font-display text-[clamp(1.6rem,3vw,2.4rem)] leading-[1.35] text-ink">
-          {t('about.lead')}
-        </p>
-        <div class="reveal" style="--reveal-delay:120ms">
-          {
-            aboutParagraphs.map((paragraph) => (
-              <p class="mb-5 leading-[1.85] text-muted">{paragraph}</p>
-            ))
-          }
-          <dl class="mt-10 border-t border-line">
-            {
-              aboutSpecs.map((spec) => (
-                <div class="flex items-baseline justify-between gap-6 border-b border-line/80 py-4 transition-colors hover:bg-surface-sunk/30 px-2 rounded-lg">
-                  <dt class="label">{spec.label}</dt>
-                  <dd class="text-right font-mono text-[0.825rem] text-ink font-medium">{spec.value}</dd>
-                </div>
-              ))
-            }
-          </dl>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="contact" class="shell py-28">
-    <div class="reveal flex flex-col justify-between gap-10 rounded-3xl border border-line bg-surface p-10 sm:p-14 md:flex-row md:items-end shadow-xs">
-      <div>
-        <p class="label flex items-center gap-3">
-          <span class="inline-block h-px w-6 bg-accent"></span>
-          {t('contact.index')}
-        </p>
-        <h2 class="mt-4 max-w-[16ch] text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.05] font-display text-ink">
-          {t('contact.title')}
-        </h2>
-      </div>
-      <div class="flex flex-col items-start gap-4 md:items-end shrink-0">
-        <a
-          href={SITE.github}
-          target="_blank"
-          rel="noreferrer"
-          class="group inline-flex h-12 items-center gap-3 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface shadow-xs transition-all duration-300 hover:bg-accent-deep hover:shadow-md hover:-translate-y-0.5"
-        >
-          GitHub {SITE.handle}
-          <svg viewBox="0 0 24 24" class="size-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </a>
-        <a
-          href={SITE.repository}
-          target="_blank"
-          rel="noreferrer"
-          class="border-b border-line-strong/80 pb-1 text-[0.925rem] text-muted transition-colors hover:border-ink hover:text-ink"
-        >
-          {t('contact.source')}
-        </a>
-      </div>
+      {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} delay={i * 60} lang={lang} />)}
     </div>
   </section>
 </BaseLayout>

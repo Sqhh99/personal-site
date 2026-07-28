@@ -1,5 +1,4 @@
 ---
-import WaveField from './react/WaveField';
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
@@ -9,86 +8,15 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const t = useTranslations(lang);
-
-const chips = ['WebRTC', 'PyTorch', 'TypeScript', 'Systems'];
-const blogHref = lang === 'zh' ? '/zh/blog/' : '/blog/';
-const focusHref = lang === 'zh' ? '/zh/#focus' : '/#focus';
 ---
 
-<section class="relative isolate overflow-hidden">
-  <div class="hero-backdrop pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-    {/* Static wash: visible immediately, and whole visual if WebGL or three.js chunk never arrives */}
-    <div class="hero-wash absolute inset-0 opacity-80"></div>
-    <div class="hero-field absolute inset-0 opacity-90">
-      <WaveField client:visible />
-    </div>
-  </div>
-
-  <div class="shell relative flex min-h-[min(48rem,90svh)] flex-col justify-center py-20 lg:py-24">
-    <p
-      class="reveal inline-flex w-fit items-center gap-2.5 rounded-full border border-line/80 bg-surface/90 px-4 py-1.5 font-mono text-[0.68rem] tracking-[0.14em] text-muted uppercase shadow-xs backdrop-blur-md transition-all hover:border-accent/40"
-    >
-      <span class="relative flex size-2">
-        <span class="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-75"></span>
-        <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
-      </span>
-      {t('hero.badge')}
-    </p>
-
-    <h1
-      class="reveal mt-8 max-w-[20ch] text-[clamp(2.75rem,7vw,5.25rem)] leading-[0.98] tracking-tight font-display"
-      style="--reveal-delay:80ms"
-    >
-      {t('hero.title.1')}
-      <em class="not-italic text-accent font-serif underline decoration-accent/30 underline-offset-8">
-        {t('hero.title.media')}
-      </em>
-      {t('hero.title.2')}
+<section class="shell pt-14 pb-12 sm:pt-18 sm:pb-14 border-b border-line/60">
+  <div class="max-w-[48ch]">
+    <h1 class="font-display text-4xl sm:text-5xl font-normal tracking-tight text-ink">
+      {t('site.name')}
     </h1>
-
-    <p
-      class="reveal mt-8 max-w-[54ch] text-lg leading-relaxed text-muted font-sans"
-      style="--reveal-delay:160ms"
-    >
+    <p class="mt-4 text-lg sm:text-xl leading-relaxed text-muted font-sans">
       {t('hero.lead')}
     </p>
-
-    <div class="reveal mt-10 flex flex-wrap items-center gap-5" style="--reveal-delay:240ms">
-      <a
-        href={blogHref}
-        class="group inline-flex h-12 items-center gap-3 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-deep hover:shadow-md active:translate-y-0"
-      >
-        {t('hero.cta.writing')}
-        <svg
-          viewBox="0 0 24 24"
-          class="size-4 transition-transform duration-300 group-hover:translate-x-1.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M5 12h14M13 6l6 6-6 6"></path>
-        </svg>
-      </a>
-      <a
-        href={focusHref}
-        class="group inline-flex items-center gap-1.5 border-b border-line-strong/80 pb-1 text-[0.95rem] text-muted transition-colors hover:border-accent hover:text-ink"
-      >
-        {t('hero.cta.focus')}
-        <span class="transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden="true">↓</span>
-      </a>
-    </div>
-
-    <ul class="reveal mt-14 flex flex-wrap gap-2.5" style="--reveal-delay:320ms" aria-label="Topics">
-      {
-        chips.map((chip) => (
-          <li class="rounded-full border border-line/80 bg-surface/80 px-3.5 py-1.5 font-mono text-[0.68rem] tracking-wider text-muted backdrop-blur-md shadow-2xs transition-all hover:border-line-strong hover:text-ink hover:scale-105">
-            <span class="text-accent/80 mr-1.5">#</span>{chip}
-          </li>
-        ))
-      }
-    </ul>
   </div>
 </section>
