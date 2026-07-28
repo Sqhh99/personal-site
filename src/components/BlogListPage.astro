@@ -1,15 +1,11 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import BlogPager from './BlogPager.astro';
+import CollectionListLayout from './CollectionListLayout.astro';
 import PostCard from './PostCard.astro';
 import PostFilter from './react/PostFilter';
 import { TAGS } from '../consts';
-import {
-  BLOG_PAGE_SIZE,
-  getPosts,
-  leadPostId,
-  paginatePosts,
-} from '../lib/posts';
+import { getColumn } from '../lib/columns';
+import { paginate } from '../lib/pagination';
+import { getPosts, leadPostId } from '../lib/posts';
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
@@ -22,9 +18,9 @@ const { lang, currentPage = 1 } = Astro.props;
 const t = useTranslations(lang);
 
 const posts = await getPosts(lang);
-const pagePosts = paginatePosts(posts, currentPage);
-const pagePostIds = new Set(pagePosts.map((post) => post.id));
-const totalPages = Math.max(1, Math.ceil(posts.length / BLOG_PAGE_SIZE));
+const config = getColumn('blog');
+const page = paginate(posts, currentPage, config.pageSize);
+const pagePostIds = new Set(page.items.map((post) => post.id));
 const lead = leadPostId(posts);
 
 // Only offer tags that actually have posts, in canonical order.
@@ -38,69 +34,55 @@ const filterLabels = {
   postSingular: t('blog.postSingular'),
   postPlural: t('blog.postPlural'),
   emptyText: t('blog.empty'),
-  previousPage: t('blog.prevPage'),
-  nextPage: t('blog.nextPage'),
-  pageStatus: t('blog.pageStatus'),
-  pagination: t('blog.pagination'),
+  previousPage: t('pager.prev'),
+  nextPage: t('pager.next'),
+  pageStatus: t('pager.status'),
+  pagination: t(config.i18n.paginationLabel),
   searchAria: t('blog.searchAria'),
   clearSearch: t('blog.clearSearch'),
   filterByTag: t('blog.filterByTag'),
 };
 ---
 
-<BaseLayout
+<CollectionListLayout
+  column="blog"
   lang={lang}
-  title={t('blog.title')}
-  description={t('site.description')}
+  currentPage={page.page}
+  totalPages={page.totalPages}
+  totalItems={page.totalItems}
+  gridId="post-grid"
+  emptyId="post-empty"
+  pagerId="blog-pager"
+  clientPagerId="filter-pager"
 >
-  <div class="shell py-16 md:py-24">
-    <header class="reveal max-w-[48ch]">
-      <p class="label flex items-center gap-3">
-        <span class="inline-block h-px w-6 bg-accent"></span>
-        {t('nav.writing')}
-      </p>
-      <h1 class="mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">{t('blog.heading')}</h1>
-      <p class="mt-6 text-lg leading-relaxed text-muted">
-        {posts.length} {t('blog.description')}
-      </p>
-    </header>
-
-    <div class="reveal mt-12" style="--reveal-delay:80ms">
-      <PostFilter
-        client:load
-        tags={tags}
-        targetId="post-grid"
-        emptyId="post-empty"
-        ssrPagerId="blog-pager"
-        clientPagerId="filter-pager"
-        pageSize={BLOG_PAGE_SIZE}
-        currentPage={currentPage}
-        labels={filterLabels}
-      />
-    </div>
-
-    <div id="post-grid" class="mt-10 grid gap-6 sm:grid-cols-2">
-      {posts.map((post, i) => (
-        <PostCard
-          post={post}
-          feature={post.id === lead}
-          delay={(i % BLOG_PAGE_SIZE) * 60}
-          lang={lang}
-          hidden={!pagePostIds.has(post.id)}
-        />
-      ))}
-    </div>
-
-    <div id="post-empty" hidden={posts.length > 0} class="py-24 text-center">
-      <p class="font-mono text-sm text-faint">{t('blog.empty')}</p>
-    </div>
-
-    <BlogPager
-      id="blog-pager"
-      currentPage={currentPage}
-      totalPages={totalPages}
-      lang={lang}
+  <Fragment slot="toolbar">
+    <PostFilter
+      client:load
+      tags={tags}
+      targetId="post-grid"
+      emptyId="post-empty"
+      ssrPagerId="blog-pager"
+      clientPagerId="filter-pager"
+      pageSize={config.pageSize}
+      currentPage={page.page}
+      labels={filterLabels}
     />
-    <div id="filter-pager"></div>
-  </div>
-</BaseLayout>
+  </Fragment>
+
+  <Fragment slot="grid">
+    <!--
+      PostFilter searches across the whole collection, including from paged URLs.
+      Blog therefore keeps all cards in the DOM and reveals only the SSR page
+      initially; unfiltered columns render only page.items.
+    -->
+    {posts.map((post, i) => (
+      <PostCard
+        post={post}
+        feature={post.id === lead}
+        delay={(i % config.pageSize) * 60}
+        lang={lang}
+        hidden={!pagePostIds.has(post.id)}
+      />
+    ))}
+  </Fragment>
+</CollectionListLayout>

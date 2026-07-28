@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import type { Language } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+import { getColumn, getColumnBasePath, type ColumnId } from '../lib/columns';
+import { getPagedListUrl } from '../lib/pagination';
+import Pager from './Pager.astro';
+
+interface Props {
+  column: ColumnId;
+  lang: Language;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  gridId?: string;
+  emptyId?: string;
+  pagerId?: string;
+  clientPagerId?: string;
+}
+
+const {
+  column,
+  lang,
+  currentPage,
+  totalPages,
+  totalItems,
+  gridId,
+  emptyId,
+  pagerId,
+  clientPagerId,
+} = Astro.props;
+const config = getColumn(column);
+const t = useTranslations(lang);
+const basePath = getColumnBasePath(column, lang);
+const prevUrl = currentPage > 1 ? getPagedListUrl(basePath, currentPage - 1) : undefined;
+const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage + 1) : undefined;
+---
+
+<BaseLayout
+  lang={lang}
+  title={t(config.i18n.title)}
+  description={t(config.i18n.description)}
+>
+  <div class="shell py-16 md:py-24">
+    <header class="reveal max-w-[48ch]">
+      <p class="label flex items-center gap-3">
+        <span class="inline-block h-px w-6 bg-accent"></span>
+        {t(config.i18n.nav)}
+      </p>
+      <h1 class="mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">
+        {t(config.i18n.heading)}
+      </h1>
+      <p class="mt-6 text-lg leading-relaxed text-muted">
+        {totalItems} {t(config.i18n.description)}
+      </p>
+    </header>
+
+    {Astro.slots.has('toolbar') && (
+      <div class="reveal mt-12" style="--reveal-delay:80ms">
+        <slot name="toolbar" />
+      </div>
+    )}
+
+    <div id={gridId} class="mt-10 grid gap-6 sm:grid-cols-2">
+      <slot name="grid" />
+    </div>
+
+    <div id={emptyId} hidden={totalItems > 0} class="py-24 text-center">
+      <p class="font-mono text-sm text-faint">{t(config.i18n.empty)}</p>
+    </div>
+
+    <Pager
+      id={pagerId}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      prevUrl={prevUrl}
+      nextUrl={nextUrl}
+      lang={lang}
+      ariaLabel={t(config.i18n.paginationLabel)}
+    />
+    {clientPagerId && <div id={clientPagerId}></div>}
+  </div>
+</BaseLayout>

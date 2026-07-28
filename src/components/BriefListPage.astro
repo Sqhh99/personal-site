@@ -1,0 +1,35 @@
+---
+import type { Language } from '../i18n/ui';
+import { getBriefs } from '../lib/briefs';
+import { getColumn } from '../lib/columns';
+import { paginate } from '../lib/pagination';
+import BriefCard from './BriefCard.astro';
+import CollectionListLayout from './CollectionListLayout.astro';
+
+interface Props {
+  lang: Language;
+  currentPage?: number;
+}
+
+const { lang, currentPage = 1 } = Astro.props;
+const briefs = await getBriefs();
+const page = paginate(briefs, currentPage, getColumn('brief').pageSize);
+---
+
+<CollectionListLayout
+  column="brief"
+  lang={lang}
+  currentPage={page.page}
+  totalPages={page.totalPages}
+  totalItems={page.totalItems}
+>
+  <Fragment slot="grid">
+    {page.items.map((brief, index) => (
+      <BriefCard
+        brief={brief}
+        lang={lang}
+        delay={index * 40}
+      />
+    ))}
+  </Fragment>
+</CollectionListLayout>

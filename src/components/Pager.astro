@@ -1,26 +1,28 @@
 ---
 import type { Language } from '../i18n/ui';
 import { useTranslations } from '../i18n/utils';
-import { getBlogListUrl } from '../lib/posts';
 
 interface Props {
   currentPage: number;
   totalPages: number;
+  prevUrl?: string;
+  nextUrl?: string;
   lang?: Language;
   id?: string;
+  ariaLabel: string;
 }
 
 const {
   currentPage,
   totalPages,
+  prevUrl,
+  nextUrl,
   lang = 'en',
   id,
+  ariaLabel,
 } = Astro.props;
 const t = useTranslations(lang);
-
-const previousUrl = currentPage > 1 ? getBlogListUrl(lang, currentPage - 1) : undefined;
-const nextUrl = currentPage < totalPages ? getBlogListUrl(lang, currentPage + 1) : undefined;
-const status = t('blog.pageStatus')
+const status = t('pager.status')
   .replace('{current}', String(currentPage))
   .replace('{total}', String(totalPages));
 
@@ -30,18 +32,18 @@ const controlClass =
 
 <nav
   id={id}
-  aria-label={t('blog.pagination')}
+  aria-label={ariaLabel}
   class="mt-12 flex items-center justify-between gap-3 border-t border-line/70 pt-7"
 >
-  {previousUrl ? (
-    <a href={previousUrl} rel="prev" class={`${controlClass} hover:border-line-strong hover:text-ink`}>
+  {prevUrl ? (
+    <a href={prevUrl} rel="prev" class={`${controlClass} hover:border-line-strong hover:text-ink`}>
       <span aria-hidden="true">←</span>
-      <span class="ml-2">{t('blog.prevPage')}</span>
+      <span class="ml-2">{t('pager.prev')}</span>
     </a>
   ) : (
     <span aria-disabled="true" class={`${controlClass} cursor-not-allowed opacity-45`}>
       <span aria-hidden="true">←</span>
-      <span class="ml-2">{t('blog.prevPage')}</span>
+      <span class="ml-2">{t('pager.prev')}</span>
     </span>
   )}
 
@@ -51,12 +53,12 @@ const controlClass =
 
   {nextUrl ? (
     <a href={nextUrl} rel="next" class={`${controlClass} hover:border-line-strong hover:text-ink`}>
-      <span class="mr-2">{t('blog.nextPage')}</span>
+      <span class="mr-2">{t('pager.next')}</span>
       <span aria-hidden="true">→</span>
     </a>
   ) : (
     <span aria-disabled="true" class={`${controlClass} cursor-not-allowed opacity-45`}>
-      <span class="mr-2">{t('blog.nextPage')}</span>
+      <span class="mr-2">{t('pager.next')}</span>
       <span aria-hidden="true">→</span>
     </span>
   )}

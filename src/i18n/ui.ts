@@ -46,10 +46,6 @@ export const UI_STRINGS = {
     'blog.postPlural': 'posts',
     'blog.filterAll': 'All',
     'blog.empty': 'No posts match that filter.',
-    'blog.prevPage': 'Previous',
-    'blog.nextPage': 'Next',
-    'blog.pageStatus': 'Page {current} of {total}',
-    'blog.pagination': 'Writing pagination',
     'blog.searchAria': 'Search writing',
     'blog.clearSearch': 'Clear search query',
     'blog.filterByTag': 'Filter by tag',
@@ -61,9 +57,15 @@ export const UI_STRINGS = {
     'blog.copy': 'Copy',
     'blog.copied': 'Copied!',
 
+    'pager.prev': 'Previous',
+    'pager.next': 'Next',
+    'pager.status': 'Page {current} of {total}',
+    'pager.label': 'Pagination',
+
     'briefs.title': 'AI Briefs — Sqhh99',
     'briefs.heading': 'AI Daily Briefs',
     'briefs.description': 'Daily AI news briefs tracking model releases, research, and industry developments.',
+    'briefs.empty': 'No briefs have been published yet.',
     'briefs.back': 'Back to briefs',
     'briefs.readBrief': 'Read brief',
     'briefs.prevBrief': 'Previous brief',
@@ -116,10 +118,6 @@ export const UI_STRINGS = {
     'blog.postPlural': '篇文章',
     'blog.filterAll': '全部',
     'blog.empty': '没有找到匹配的文章。',
-    'blog.prevPage': '上一页',
-    'blog.nextPage': '下一页',
-    'blog.pageStatus': '第 {current} / {total} 页',
-    'blog.pagination': '文章分页',
     'blog.searchAria': '搜索文章',
     'blog.clearSearch': '清除搜索内容',
     'blog.filterByTag': '按标签筛选',
@@ -131,9 +129,15 @@ export const UI_STRINGS = {
     'blog.copy': '复制',
     'blog.copied': '已复制！',
 
+    'pager.prev': '上一页',
+    'pager.next': '下一页',
+    'pager.status': '第 {current} / {total} 页',
+    'pager.label': '分页导航',
+
     'briefs.title': 'AI 新闻简报 — Sqhh99',
     'briefs.heading': 'AI 每日新闻简报',
     'briefs.description': '每日 AI 新闻简报，追踪模型发布、前沿研究与行业动态。',
+    'briefs.empty': '暂无简报。',
     'briefs.back': '返回简报列表',
     'briefs.readBrief': '阅读简报',
     'briefs.prevBrief': '上一篇简报',
@@ -150,3 +154,5 @@ export const UI_STRINGS = {
     '404.back': '返回首页',
   },
 } as const;
+
+export type UiKey = keyof typeof UI_STRINGS.en;

@@ -1,0 +1,63 @@
+---
+import type { Language } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+import { getBriefUrl, type Brief } from '../lib/briefs';
+import { formatDate, isoDate, readingTime } from '../lib/posts';
+
+interface Props {
+  brief: Brief;
+  lang?: Language;
+  delay?: number;
+}
+
+const { brief, lang = 'en', delay = 0 } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<article
+  class="reveal group relative flex flex-col rounded-2xl border border-line bg-surface p-7 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float"
+  style={`--reveal-delay:${delay}ms`}
+>
+  <div class="flex items-center justify-between gap-4">
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium">
+      <span class="size-1.5 rounded-full bg-accent"></span>
+      {brief.data.source}
+    </span>
+    <time datetime={isoDate(brief.data.date)} class="label">{formatDate(brief.data.date, lang)}</time>
+  </div>
+
+  <h2 class="mt-6 text-xl font-display leading-[1.2] text-ink group-hover:text-accent transition-colors">
+    <a href={getBriefUrl(brief, lang)} class="after:absolute after:inset-0 focus:outline-none">
+      {brief.data.title}
+    </a>
+  </h2>
+
+  <p class="mt-3 text-[0.925rem] leading-relaxed text-muted font-sans line-clamp-3">
+    {brief.data.description}
+  </p>
+
+  <div class="mt-6 flex items-center justify-between gap-4 border-t border-line/70 pt-4">
+    <span class="label flex items-center gap-1.5">
+      <svg viewBox="0 0 24 24" class="size-3.5 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      {readingTime(brief.body, lang)}
+    </span>
+    <span class="inline-flex items-center gap-1.5 font-mono text-[0.725rem] font-medium tracking-wider text-ink group-hover:text-accent transition-colors">
+      {t('briefs.readBrief')}
+      <svg
+        viewBox="0 0 24 24"
+        class="size-4 transition-transform duration-300 group-hover:translate-x-1"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5 12h14M13 6l6 6-6 6"></path>
+      </svg>
+    </span>
+  </div>
+</article>

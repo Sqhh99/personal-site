@@ -1,9 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { Language } from '../i18n/ui';
+import { DEFAULT_PAGE_SIZE, getPagedListUrl, paginate } from './pagination';
 
 export type Post = CollectionEntry<'blog'>;
 
-export const BLOG_PAGE_SIZE = 10;
+export const BLOG_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 export function getPostSlug(postOrId: Post | string): string {
   const id = typeof postOrId === 'string' ? postOrId : postOrId.id;
@@ -20,13 +21,11 @@ export function getPostUrl(postOrSlug: Post | string, lang: Language = 'en'): st
 }
 
 export function getBlogListUrl(lang: Language = 'en', page = 1): string {
-  const root = lang === 'zh' ? '/zh/blog/' : '/blog/';
-  return page <= 1 ? root : `${root}page/${page}/`;
+  return getPagedListUrl(lang === 'zh' ? '/zh/blog' : '/blog', page);
 }
 
 export function paginatePosts(posts: Post[], page: number, pageSize = BLOG_PAGE_SIZE): Post[] {
-  const start = (page - 1) * pageSize;
-  return posts.slice(start, start + pageSize);
+  return paginate(posts, page, pageSize).items;
 }
 
 /** Published posts for a given locale, newest first. Drafts are excluded from production builds only. */
