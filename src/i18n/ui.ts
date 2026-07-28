@@ -19,6 +19,7 @@ export const UI_STRINGS = {
 
     'nav.home': 'Home',
     'nav.writing': 'Writing',
+    'nav.briefs': 'Briefs',
 
     'hero.badge': 'Sqhh99',
     'hero.title': 'Sqhh99',
@@ -53,6 +54,14 @@ export const UI_STRINGS = {
     'blog.copy': 'Copy',
     'blog.copied': 'Copied!',
 
+    'briefs.title': 'AI Briefs — Sqhh99',
+    'briefs.heading': 'AI Daily Briefs',
+    'briefs.description': 'Daily AI news briefs tracking model releases, research, and industry developments.',
+    'briefs.back': '← Back to briefs',
+    'briefs.readBrief': 'Read brief',
+    'briefs.prevBrief': 'Previous brief',
+    'briefs.nextBrief': 'Next brief',
+
     'footer.builtWith': 'Built with Astro, deployed on Cloudflare',
     'footer.rss': 'RSS',
     'footer.source': 'Source',
@@ -74,6 +83,7 @@ export const UI_STRINGS = {
 
     'nav.home': '首页',
     'nav.writing': '文章',
+    'nav.briefs': '简报',
 
     'hero.badge': 'Sqhh99',
     'hero.title': 'Sqhh99',
@@ -106,6 +116,14 @@ export const UI_STRINGS = {
     'blog.minRead': '分钟阅读',
     'blog.copy': '复制',
     'blog.copied': '已复制！',
+
+    'briefs.title': 'AI 新闻简报 — Sqhh99',
+    'briefs.heading': 'AI 每日新闻简报',
+    'briefs.description': '每日 AI 新闻简报，追踪模型发布、前沿研究与行业动态。',
+    'briefs.back': '← 返回简报列表',
+    'briefs.readBrief': '阅读简报',
+    'briefs.prevBrief': '上一篇简报',
+    'briefs.nextBrief': '下一篇简报',
 
     'footer.builtWith': '基于 Astro 构建，部署于 Cloudflare',
     'footer.rss': 'RSS',

@@ -14,4 +14,16 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+const brief = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/brief' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    tags: z.array(z.string()).default(['AI', '新闻']),
+    source: z.string().default('每日 AI 新闻简报'),
+    featured: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, brief };

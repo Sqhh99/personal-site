@@ -23,6 +23,11 @@ export function getLocalizedPath(pathname: string, targetLang: Language): string
     cleanPath = cleanPath.replace(/^\/zh/, '') || '/';
   }
 
+  // Briefs are unified under /brief/ (no separate /zh/brief/ path)
+  if (cleanPath.startsWith('/brief')) {
+    return cleanPath.endsWith('/') ? cleanPath : cleanPath + '/';
+  }
+
   // Ensure trailing slash for non-anchor routes to match site conventions
   if (targetLang === 'zh') {
     if (cleanPath === '/') return '/zh/';

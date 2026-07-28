@@ -15,6 +15,7 @@ export const SITE = {
 export const NAV = [
   { href: '/', label: 'Home' },
   { href: '/blog', label: 'Writing' },
+  { href: '/brief', label: 'Briefs' },
 ] as const;
 
 /** The tag vocabulary. Kept in sync with the zod enum in `src/content.config.ts`. */
