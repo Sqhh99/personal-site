@@ -1,6 +1,14 @@
 ---
 import { SITE } from '../consts';
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
 
+interface Props {
+  lang?: Language;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
@@ -8,14 +16,14 @@ const year = new Date().getFullYear();
   <div
     class="shell flex flex-col gap-4 py-10 font-mono text-[0.7rem] tracking-wide text-faint sm:flex-row sm:items-center sm:justify-between"
   >
-    <p>© {year} {SITE.name} · Built with Astro, deployed on Cloudflare</p>
+    <p>© {year} {t('site.name')} · {t('footer.builtWith')}</p>
     <div class="flex items-center gap-6">
-      <a href="/rss.xml" class="transition-colors hover:text-accent">RSS</a>
+      <a href="/rss.xml" class="transition-colors hover:text-accent">{t('footer.rss')}</a>
       <a href={SITE.repository} target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">
-        Source
+        {t('footer.source')}
       </a>
       <a href="#main" class="group inline-flex items-center gap-1 transition-colors hover:text-accent">
-        Back to top
+        {t('footer.backToTop')}
         <span class="transition-transform duration-300 group-hover:-translate-y-0.5" aria-hidden="true">↑</span>
       </a>
     </div>

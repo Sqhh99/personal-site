@@ -1,12 +1,21 @@
 ---
-import { FOCUS_AREAS } from '../consts';
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
+const focusAreas = t('focus.areas');
 ---
 
 <div
   class="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 xl:grid-cols-4 shadow-xs"
 >
   {
-    FOCUS_AREAS.map((area, i) => (
+    focusAreas.map((area, i) => (
       <article
         class="reveal group relative flex min-h-[19.5rem] flex-col bg-surface p-8 transition-all duration-300 hover:bg-sunk/50 hover:shadow-xs"
         style={`--reveal-delay:${i * 80}ms`}

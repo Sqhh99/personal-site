@@ -9,6 +9,13 @@ import tailwindcss from '@tailwindcss/vite';
 // so it is deliberately the only place the domain is written down.
 export default defineConfig({
   site: 'https://sqhh99.dev',
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'zh'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   integrations: [mdx(), react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],

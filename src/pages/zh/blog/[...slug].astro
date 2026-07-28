@@ -1,16 +1,16 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { formatDate, getPosts, getPostSlug, getPostUrl, isoDate, readingTime, type Post } from '../../lib/posts';
-import { useTranslations } from '../../i18n/utils';
-import type { Language } from '../../i18n/ui';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { formatDate, getPosts, getPostSlug, getPostUrl, isoDate, readingTime, type Post } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
 
-const lang: Language = 'en';
+const lang: Language = 'zh';
 const t = useTranslations(lang);
 
 export const getStaticPaths = (async () => {
-  const posts = await getPosts('en');
+  const posts = await getPosts('zh');
   return posts.map((post, index) => ({
     params: { slug: getPostSlug(post) },
     props: {
@@ -44,7 +44,7 @@ const { title, description, tag, date } = post.data;
 
   <article class="shell py-12 sm:py-16">
     <a
-      href="/blog/"
+      href="/zh/blog/"
       class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
     >
       <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span> {t('blog.back')}
@@ -62,7 +62,7 @@ const { title, description, tag, date } = post.data;
         <span class="label flex items-center gap-1">
           <svg viewBox="0 0 24 24" class="size-3 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+            <polyline points="12 6 12 16 14"/>
           </svg>
           {readingTime(post.body, lang)}
         </span>
@@ -149,9 +149,9 @@ const { title, description, tag, date } = post.data;
 
       button.addEventListener('click', async () => {
         await navigator.clipboard.writeText(code.innerText);
-        button.innerHTML = '<span class="text-accent">Copied!</span>';
+        button.innerHTML = '<span class="text-accent">已复制！</span>';
         setTimeout(() => {
-          button.innerHTML = '<span>Copy</span>';
+          button.innerHTML = '<span>复制</span>';
         }, 2000);
       });
     });

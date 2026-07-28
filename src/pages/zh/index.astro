@@ -1,15 +1,15 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.astro';
-import FocusGrid from '../components/FocusGrid.astro';
-import PostCard from '../components/PostCard.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import { PROJECTS, SITE } from '../consts';
-import { getPosts, leadPostId } from '../lib/posts';
-import { useTranslations } from '../i18n/utils';
-import type { Language } from '../i18n/ui';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import FocusGrid from '../../components/FocusGrid.astro';
+import PostCard from '../../components/PostCard.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import { PROJECTS, SITE } from '../../consts';
+import { getPosts, leadPostId } from '../../lib/posts';
+import { useTranslations } from '../../i18n/utils';
+import type { Language } from '../../i18n/ui';
 
-const lang: Language = 'en';
+const lang: Language = 'zh';
 const t = useTranslations(lang);
 const posts = (await getPosts(lang)).slice(0, 3);
 const lead = leadPostId(posts);
@@ -32,7 +32,7 @@ const aboutSpecs = t('about.specs');
   {
     PROJECTS.length > 0 && (
       <section id="projects" class="shell scroll-mt-28 py-24">
-        <SectionHeading index="02 / Projects" title="Selected work" />
+        <SectionHeading index="02 / 项目" title="精选项目" />
         <div class="border-t border-line">
           {PROJECTS.map((project, i) => (
             <a
@@ -67,7 +67,7 @@ const aboutSpecs = t('about.specs');
     </div>
     <div class="mt-12 text-center sm:text-left">
       <a
-        href="/blog/"
+        href="/zh/blog/"
         class="group inline-flex items-center gap-2.5 rounded-full border border-line bg-surface px-5 py-2.5 font-mono text-[0.75rem] tracking-wider text-muted shadow-2xs transition-all duration-200 hover:border-line-strong hover:text-ink hover:bg-surface-sunk/40"
       >
         {t('writing.viewAll')}

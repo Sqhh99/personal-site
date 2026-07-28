@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const ALL = 'All';
+export interface PostFilterLabels {
+  searchPlaceholder?: string;
+  filterAll?: string;
+  showing?: string;
+  postSingular?: string;
+  postPlural?: string;
+  emptyText?: string;
+}
 
 interface Props {
   /** Tags that actually occur in the post list, in display order. */
@@ -8,14 +15,16 @@ interface Props {
   /** Id of the server-rendered grid this island filters. */
   targetId: string;
   emptyId: string;
+  labels?: PostFilterLabels;
 }
 
-export default function PostFilter({ tags, targetId, emptyId }: Props) {
-  const [active, setActive] = useState(ALL);
+export default function PostFilter({ tags, targetId, emptyId, labels = {} }: Props) {
+  const filterAllLabel = labels.filterAll ?? 'All';
+  const [active, setActive] = useState(filterAllLabel);
   const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState<number | null>(null);
 
-  const options = useMemo(() => [ALL, ...tags], [tags]);
+  const options = useMemo(() => [filterAllLabel, ...tags], [tags, filterAllLabel]);
 
   useEffect(() => {
     const grid = document.getElementById(targetId);
@@ -26,7 +35,7 @@ export default function PostFilter({ tags, targetId, emptyId }: Props) {
     let shown = 0;
 
     for (const card of grid.querySelectorAll<HTMLElement>('[data-post]')) {
-      const matchesTag = active === ALL || card.dataset.tag === active;
+      const matchesTag = active === filterAllLabel || card.dataset.tag === active;
       const matchesTerm = !term || (card.dataset.search ?? '').includes(term);
       const visible = matchesTag && matchesTerm;
 
@@ -39,7 +48,9 @@ export default function PostFilter({ tags, targetId, emptyId }: Props) {
 
     setVisibleCount(shown);
     if (empty) empty.hidden = shown > 0;
-  }, [active, query, targetId, emptyId]);
+  }, [active, query, targetId, emptyId, filterAllLabel]);
+
+  const postUnit = visibleCount === 1 ? (labels.postSingular ?? 'post') : (labels.postPlural ?? 'posts');
 
   return (
     <div className="flex flex-col gap-5">
@@ -61,7 +72,7 @@ export default function PostFilter({ tags, targetId, emptyId }: Props) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search posts by title, tag, or topic..."
+            placeholder={labels.searchPlaceholder ?? 'Search posts by title, tag, or topic...'}
             aria-label="Search posts"
             className="w-full bg-transparent text-[0.925rem] text-ink outline-none placeholder:text-faint/80"
           />
@@ -81,7 +92,7 @@ export default function PostFilter({ tags, targetId, emptyId }: Props) {
 
         {visibleCount !== null && (
           <p className="font-mono text-[0.725rem] tracking-wide text-faint">
-            Showing <span className="font-medium text-ink">{visibleCount}</span> {visibleCount === 1 ? 'post' : 'posts'}
+            {labels.showing ?? 'Showing'} <span className="font-medium text-ink">{visibleCount}</span> {postUnit}
           </p>
         )}
       </div>

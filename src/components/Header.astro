@@ -1,11 +1,34 @@
 ---
 import ThemeToggle from './react/ThemeToggle';
-import { NAV, SITE } from '../consts';
+import { getLangFromUrl, getLocalizedPath, useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+import { SITE } from '../consts';
+
+interface Props {
+  lang?: Language;
+}
 
 const path = Astro.url.pathname;
+const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const homeHref = lang === 'zh' ? '/zh/' : '/';
+const navItems = [
+  { href: lang === 'zh' ? '/zh/' : '/', label: t('nav.home') },
+  { href: lang === 'zh' ? '/zh/blog/' : '/blog/', label: t('nav.writing') },
+  { href: lang === 'zh' ? '/zh/#focus' : '/#focus', label: t('nav.focus') },
+  { href: lang === 'zh' ? '/zh/#about' : '/#about', label: t('nav.about') },
+];
+
 // In-page anchors are never marked current — only real routes are.
-const isActive = (href: string) =>
-  href.includes('#') ? false : href === '/' ? path === '/' : path.startsWith(href);
+const isActive = (href: string) => {
+  if (href.includes('#')) return false;
+  if (href === '/' || href === '/zh/') return path === href;
+  return path.startsWith(href);
+};
+
+const enPath = getLocalizedPath(path, 'en');
+const zhPath = getLocalizedPath(path, 'zh');
 ---
 
 <header
@@ -13,7 +36,7 @@ const isActive = (href: string) =>
   class="sticky top-0 z-50 border-b border-transparent transition-all duration-300"
 >
   <div class="shell flex min-h-[4.5rem] items-center justify-between gap-6">
-    <a href="/" class="group flex items-center gap-3" aria-label={`${SITE.name} — home`}>
+    <a href={homeHref} class="group flex items-center gap-3" aria-label={`${t('site.name')} — home`}>
       <span
         class="grid size-9 place-items-center rounded-xl bg-accent font-display text-[1rem] font-bold text-surface shadow-sm transition-all duration-500 group-hover:-rotate-6 group-hover:scale-105 group-hover:bg-accent-deep"
       >
@@ -21,17 +44,17 @@ const isActive = (href: string) =>
       </span>
       <span class="grid leading-tight">
         <strong class="font-display text-[0.98rem] font-medium tracking-tight text-ink group-hover:text-accent transition-colors">
-          {SITE.name}
+          {t('site.name')}
         </strong>
         <span class="mt-0.5 font-mono text-[0.6rem] tracking-[0.16em] text-faint uppercase">
-          Engineering Notes
+          {t('site.subtitle')}
         </span>
       </span>
     </a>
 
     <nav class="hidden items-center gap-1.5 rounded-full border border-line/60 bg-surface/70 p-1.5 backdrop-blur-md md:flex shadow-xs" aria-label="Primary">
       {
-        NAV.map((item) => {
+        navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <a
@@ -52,6 +75,34 @@ const isActive = (href: string) =>
     </nav>
 
     <div class="flex items-center gap-2.5">
+      <!-- Language Switcher -->
+      <div class="flex items-center rounded-xl border border-line bg-surface/90 p-1 font-mono text-[0.725rem] shadow-2xs">
+        <a
+          href={enPath}
+          data-lang-btn="en"
+          class:list={[
+            'rounded-lg px-2.5 py-1 transition-all duration-200',
+            lang === 'en'
+              ? 'bg-accent text-surface font-semibold shadow-2xs'
+              : 'text-muted hover:text-ink hover:bg-surface-sunk/50',
+          ]}
+        >
+          EN
+        </a>
+        <a
+          href={zhPath}
+          data-lang-btn="zh"
+          class:list={[
+            'rounded-lg px-2.5 py-1 transition-all duration-200',
+            lang === 'zh'
+              ? 'bg-accent text-surface font-semibold shadow-2xs'
+              : 'text-muted hover:text-ink hover:bg-surface-sunk/50',
+          ]}
+        >
+          中文
+        </a>
+      </div>
+
       <ThemeToggle client:load />
 
       <a
@@ -91,7 +142,7 @@ const isActive = (href: string) =>
     <div class="min-h-0 overflow-hidden">
       <div class="shell flex flex-col py-3">
         {
-          NAV.map((item) => (
+          navItems.map((item) => (
             <a href={item.href} class="border-b border-line/60 py-3.5 font-display text-lg text-ink hover:text-accent transition-colors last:border-b-0">
               {item.label}
             </a>
@@ -106,6 +157,16 @@ const isActive = (href: string) =>
 </header>
 
 <script>
+  // Save preferred language when clicking language switcher links
+  document.querySelectorAll<HTMLAnchorElement>('[data-lang-btn]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetLang = btn.getAttribute('data-lang-btn');
+      if (targetLang) {
+        localStorage.setItem('preferred-lang', targetLang);
+      }
+    });
+  });
+
   const header = document.getElementById('site-header')!;
   const button = document.getElementById('menu-toggle')!;
   const nav = document.getElementById('mobile-nav')!;
@@ -118,12 +179,11 @@ const isActive = (href: string) =>
     button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
   };
 
-  button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
-  nav.addEventListener('click', (event) => {
+  button?.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+  nav?.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).closest('a')) setOpen(false);
   });
 
-  // Only draw header's border and backdrop once page has scrolled
   const onScroll = () => {
     const stuck = window.scrollY > 16;
     header.classList.toggle('border-line', stuck);

@@ -1,17 +1,22 @@
 ---
 import type { Post } from '../lib/posts';
-import { formatDate, isoDate, readingTime } from '../lib/posts';
+import { formatDate, getPostUrl, isoDate, readingTime } from '../lib/posts';
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
 
 interface Props {
   post: Post;
   /** Large treatment for the lead post. */
   feature?: boolean;
   delay?: number;
+  lang?: Language;
 }
 
-const { post, feature = false, delay = 0 } = Astro.props;
+const { post, feature = false, delay = 0, lang = 'en' } = Astro.props;
 const { title, description, tag, date } = post.data;
+const t = useTranslations(lang);
 
+const postUrl = getPostUrl(post, lang);
 // Lower-cased haystack read by the PostFilter island.
 const search = `${title} ${description} ${tag}`.toLowerCase();
 ---
@@ -31,7 +36,7 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
       <span class="size-1.5 rounded-full bg-accent"></span>
       {tag}
     </span>
-    <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
+    <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
   </div>
 
   <h3
@@ -40,7 +45,7 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
       feature ? 'text-3xl sm:text-[2.6rem]' : 'text-2xl',
     ]}
   >
-    <a href={`/blog/${post.id}/`} class="after:absolute after:inset-0 focus:outline-none">
+    <a href={postUrl} class="after:absolute after:inset-0 focus:outline-none">
       {title}
     </a>
   </h3>
@@ -60,10 +65,10 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12 6 12 12 16 14"/>
       </svg>
-      {readingTime(post.body)}
+      {readingTime(post.body, lang)}
     </span>
     <span class="inline-flex items-center gap-2 font-mono text-[0.725rem] font-medium tracking-wider text-ink group-hover:text-accent transition-colors">
-      Read post
+      {t('blog.readPost')}
       <svg
         viewBox="0 0 24 24"
         class="size-4 transition-transform duration-300 group-hover:translate-x-1.5"

@@ -1,9 +1,34 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import type { Language } from '../i18n/ui';
 
 export type Post = CollectionEntry<'blog'>;
 
-/** Published posts, newest first. Drafts are excluded from production builds only. */
-export async function getPosts(): Promise<Post[]> {
+export function getPostSlug(postOrId: Post | string): string {
+  const id = typeof postOrId === 'string' ? postOrId : postOrId.id;
+  return id.replace(/^(en|zh)\//, '');
+}
+
+export function getPostLang(post: Post): Language {
+  return post.id.startsWith('zh/') ? 'zh' : 'en';
+}
+
+export function getPostUrl(postOrSlug: Post | string, lang: Language = 'en'): string {
+  const slug = getPostSlug(postOrSlug);
+  return lang === 'zh' ? `/zh/blog/${slug}/` : `/blog/${slug}/`;
+}
+
+/** Published posts for a given locale, newest first. Drafts are excluded from production builds only. */
+export async function getPosts(lang: Language = 'en'): Promise<Post[]> {
+  const posts = await getCollection('blog', ({ data, id }) => {
+    const isDev = import.meta.env.DEV || !data.draft;
+    const postLang = id.startsWith('zh/') ? 'zh' : 'en';
+    return isDev && postLang === lang;
+  });
+  return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+}
+
+/** Get all posts regardless of language */
+export async function getAllPosts(): Promise<Post[]> {
   const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
   return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
@@ -17,11 +42,9 @@ export function leadPostId(posts: Post[]): string | undefined {
 }
 
 /**
- * Reading time from the raw Markdown body. Counts CJK characters individually,
- * since they carry roughly a word's worth of meaning each and would otherwise
- * collapse into a single "word".
+ * Reading time from the raw Markdown body. Counts CJK characters individually.
  */
-export function readingTime(body = ''): string {
+export function readingTime(body = '', lang: Language = 'en'): string {
   const text = body
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/<[^>]+>/g, ' ')
@@ -30,10 +53,19 @@ export function readingTime(body = ''): string {
   const cjk = (text.match(/[\u4e00-\u9fff\u3040-\u30ff]/g) ?? []).length;
   const latin = (text.replace(/[\u4e00-\u9fff\u3040-\u30ff]/g, ' ').match(/\S+/g) ?? []).length;
 
-  return `${Math.max(1, Math.round((cjk + latin) / 220))} min read`;
+  const mins = Math.max(1, Math.round((cjk + latin) / 220));
+  return lang === 'zh' ? `${mins} 分钟阅读` : `${mins} min read`;
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date, lang: Language = 'en'): string {
+  if (lang === 'zh') {
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+  }
   return date.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',

@@ -1,13 +1,13 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
-import PostFilter from '../../components/react/PostFilter';
-import { TAGS } from '../../consts';
-import { getPosts, leadPostId } from '../../lib/posts';
-import { useTranslations } from '../../i18n/utils';
-import type { Language } from '../../i18n/ui';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import PostFilter from '../../../components/react/PostFilter';
+import { TAGS } from '../../../consts';
+import { getPosts, leadPostId } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
 
-const lang: Language = 'en';
+const lang: Language = 'zh';
 const t = useTranslations(lang);
 
 const posts = await getPosts(lang);
