@@ -1,11 +1,11 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getBriefs, getBriefUrl } from '../../lib/briefs';
-import { formatDate, isoDate, readingTime } from '../../lib/posts';
-import { getLangFromUrl, useTranslations } from '../../i18n/utils';
-import type { Language } from '../../i18n/ui';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getBriefs, getBriefUrl } from '../../../lib/briefs';
+import { formatDate, isoDate, readingTime } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
 
-const lang: Language = getLangFromUrl(Astro.url);
+const lang: Language = 'zh';
 const t = useTranslations(lang);
 
 const briefs = await getBriefs();

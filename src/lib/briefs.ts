@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import type { Language } from '../i18n/ui';
 
 export type Brief = CollectionEntry<'brief'>;
 
@@ -12,7 +13,7 @@ export function getBriefSlug(briefOrId: Brief | string): string {
   return typeof briefOrId === 'string' ? briefOrId : briefOrId.id;
 }
 
-export function getBriefUrl(briefOrSlug: Brief | string): string {
+export function getBriefUrl(briefOrSlug: Brief | string, lang: Language = 'en'): string {
   const slug = getBriefSlug(briefOrSlug);
-  return `/brief/${slug}/`;
+  return lang === 'zh' ? `/zh/brief/${slug}/` : `/brief/${slug}/`;
 }

@@ -1,13 +1,13 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getBriefs, getBriefUrl, type Brief } from '../../lib/briefs';
-import { formatDate, isoDate, readingTime } from '../../lib/posts';
-import { getLangFromUrl, useTranslations } from '../../i18n/utils';
-import type { Language } from '../../i18n/ui';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getBriefs, getBriefUrl, type Brief } from '../../../lib/briefs';
+import { formatDate, isoDate, readingTime } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
 
-const lang: Language = getLangFromUrl(Astro.url);
+const lang: Language = 'zh';
 const t = useTranslations(lang);
 
 export const getStaticPaths = (async () => {
@@ -45,7 +45,7 @@ const { title, description, date, source } = brief.data;
 
   <article class="shell py-12 sm:py-16">
     <a
-      href="/brief/"
+      href="/zh/brief/"
       class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
     >
       <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span> {t('briefs.back')}
@@ -63,7 +63,7 @@ const { title, description, date, source } = brief.data;
         <span class="label flex items-center gap-1">
           <svg viewBox="0 0 24 24" class="size-3 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+            <polyline points="12 6 12 16 14"/>
           </svg>
           {readingTime(brief.body, lang)}
         </span>

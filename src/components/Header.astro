@@ -16,7 +16,7 @@ const homeHref = lang === 'zh' ? '/zh/' : '/';
 const navItems = [
   { href: lang === 'zh' ? '/zh/' : '/', label: t('nav.home') },
   { href: lang === 'zh' ? '/zh/blog/' : '/blog/', label: t('nav.writing') },
-  { href: '/brief/', label: t('nav.briefs') },
+  { href: lang === 'zh' ? '/zh/brief/' : '/brief/', label: t('nav.briefs') },
 ];
 
 const isActive = (href: string) => {
