@@ -10,9 +10,10 @@ interface Props {
   feature?: boolean;
   delay?: number;
   lang?: Language;
+  hidden?: boolean;
 }
 
-const { post, feature = false, delay = 0, lang = 'en' } = Astro.props;
+const { post, feature = false, delay = 0, lang = 'en', hidden = false } = Astro.props;
 const { title, description, tag, date } = post.data;
 const t = useTranslations(lang);
 
@@ -25,6 +26,7 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
   data-post
   data-tag={tag}
   data-search={search}
+  hidden={hidden}
   class:list={[
     'reveal group relative flex flex-col rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float',
     feature ? 'p-8 sm:col-span-2 sm:p-10 border-line-strong/60 shadow-xs' : 'p-7',

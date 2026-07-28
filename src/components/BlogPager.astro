@@ -1,0 +1,63 @@
+---
+import type { Language } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+import { getBlogListUrl } from '../lib/posts';
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  lang?: Language;
+  id?: string;
+}
+
+const {
+  currentPage,
+  totalPages,
+  lang = 'en',
+  id,
+} = Astro.props;
+const t = useTranslations(lang);
+
+const previousUrl = currentPage > 1 ? getBlogListUrl(lang, currentPage - 1) : undefined;
+const nextUrl = currentPage < totalPages ? getBlogListUrl(lang, currentPage + 1) : undefined;
+const status = t('blog.pageStatus')
+  .replace('{current}', String(currentPage))
+  .replace('{total}', String(totalPages));
+
+const controlClass =
+  'inline-flex min-w-20 items-center justify-center rounded-full border border-line bg-surface/80 px-3 py-2 font-mono text-[0.7rem] tracking-wider text-muted transition-colors';
+---
+
+<nav
+  id={id}
+  aria-label={t('blog.pagination')}
+  class="mt-12 flex items-center justify-between gap-3 border-t border-line/70 pt-7"
+>
+  {previousUrl ? (
+    <a href={previousUrl} rel="prev" class={`${controlClass} hover:border-line-strong hover:text-ink`}>
+      <span aria-hidden="true">←</span>
+      <span class="ml-2">{t('blog.prevPage')}</span>
+    </a>
+  ) : (
+    <span aria-disabled="true" class={`${controlClass} cursor-not-allowed opacity-45`}>
+      <span aria-hidden="true">←</span>
+      <span class="ml-2">{t('blog.prevPage')}</span>
+    </span>
+  )}
+
+  <span class="text-center font-mono text-[0.7rem] tracking-wider text-faint">
+    {status}
+  </span>
+
+  {nextUrl ? (
+    <a href={nextUrl} rel="next" class={`${controlClass} hover:border-line-strong hover:text-ink`}>
+      <span class="mr-2">{t('blog.nextPage')}</span>
+      <span aria-hidden="true">→</span>
+    </a>
+  ) : (
+    <span aria-disabled="true" class={`${controlClass} cursor-not-allowed opacity-45`}>
+      <span class="mr-2">{t('blog.nextPage')}</span>
+      <span aria-hidden="true">→</span>
+    </span>
+  )}
+</nav>

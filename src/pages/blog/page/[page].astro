@@ -1,0 +1,25 @@
+---
+import BlogListPage from '../../../components/BlogListPage.astro';
+import { BLOG_PAGE_SIZE, getPosts } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts('en');
+  const totalPages = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+
+  return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => {
+    const page = index + 2;
+    return {
+      params: { page: String(page) },
+      props: { page },
+    };
+  });
+}
+
+interface Props {
+  page: number;
+}
+
+const { page } = Astro.props;
+---
+
+<BlogListPage lang="en" currentPage={page} />
