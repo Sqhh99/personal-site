@@ -1,61 +1,94 @@
 ---
 title: Why this site exists
-description: A place to write down the constraints, not just the conclusions — and a short account of how it is built.
+description: Engineering constraints, failure modes, and editorial standards — why technical notes must record what breaks, not just what works.
 date: 2026-07-27
 tag: Notes
 featured: true
 ---
 
-The useful part of an engineering problem is rarely the answer. It is the set of constraints
-that made that answer the right one — the thing that gets deleted from the commit message,
-left out of the docs, and lost entirely by the time someone asks six months later why it works
-this way.
+The least useful artifact in software engineering is a polished conclusion detached from its constraints. A design doc states that an architecture handles 50,000 requests per second; it omits that garbage collection pauses spike P99 latency past 3 seconds when heap utilization exceeds 75%. A blog post demonstrates a PyTorch optimization trick; it omits that enabling `torch.compile` on dynamic tensor shapes causes endless recompilation and exhausts host RAM. Six months later, another engineer hits the exact same edge case because the failure boundaries were never written down.
 
-This site is where I write those down.
+This site is an operational log of those missing boundaries across realtime media, deep learning runtime performance, web systems, and pipeline backpressure.
 
-## What goes here
+## The Demo-Article Smell
 
-Four subjects, mostly because they keep turning out to be the same subject:
+Most technical writing on the web degrades into portfolio filler. It follows a predictable pattern:
+1. State a high-level problem everyone agrees on.
+2. Show an idealized 10-line code snippet on `localhost`.
+3. Declare victory without showing profiler outputs, flamegraphs, packet loss, or memory allocations.
+4. End with a superficial list of best practices.
 
-- **WebRTC and realtime media** — signalling, ICE, media pipelines, latency budgets.
-- **PyTorch and deep learning** — training loops, profiling, inference performance.
-- **Web engineering** — TypeScript, rendering strategies, shipping less JavaScript.
-- **Systems and performance** — concurrency, backpressure, measurement.
+When applied to production systems, this pattern fails instantly. A WebRTC connection that works on `localhost` collapses on symmetric NATs under corporate firewalls if candidate queuing and JSEP state machine race conditions are ignored. A PyTorch training loop with 98% GPU utilization on `nvidia-smi` may be spending 40% of its wall time stalled on Python GIL synchronization or unpinned CPU memory transfers.
 
-A dropped video frame and a stalled training step are the same problem viewed from different
-angles: something upstream produced faster than something downstream consumed, and nobody
-decided in advance what should happen next.
+To remain useful as engineering reference notes, every article published here must satisfy four editorial standards:
 
-Posts here try to keep the conditions attached to the conclusion. What was measured, on what
-hardware, under what load, and what would make the conclusion wrong. A benchmark without its
-conditions is an anecdote.
+| Editorial Standard | Demo-Article Failure | Operational Requirement |
+| :--- | :--- | :--- |
+| **Boundaries & Limits** | "Use WebRTC for sub-second streaming." | Explicitly state network topologies, packet loss thresholds, and candidate gathering timeouts where WebRTC fails without TURN relays. |
+| **Measurement & Diagnostics** | "Our custom dataloader is faster." | Provide exact tool invocation (`torch.profiler`, Chrome DevTools, `chrome://webrtc-internals`), exact metrics measured (P99 latency, H2D copy time), and host/device specs. |
+| **Failure Modes** | "Add a queue between worker threads." | Document what happens when the queue fills up: memory growth rate, frame drop policy, keyframe corruption, or backpressure propagation. |
+| **Actionable Verification** | "Keep your frontend light." | Provide an operational checklist and hard budgets (e.g., TBT < 50ms, JS bundle < 20KB gzipped for interactive components). |
 
-## How it is built
+## Core Technical Focus Areas
 
-The previous version was a single HTML file plus about seven hundred lines of hand-written
-JavaScript that string-rendered the entire DOM, including a small Markdown parser I had
-written myself. It worked. It was also a dead end: no types, no routing, and posts that lived
-behind a query parameter where no crawler would ever find them.
+The articles on this site focus on four domain areas that frequently overlap in real-world systems:
 
-This one is [Astro](https://astro.build) with content collections. Posts are Markdown files
-with a Zod-validated frontmatter schema, which means a typo in a tag name fails the build
-rather than rendering an empty filter. Every post is a real, statically generated URL.
+### 1. WebRTC & Realtime Media
+Signaling state machine races (JSEP SDP offer/answer exchanges, glare resolution), ICE candidate topologies (Host vs STUN srflx vs TURN relay), RTP/RTCP feedback loops (NACK, PLI, REMB/TWCC), and media pipeline synchronization.
 
-Three components ship JavaScript: the theme toggle, the search and tag filter on the writing
-index, and the shader field on the home page. Everything else is HTML by the time it leaves
-the server. The filter is deliberately arranged so the post cards are server-rendered and the
-island only toggles their visibility — the full list is in the HTML whether or not the
-JavaScript ever runs.
+### 2. PyTorch & Deep Learning Systems
+CUDA async execution mechanics, DataLoader IPC and memory pinning bottlenecks, DistributedDataParallel (DDP) gradient synchronization overheads, precision trade-offs (FP32 vs FP16 vs BF16), and `torch.compile` graph break diagnostics.
 
-Styling is Tailwind v4, with the palette defined once as CSS custom properties and exposed
-through `@theme inline` so the light and dark variants swap at runtime instead of being baked
-in at build time. The type is Newsreader over Inter.
+### 3. Media Pipeline Backpressure
+Producer/consumer rate mismatches, bounded ring buffer memory structures, audio vs video frame drop policies (GOP structure preservation vs audio time-stretching), and queue age distribution monitoring.
 
-It deploys as static files to Cloudflare Workers Static Assets. There is no server, no
-database and no build step more complicated than `astro build`.
+### 4. Frontend Architecture & Hydration Costs
+Main-thread blocking time (INP/TBT), JavaScript execution cost models on mobile ARM CPUs, SSR vs Islands vs Resumability architectures, and zero-JS static content delivery.
 
-## The standing rule
+## Site Architecture & Performance Constraints
 
-Write the post when the problem is still annoying. Once something is understood it becomes
-obvious, and obvious things do not get written down — which is exactly why the same problem
-costs a full afternoon the second time.
+This site itself is built under strict operational constraints to avoid the exact frontend anti-patterns criticized in its articles.
+
+```
++-----------------------------------------------------------------------------------+
+|                              Server Build Phase (Astro)                           |
+|                                                                                   |
+|  +-----------------------+   +------------------------+   +--------------------+  |
+|  | Markdown Blog Posts   |   | Zod Schema Validation  |   | Static HTML Engine |  |
+|  | (EN & ZH Collections) |-->| (Strict Tag/Date Check)|-->| (Zero-JS Markup)   |  |
+|  +-----------------------+   +------------------------+   +--------------------+  |
++-----------------------------------------------------------------------------------+
+                                          |
+                                          v
++-----------------------------------------------------------------------------------+
+|                              Client Runtime Environment                           |
+|                                                                                   |
+|  +-----------------------------+  +------------------------+  +----------------+  |
+|  | Hydrated Component Island 1 |  | Component Island 2     |  | Pure Static    |  |
+|  | ThemeToggle (client:load)   |  | Filter (client:idle)   |  | HTML Content   |  |
+|  | ~1.2 KB JS              |  | ~3.4 KB JS             |  | 0 KB JS        |  |
+|  +-----------------------------+  +------------------------+  +----------------+  |
++-----------------------------------------------------------------------------------+
+```
+
+### Static Markup First
+The site uses [Astro](https://astro.build) with content collections. Markdown files are schema-validated at build time using Zod (`src/content.config.ts`). If an invalid tag or date format is introduced, the build fails immediately rather than generating broken runtime UI state.
+
+### JavaScript Budget & Island Scoping
+Client-side JavaScript is treated as a performance penalty. Only three isolated component islands execute client-side JS:
+- **Theme Toggle (`client:load`)**: Synchronizes dark/light preference with `localStorage` and system media queries.
+- **Search & Tag Filter (`client:idle`)**: Filters server-rendered article cards directly in the DOM without triggering network fetches or framework re-renders.
+- **Background Canvas (`client:visible`)**: Deferring WebGL shader execution until the canvas enters the viewport via `IntersectionObserver`.
+
+All core content—including code blocks, tables, and typography—is pure, static HTML/CSS by the time it leaves the build pipeline.
+
+### Cloudflare Deployment & Runtime Simplicity
+The output is deployed as pure static assets to Cloudflare Workers. There is no database, no server-side rendering node process, and no dynamic hydration engine running on the edge.
+
+## Standing Rules for Written Notes
+
+Every technical note published here must adhere to three operational rules:
+
+1. **Write during active debugging**: Notes are written when the failure mode is still active, confusing, and un-obvious. Once a fix is deployed, hindsight bias makes the solution feel trivial, causing critical diagnostic steps to be forgotten.
+2. **Include exact reproduction / verification steps**: If a profiler command or code snippet is listed, it must be executable against documented hardware and framework versions.
+3. **Keep the negative paths in the post**: Explaining why alternative approaches failed is more valuable than describing the final working diff.

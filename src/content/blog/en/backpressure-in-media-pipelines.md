@@ -1,112 +1,225 @@
 ---
 title: Backpressure is the whole problem
-description: Every realtime pipeline eventually produces faster than it consumes. What you do at that moment defines the system.
+description: Latency budgets, GOP-aware frame dropping, WSOLA audio degradation, and queue age histograms — engineering backpressure policies for real-time media.
 date: 2026-07-16
 tag: Systems
 featured: false
 ---
 
-A camera produces 30 frames a second whether or not anything downstream is ready for them. An
-encoder consumes them at whatever rate the CPU allows. A network accepts bytes at whatever
-rate the path allows, which changes constantly and without warning.
+In real-time media engineering, rate mismatches are not exceptional edge cases—they are the permanent state of the system. A camera captures video frames at a strict hardware clock rate of 30 or 60 FPS. An encoder processes those frames at a variable rate dictated by scene complexity and CPU thread availability. A network socket accepts bytes at a rate dictated by dynamic WAN congestion, Wi-Fi interference, and TCP/UDP window scaling.
 
-Three independent rates in a row. They will not match. The interesting question is not how to
-make them match — you cannot — but what the system does during the intervals when they don't.
+When an downstream component processes slower than an upstream component produces, the system must handle the surplus data.
 
-## A queue is a decision, not a buffer
+The naive choice is to buffer surplus frames in an unbounded queue. Unbounded queues do not solve overload; they transform a temporary throughput deficit into an unbounded latency accumulation. Memory usage climbs, frames remain queued for several seconds, and end-to-end interactive delay destroys the user experience.
 
-The reflexive fix is to put a queue between the stages. This feels like it solves the problem
-and mostly it defers it.
+Designing a real-time media pipeline requires establishing hard latency budgets, implementing bounded queues with explicit drop policies, and handling video and audio streams according to their fundamental codec constraints.
 
-An unbounded queue does not prevent overload; it converts a throughput problem into a latency
-problem, and hides it. Memory climbs slowly, everything appears to work, and the frames coming
-out the far end are steadily more stale. For a file transfer that is fine. For a video call it
-is the worst possible outcome: you have traded the one property the user actually cares about
-in order to preserve one they cannot perceive.
+## Calculating Latency Budgets and Queue Depth
 
-So bound the queue. Now you have to answer the real question: what happens when it is full?
+Queue depth should never be chosen as an arbitrary integer (e.g. `const MAX_QUEUE = 100`). Queue capacity is a direct allocation of your system's total **end-to-end latency budget**.
 
-## Four honest answers
+For interactive human communication (e.g. WebRTC video conferencing), ITU-T Recommendation G.114 establishes a maximum mouth-to-ear latency threshold of **150 milliseconds**. Delays beyond 200ms cause users to talk over one another.
 
-**Block the producer.** Correct for pipelines where the source can slow down — reading a file,
-draining a socket. Useless for a camera, which is not going to stop.
+```
++-----------------------------------------------------------------------------------+
+|               END-TO-END LATENCY BUDGET ALLOCATION (Target: <= 150ms)             |
++-----------------------------------------------------------------------------------+
 
-**Drop the oldest.** For live media this is usually right. The newest frame is the one with
-information in it; the one from 400 ms ago is only useful for making the queue longer.
+ Capture & Filter   Video Encoding    Tx Queue Budget   Network RTT/2   Jitter Buffer   Decode & Render
+ [ Camera / Mic ] -> [ H.264 / AV1 ] -> [ Ring Buffer ] -> [ WAN Path ] -> [ Rx Buffer ] -> [ Display ]
+     (~15ms)            (~20ms)            (~33ms)          (~40ms)          (~25ms)         (~17ms)
+```
 
-**Drop the newest.** Rarely what you want for media, but correct when earlier items are
-prerequisites for later ones — an ordered event log, say.
+### Deriving Queue Depth from Frame Rate
+At 30 FPS, each video frame represents a temporal window of $1 / 30 \text{ s} = 33.3 \text{ ms}$.
 
-**Degrade.** The most useful option and the one that takes real work: keep accepting input but
-reduce what each item costs. Drop the encoder bitrate, halve the frame rate, shrink the
-resolution. WebRTC does exactly this, continuously, which is why a call degrades to something
-blurry instead of freezing.
+$$\text{Queue Capacity} = \left\lfloor \frac{\text{Stage Latency Budget}}{\text{Frame Duration}} \right\rfloor$$
 
-The failure mode to avoid is having no policy, which in practice means "grow until something
-crashes".
+If the network transmission queue is allocated a maximum latency budget of 35ms:
 
-## Ring buffers make the policy explicit
+$$\text{Capacity} = \left\lfloor \frac{35\text{ ms}}{33.3\text{ ms}} \right\rfloor = 1 \text{ frame slot}$$
 
-A fixed-capacity ring that overwrites the oldest entry encodes drop-oldest directly into the
-data structure — there is no code path where it can grow:
+Allowing a 10-frame queue at this stage introduces $10 \times 33.3\text{ ms} = 333\text{ ms}$ of worst-case latency—more than double the total end-to-end budget for the entire call.
 
-```ts
-class FrameRing<T> {
-  #items: (T | undefined)[];
-  #head = 0;
-  #size = 0;
-  dropped = 0;
+## Video vs Audio Backpressure Strategies
 
-  constructor(readonly capacity: number) {
-    this.#items = new Array(capacity);
+Video and audio streams have fundamentally different codec dependencies. Applying a generic "drop newest" or "drop oldest" queue policy without considering payload types destroys media quality.
+
+### Video: GOP Structure and Temporal Dependency
+Modern video codecs (H.264, HEVC, VP9, AV1) rely on inter-frame compression organized into Groups of Pictures (GOP):
+- **IDR / I-Frames (Keyframes)**: Self-contained intra-coded frames. Required to decode any subsequent frame.
+- **P-Frames**: Predicted from previous reference frames.
+- **B-Frames**: Bi-directionally predicted from both previous and future reference frames.
+
+```
+GOP Structure:  [ I-Frame ] ---> [ P-Frame 1 ] ---> [ P-Frame 2 ] ---> [ P-Frame 3 ]
+                 ^                ^                  ^                  ^
+Dropping P1:     OK               [ DROPPED ] ======> [ CORRUPTED ] ====> [ CORRUPTED ]
+```
+
+**The Cascading Corruption Failure**: If a pipeline naively drops an arbitrary P-frame (e.g. `P-Frame 1`) under queue backpressure, subsequent P-frames (`P-Frame 2`, `P-Frame 3`) cannot be decoded cleanly. The decoder outputs severe visual artifacts, green macroblocks, and torn frames until the next IDR keyframe arrives.
+
+#### Remediated Video Drop Policy:
+1. **Drop Temporal Layers (SVC)**: If Scalable Video Coding is used, drop higher temporal layer frames (e.g., drop 60 FPS -> 30 FPS enhancement frames) first.
+2. **Drop Non-Reference Frames**: Drop B-frames before touching P-frames.
+3. **GOP Flush & Keyframe Request**: If a reference P-frame must be dropped due to severe congestion, flush the entire remaining queue up to the next I-frame, and send an RTCP Picture Loss Indication (PLI) or Full Intra Request (FIR) upstream to force the encoder to generate a new keyframe immediately.
+
+### Audio: Phase Continuity and Concealment
+Unlike video, where dropping a frame results in a minor temporal skip, dropping audio PCM buffers causes harsh audible clicks, pops, and phase discontinuities.
+
+#### Remediated Audio Policy:
+- **Never Drop Arbitrary Audio Packets**: Maintain a jitter buffer that dynamically adjusts depth using WSOLA (Waveform Similarity Overlap-Add) time-stretching algorithms.
+- **Time-Stretching**: Under mild buffer underruns, expand audio playback by 5–10% without altering pitch; under buffer overruns, compress playback to drain the queue smoothly.
+
+## Concrete Implementation: Bounded Ring Buffer with Telemetry
+
+The following TypeScript implementation implements a GOP-aware video queue with age tracking, latency budget limits, and telemetry output:
+
+```typescript
+export interface MediaFrame {
+  id: number;
+  isKeyframe: boolean;
+  timestampMs: number; // Ingest timestamp
+  payload: Uint8Array;
+}
+
+export interface QueueTelemetry {
+  pushed: number;
+  dropped: number;
+  keyframeFlushes: number;
+  currentAgeMs: number;
+}
+
+export class LatencyBoundedFrameQueue {
+  private buffer: (MediaFrame | null)[];
+  private head = 0;
+  private tail = 0;
+  private size = 0;
+  
+  private droppedCount = 0;
+  private pushedCount = 0;
+  private keyframeFlushCount = 0;
+
+  constructor(
+    public readonly capacity: number,
+    public readonly maxAgeBudgetMs: number
+  ) {
+    this.buffer = new Array(capacity).fill(null);
   }
 
-  push(item: T): void {
-    if (this.#size === this.capacity) {
-      // Full: overwrite the oldest and record it. The count is the point —
-      // a drop you don't measure is a drop you'll argue about later.
-      this.#head = (this.#head + 1) % this.capacity;
-      this.#size -= 1;
-      this.dropped += 1;
+  public push(frame: MediaFrame, nowMs: number): boolean {
+    this.pushedCount++;
+
+    // 1. Check if queue is full
+    if (this.size === this.capacity) {
+      if (!frame.isKeyframe) {
+        // Drop incoming non-keyframe if queue is full
+        this.droppedCount++;
+        return false;
+      } else {
+        // Incoming frame is a Keyframe: Flush stale P-frames to reset decoding state
+        this.flushQueue();
+        this.keyframeFlushCount++;
+      }
     }
-    this.#items[(this.#head + this.#size) % this.capacity] = item;
-    this.#size += 1;
+
+    // 2. Enforce Max Latency Budget (Drop stale head if age > maxAgeBudgetMs)
+    this.evictStaleFrames(nowMs);
+
+    // 3. Insert frame into ring buffer
+    this.buffer[this.tail] = frame;
+    this.tail = (this.tail + 1) % this.capacity;
+    this.size++;
+    return true;
   }
 
-  shift(): T | undefined {
-    if (this.#size === 0) return undefined;
-    const item = this.#items[this.#head];
-    this.#items[this.#head] = undefined;
-    this.#head = (this.#head + 1) % this.capacity;
-    this.#size -= 1;
-    return item;
+  public pop(nowMs: number): MediaFrame | null {
+    if (this.size === 0) return null;
+
+    const frame = this.buffer[this.head];
+    this.buffer[this.head] = null;
+    this.head = (this.head + 1) % this.capacity;
+    this.size--;
+
+    return frame;
+  }
+
+  private evictStaleFrames(nowMs: number): void {
+    while (this.size > 0) {
+      const oldestFrame = this.buffer[this.head];
+      if (oldestFrame && (nowMs - oldestFrame.timestampMs) > this.maxAgeBudgetMs) {
+        // Evict frame exceeding latency budget
+        this.buffer[this.head] = null;
+        this.head = (this.head + 1) % this.capacity;
+        this.size--;
+        this.droppedCount++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private flushQueue(): void {
+    this.buffer.fill(null);
+    this.head = 0;
+    this.tail = 0;
+    this.size = 0;
+  }
+
+  public getTelemetry(nowMs: number): QueueTelemetry {
+    const oldestFrame = this.buffer[this.head];
+    const currentAgeMs = oldestFrame ? (nowMs - oldestFrame.timestampMs) : 0;
+
+    return {
+      pushed: this.pushedCount,
+      dropped: this.droppedCount,
+      keyframeFlushes: this.keyframeFlushCount,
+      currentAgeMs,
+    };
   }
 }
 ```
 
-The `dropped` counter is not incidental. A system that drops frames silently is
-indistinguishable from one that is working, right up until someone complains about quality
-and there is no data to reason from.
+## Measuring Queue Residence Age vs Throughput
 
-## Depth is a latency budget
+A common observability anti-pattern is monitoring throughput (FPS or Mbps) to determine pipeline health. A pipeline experiencing severe backpressure may still exhibit 30 FPS egress throughput—while delivering frames that are 1,200ms old.
 
-Queue capacity is not a tuning knob you turn until things stop crashing. It is a latency
-budget, and you can compute it: at 30 fps a frame is 33 ms, so a four-slot queue is 133 ms of
-worst-case delay sitting in that stage. Add up every stage and you have your pipeline's
-contribution to end-to-end latency.
+```
+Ingress (T0 = 0ms) ------------> [ 1200ms Queue Delay ] ------------> Egress (T1 = 1200ms)
+Throughput: 30 FPS                                                     Throughput: 30 FPS
+                                                                       Latency Status: BROKEN
+```
 
-Work backwards from what the application needs. Conversational audio wants the total under
-about 150 ms, which does not leave room for deep queues anywhere. Live streaming with a
-several-second buffer can afford to be far more relaxed.
+### The Queue Age Metric
+Track the **Queue Residence Age** ($T_{\text{egress}} - T_{\text{ingress}}$) on every frame pop:
 
-Pick the depth from the budget, not from whatever number made the warnings stop.
+1. Attach an accurate high-resolution timestamp (`performance.now()`) to the frame metadata at ingest.
+2. Calculate $\Delta T = T_{\text{pop}} - T_{\text{push}}$ when popping from the queue.
+3. Export $\Delta T$ into a histogram capturing P50, P95, and P99 percentiles.
 
-## Measure the gap, not the rate
+If P95 Queue Age exceeds your stage budget (e.g. > 35ms), backpressure is active and degrading the system, regardless of what the FPS throughput counter reads.
 
-Throughput counters will tell you a struggling pipeline is fine — it is still processing 30
-frames a second, just each one 800 ms late. The number that matters is the age of what comes
-out: timestamp at ingest, measure at egress, watch the distribution.
+### Socket Buffer Interactions (`SO_SNDBUF` & Nagle)
+Operating system network socket buffers interact directly with application queue backpressure:
+- **`TCP_NODELAY`**: Must be enabled on TCP media transports to disable Nagle's algorithm. Otherwise, small RTP packets are buffered for up to 200ms waiting for full TCP segments.
+- **`SO_SNDBUF` / `SO_RCVBUF`**: Large OS socket send buffers hide network backpressure from application code. Shrink socket buffers for low-latency media streams so `EWOULDBLOCK` or `EAGAIN` signals trigger application-level degradation logic immediately.
 
-That single number distinguishes the two failure modes that look identical from the outside —
-a pipeline that is dropping work, and one that is silently accumulating delay. They need
-opposite fixes, and only one of them is visible in a throughput graph.
+## Failure Modes & Diagnostic Table
+
+| Pipeline Stage | Observed Failure Symptom | Operational Metric Indicator | Root Cause & Remediation Strategy |
+| :--- | :--- | :--- | :--- |
+| **Encoder Queue** | Video latency steadily increases over time; memory climbs linearly. | Queue Residence Age P95 continuously trending upward. | Unbounded buffer between capture and encoder. Replace with bounded ring buffer; lower encoder bitrate or frame rate. |
+| **Video Transport Queue** | Video freezes, followed by bursts of smearing/macroblocking artifacts. | High `droppedCount` on non-keyframe drop policy. | Random P-frame drops broke temporal decode dependencies. Implement GOP-aware queue flushing and request upstream PLI keyframes. |
+| **Audio Playback Buffer** | Periodic metallic popping sounds or pitch fluctuations. | Jitter buffer underruns spiking during network jitter. | Crude PCM frame dropping. Replace crude queue drops with WSOLA time-stretching and PLC (Packet Loss Concealment). |
+| **Socket Transport** | 200ms delay bursts occurring on socket writes. | Packet inter-arrival time clustering in 200ms intervals. | Nagle's algorithm enabled on TCP socket transport. Set `TCP_NODELAY = 1` on socket initialization. |
+| **Receiver Jitter Buffer** | Receiver memory OOM under sustained network stalls. | Jitter buffer item count exceeding budget ceiling. | Jitter buffer lacking hard maximum capacity. Set hard latency cap and drop stale frames when network stalls exceed budget limit. |
+
+## Real-Time Pipeline Backpressure Checklist
+
+- [ ] **Establish Latency Budgets**: Calculate stage-by-stage latency budgets for your pipeline; derive exact queue slot capacities based on frame rate.
+- [ ] **Eliminate Unbounded Queues**: Ensure no `Array.push()` or unbounded `asyncio.Queue` exists in the frame ingestion path.
+- [ ] **GOP-Aware Video Dropping**: Ensure non-reference frames are evicted first; flush stale P-frames upon receiving new IDR keyframes.
+- [ ] **Upstream Feedback Loops**: Connect frame drop events to RTCP PLI/FIR mechanisms or encoder bitrate adaptation algorithms.
+- [ ] **WSOLA Audio Handling**: Implement WSOLA audio time-stretching for jitter buffer adaptation rather than dropping raw PCM packets.
+- [ ] **Socket Socket Buffer Tuning**: Set `TCP_NODELAY` on TCP media transports and restrict `SO_SNDBUF` sizes to trigger immediate backpressure signals.
+- [ ] **Queue Age Telemetry**: Export P50, P95, and P99 Queue Residence Age histograms to telemetry instead of relying solely on FPS throughput metrics.
