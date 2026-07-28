@@ -2,6 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "personal-site",
   "compatibility_date": "2026-07-27",
+  // Cloudflare Workers Builds / `npx wrangler deploy` often only run this command.
+  // Astro must emit ./dist first — without this step, assets.directory is missing.
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
     // Astro's static build output.
     "directory": "./dist",

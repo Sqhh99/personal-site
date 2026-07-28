@@ -77,11 +77,17 @@ Three components ship JavaScript, each as its own island:
 
 ## Deploying to Cloudflare
 
-**Git integration** — connect the repo; build command `npm run build`, output directory
-`dist`.
+**Preferred (Workers + Git / deploy command = `npx wrangler deploy`)** — `wrangler.jsonc`
+runs `npm run build` via its `build.command`, then uploads `./dist`. No separate build
+step is required in the dashboard if the deploy command is only Wrangler.
 
-**Wrangler** — `wrangler.jsonc` already points at `dist`:
+**Pages-style Git settings** (if you configure build explicitly) — build command
+`npm run build`, output directory `dist`. Do **not** set the deploy command to bare
+`npx wrangler deploy` without a prior build unless `wrangler.jsonc` includes
+`build.command` (it does in this repo).
+
+**Local / CLI** —
 
 ```bash
-npm run deploy
+npm run deploy   # astro build && wrangler deploy
 ```
