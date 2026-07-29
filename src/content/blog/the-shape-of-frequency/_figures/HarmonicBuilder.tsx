@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, Slider, Toggle } from '../controls';
-import { TAU, baseline, box, curve, label } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, PlayPause, Slider, Toggle } from '@figures/controls';
+import { TAU, baseline, box, curve, label } from '@figures/plot';
 
 const HARMONICS = [1, 2, 3];
 

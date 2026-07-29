@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, Readout, Slider } from '../controls';
-import { circle, dot, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, PlayPause, Readout, Slider } from '@figures/controls';
+import { circle, dot, label, polyline } from '@figures/plot';
 
 const M = 1;
 const SPOKES = 16;

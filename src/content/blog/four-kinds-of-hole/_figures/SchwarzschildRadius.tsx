@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '../controls';
-import { circle, dot, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { circle, dot, label, polyline } from '@figures/plot';
 
 const G = 6.6743e-11;
 const C = 2.99792458e8;

@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Slider, Toggle } from '../controls';
-import { circle, label } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Slider, Toggle } from '@figures/controls';
+import { circle, label } from '@figures/plot';
 
 const BUF_W = 380;
 const BUF_H = 170;

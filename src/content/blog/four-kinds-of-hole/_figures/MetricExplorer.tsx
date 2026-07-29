@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '../controls';
-import { circle, dot, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units with M = 1, so a and Q are already in units of M.
 const M = 1;

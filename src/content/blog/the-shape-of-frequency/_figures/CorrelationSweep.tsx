@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '../controls';
-import { TAU, baseline, box, bx, by, curve, dot, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { TAU, baseline, box, bx, by, curve, dot, label, polyline } from '@figures/plot';
 
 const SAMPLES = 600;
 const F_MIN = 0.4;

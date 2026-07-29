@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '../controls';
-import { TAU, box, bx, by, byUp, dft, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { TAU, box, bx, by, byUp, dft, label, polyline } from '@figures/plot';
 
 const N = 256;
 const FLOOR_DB = -75;

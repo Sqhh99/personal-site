@@ -7,14 +7,14 @@ lang: en
 featured: true
 ---
 
-import Figure from '../../components/figures/Figure.astro';
-import MarginNote from '../../components/figures/MarginNote.astro';
-import HarmonicBuilder from '../../components/figures/fourier/HarmonicBuilder.tsx';
-import Epicycles from '../../components/figures/fourier/Epicycles.tsx';
-import CorrelationSweep from '../../components/figures/fourier/CorrelationSweep.tsx';
-import WindingPlane from '../../components/figures/fourier/WindingPlane.tsx';
-import DrawYourOwn from '../../components/figures/fourier/DrawYourOwn.tsx';
-import SpectralLeakage from '../../components/figures/fourier/SpectralLeakage.tsx';
+import Figure from '@figures/Figure.astro';
+import MarginNote from '@figures/MarginNote.astro';
+import HarmonicBuilder from './_figures/HarmonicBuilder.tsx';
+import Epicycles from './_figures/Epicycles.tsx';
+import CorrelationSweep from './_figures/CorrelationSweep.tsx';
+import WindingPlane from './_figures/WindingPlane.tsx';
+import DrawYourOwn from './_figures/DrawYourOwn.tsx';
+import SpectralLeakage from './_figures/SpectralLeakage.tsx';
 
 Most explanations of the Fourier transform begin with the formula. That is the wrong end of the object. The formula is a summary of a procedure, and the procedure is simple enough to do by hand: multiply your signal by a test wave, add up the result, and see whether you got anything.
 

@@ -3,7 +3,17 @@ import { glob } from 'astro/loaders';
 import { TAGS } from './consts';
 
 const blog = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
+  /**
+   * An article is either a lone file or a directory holding `index.mdx` plus
+   * its own `_figures/`. `generateId` collapses both to the bare slug, so the
+   * two shapes are indistinguishable to every route and the URL of an article
+   * does not change when it grows figures.
+   */
+  loader: glob({
+    pattern: ['*/index.{md,mdx}', '*.{md,mdx}'],
+    base: './src/content/blog',
+    generateId: ({ entry }) => entry.replace(/\/index\.mdx?$/, '').replace(/\.mdx?$/, ''),
+  }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

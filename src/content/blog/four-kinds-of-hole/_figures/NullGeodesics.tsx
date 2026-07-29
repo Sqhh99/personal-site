@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useFigureCanvas } from '../useFigureCanvas';
-import { fade, useThemeColors } from '../useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '../controls';
-import { circle, dot, label, polyline } from '../plot';
+import { useFigureCanvas } from '@figures/useFigureCanvas';
+import { fade, useThemeColors } from '@figures/useThemeColors';
+import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '@figures/controls';
+import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units: G = c = 1, M = 1. The horizon is then at r = 2, the photon
 // sphere at r = 3, and the critical impact parameter is 3√3 ≈ 5.196.
