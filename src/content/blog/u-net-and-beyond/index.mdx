@@ -1,0 +1,129 @@
+---
+title: U-Net and beyond
+description: Dense prediction needs both a broad account of what is present and a precise account of where it is. U-Net joins those two views with a contracting path, an expanding path and skips between equal resolutions.
+date: 2026-07-30
+tag: PyTorch
+lang: en
+featured: false
+draft: false
+---
+
+import Figure from '@figures/Figure.astro';
+import MarginNote from '@figures/MarginNote.astro';
+import UNetWalkthrough from './_figures/UNetWalkthrough.tsx';
+import SkipAblation from './_figures/SkipAblation.tsx';
+import SkipVariants from './_figures/SkipVariants.tsx';
+import AttentionGate from './_figures/AttentionGate.tsx';
+import UNetFamilyMap from './_figures/UNetFamilyMap.tsx';
+
+Image classification can afford to forget where a feature occurred. Dense prediction cannot. A segmentation model must recognise an object while still returning a decision for each pixel; a depth model must combine scene-scale context with sharp discontinuities; a denoiser must understand structure without losing the sample grid it is repairing.
+
+U-Net is a durable answer to that tension. An encoder repeatedly reduces resolution and builds semantic context. A decoder expands the representation back to the input grid. Lateral skip connections bring fine encoder features directly to decoder stages at the same resolution, so location does not have to survive the narrowest part of the model unaided.
+
+The original network was built for biomedical segmentation, where labelled images were scarce and boundaries mattered. The shape travelled well beyond that setting because its constraint is engineering-general: preserve a route for detail while making room for context.
+
+## Dense prediction needs two scales of knowledge
+
+A classifier might turn a $256\times256$ image into one vector. A U-Net-shaped model descends through several spatial scales, perhaps $256$, $128$, $64$, $32$, and returns through them in reverse. As height and width fall, channel count usually rises. Each low-resolution feature can then summarise a larger part of the input.
+
+<Figure caption="Hover over the contracting path, bottleneck and expanding path to inspect their tensor shapes. Increase the number of levels, then turn lateral skips off: the decoder still expands, but its only evidence now comes through the smallest grid.">
+  <UNetWalkthrough client:visible />
+</Figure>
+
+Downsampling is useful because it grows the receptive field and makes global structure cheaper to compute. It is destructive because several nearby pixels are collapsed into one coarser value. Upsampling can restore the number of samples, but it cannot infer every discarded edge from interpolation alone.
+
+The U shape assigns these jobs explicitly. The bottleneck carries *what and roughly where*. The skip routes carry *exactly where at this scale*. Decoder convolutions reconcile the two.
+
+<MarginNote>
+The 2015 U-Net used valid convolutions, so encoder features were cropped before concatenation and the output was smaller than the input. Most present implementations pad convolutions to preserve sizes. The familiar symmetric diagram fits the padded version more neatly than the original.
+</MarginNote>
+
+## A skip is a route for missing detail
+
+At decoder level $l$, a common operation is
+
+$$
+d_l = H_l([\operatorname{up}(d_{l+1}), e_l]),
+$$
+
+where $e_l$ is the encoder feature at the same resolution, brackets denote channel concatenation, and $H_l$ is a learned fusion block. The skip does not paste the input into the output. It supplies learned features that have seen a relatively small neighbourhood and still carry precise spatial phase.
+
+<Figure caption="Switch the encoder skip off, raise the noise, and watch the bottleneck reconstruction round the two target regions. Turn the skip back on and sweep its strength; the IoU and boundary score are recomputed from the thresholded signal.">
+  <SkipAblation client:visible />
+</Figure>
+
+This is a one-dimensional segmentation toy, not evidence that a particular U-Net will reach the displayed score. Its decoder begins with a Gaussian-blurred target plus deterministic perturbation. The skip supplies the high-frequency difference between that coarse signal and the target. What the computation gets right is the information problem: once a boundary has been smoothed away, resizing the coarse representation does not recreate it.
+
+Skips can also cause trouble. A strong high-resolution route may let a decoder rely on texture while underusing deep context. Encoder and decoder features can have different statistics or meanings even when their grids match. The fusion layers are therefore doing real work; a skip is not a free guarantee of localisation.
+
+## The merge operator changes what is preserved
+
+The original U-Net concatenates encoder and decoder channels. Concatenation preserves both tensors separately and lets the following convolutions decide how to combine them. Its immediate cost is width: two $C$-channel tensors produce $2C$ channels.
+
+Addition is leaner. It keeps width fixed and resembles a residual update, but it requires aligned shapes and asks corresponding channels to share a meaning. A learned $1\times1$ projection can align widths, at which point the shortcut is no longer parameter-free.
+
+UNet++ replaces each direct lateral skip with a small nested decoder. Features are refined through several intermediate nodes before reaching the final decoder stage, and deep supervision can attach outputs at multiple depths. The intent is to reduce the semantic gap between an early encoder feature and the later decoder feature receiving it.
+
+<Figure caption="Compare concatenation and addition, then choose the nested route and raise its refinement-node count. Read the width and relative fusion-work tiles: cleaner feature alignment is purchased with extra activations and convolutions.">
+  <SkipVariants client:visible />
+</Figure>
+
+Nested skips provide more fusion opportunities and sometimes better boundaries, but the diagram can hide a substantial memory bill. Every intermediate feature map is high resolution. Whether UNet++ earns that cost depends on data size, target scale and the quality of a simpler baseline.
+
+## Attention can make a skip conditional
+
+Attention U-Net places a gate on an encoder skip. The gate combines the encoder feature $x$ with a coarser decoder context $g$, computes a spatial coefficient map $\alpha$, and passes $\alpha\odot x$ onward. The decoder is asking which locations in this high-resolution feature map are relevant to its current coarse interpretation.
+
+<Figure caption="Move the decoder context across the map and increase gate sharpness. The weights are computed cell by cell; watch the passed area shrink as the gate becomes selective, and note that the operation attends over space rather than mixing every token with every other token.">
+  <AttentionGate client:visible />
+</Figure>
+
+This is attention in a modest, specific sense. It produces a scalar or small set of coefficients per location; it is not necessarily Transformer self-attention. The benefit is suppression of irrelevant encoder responses before concatenation. The risk is equally plain: an incorrect coarse context can close the gate on detail that would have corrected it.
+
+As with residual channel attention, the gate is easiest to reason about as a modifier of a route, not as a replacement for the route's information.
+
+## Residual blocks and U-shaped topology solve different problems
+
+A ResUNet-style model uses residual blocks inside the encoder and decoder while retaining the cross-scale U shape. The two kinds of skip should not be conflated. A local residual shortcut helps optimise a stack of transformations at one resolution. A long U-Net skip transports spatial detail between encoder and decoder at matching resolutions.
+
+They compose naturally because they operate on different axes:
+
+- short residual additions stabilise feature transformation within a stage;
+- long lateral concatenations or additions recover information across the bottleneck.
+
+Residual blocks can make a deeper encoder–decoder easier to train, but they do not by themselves restore fine detail. Conversely, U-Net skips do not remove the optimisation cost of a very deep block.
+
+## Volumes change the cost before they change the idea
+
+3D U-Net replaces two-dimensional convolutions, pooling and upsampling with volumetric operations. A stage now carries $D\times H\times W\times C$, and lateral skips connect volumes rather than images. This lets the model use context between adjacent slices instead of segmenting each slice independently.
+
+The topology barely changes; the resource arithmetic does. Doubling resolution in three dimensions multiplies voxel count by eight, not four. Medical scans are often anisotropic too: slice spacing can be much larger than in-plane pixel spacing. Sensible implementations may use anisotropic kernels or postpone downsampling along depth rather than pretending every voxel is a cube.
+
+Patch-based training is usually a memory necessity. It also changes the context available to the model, so patch size, overlap and inference tiling belong to the method, not merely the data loader.
+
+## Sometimes the method is the configuration
+
+nnU-Net's central claim is not a new block. It is that much of segmentation performance comes from configuring a sound U-Net pipeline to the dataset: target spacing, resampling, normalisation, patch and batch size, topology, augmentation, loss, cross-validation and ensembling.
+
+The “nn” originally stood for no-new-Net. That name is a useful corrective to architecture-first thinking. A fixed fashionable backbone can lose to an ordinary U-Net whose field of view fits the target, whose class imbalance is handled and whose inference pipeline matches training.
+
+nnU-Net is not automatic in the sense of costless. Its rules and empirical choices still consume compute, and a specialist can improve on them with domain knowledge. Its contribution is to treat those choices as a coherent algorithm rather than unreported experimental furniture.
+
+<Figure caption="Tap each family member and look at the design axis it alters. In particular, compare ResUNet, which changes the blocks, with nnU-Net, which changes how the entire pipeline is configured.">
+  <UNetFamilyMap client:visible />
+</Figure>
+
+## The U shape also became a denoising scaffold
+
+Diffusion models often use a U-Net-shaped network to predict noise, velocity or another denoising target at many noise levels. The contracting path supplies broad context; the expanding path returns a field at the original latent or pixel resolution; skips preserve local information. Time-step embeddings condition the residual blocks, and attention layers may provide long-range or text conditioning.
+
+Modern diffusion backbones can replace convolutional stages with Transformer-like blocks or abandon the literal U shape. The connection is therefore structural, not a claim that every denoiser is the 2015 segmentation network. The enduring requirement is the same: produce a dense output whose local values depend on both local evidence and global context.
+
+## What to keep
+
+- Dense prediction needs semantic context and spatial precision; downsampling helps the first and damages the second.
+- U-Net pairs an encoder with a decoder and gives each decoder scale a direct route to encoder detail at the same resolution.
+- Concatenation preserves two feature sets at the cost of width; addition is cheaper but assumes stronger alignment; nested skips spend more computation to refine the hand-off.
+- Attention gates make lateral detail conditional on decoder context. They select locations; they do not manufacture information that the encoder lost.
+- Residual U-Nets combine local optimisation shortcuts with long cross-scale information routes. The two skips have different jobs.
+- 3D U-Net keeps the topology but changes memory and sampling arithmetic, while nnU-Net makes dataset-specific configuration part of the method.
