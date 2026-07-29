@@ -1,0 +1,17 @@
+---
+interface Props {
+  /** Rendered under the figure, after an auto-numbered "Figure N" prefix. */
+  caption: string;
+  /** How far the figure is allowed to break past the 46rem measure. */
+  width?: 'measure' | 'wide' | 'bleed';
+}
+
+const { caption, width = 'wide' } = Astro.props;
+
+const widthClass = { measure: '', wide: 'figure-wide', bleed: 'figure-bleed' }[width];
+---
+
+<figure class={widthClass}>
+  <slot />
+  <figcaption set:html={caption} />
+</figure>

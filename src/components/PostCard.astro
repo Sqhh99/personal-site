@@ -18,6 +18,8 @@ const { title, description, tag, date } = post.data;
 const t = useTranslations(lang);
 
 const postUrl = getPostUrl(post, lang);
+// Articles are single-language, so flag the ones not written in the UI's language.
+const foreign = post.data.lang !== lang;
 // Lower-cased haystack read by the PostFilter island.
 const search = `${title} ${description} ${tag}`.toLowerCase();
 ---
@@ -38,7 +40,16 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
       <span class="size-1.5 rounded-full bg-accent"></span>
       {tag}
     </span>
-    <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
+    <div class="flex items-center gap-3">
+      {
+        foreign && (
+          <span class="label rounded-full border border-line/80 px-2 py-0.5 text-[0.6rem]">
+            {post.data.lang.toUpperCase()}
+          </span>
+        )
+      }
+      <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
+    </div>
   </div>
 
   <h3

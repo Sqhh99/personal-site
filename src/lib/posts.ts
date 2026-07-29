@@ -7,12 +7,12 @@ export type Post = CollectionEntry<'blog'>;
 export const BLOG_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 export function getPostSlug(postOrId: Post | string): string {
-  const id = typeof postOrId === 'string' ? postOrId : postOrId.id;
-  return id.replace(/^(en|zh)\//, '');
+  return typeof postOrId === 'string' ? postOrId : postOrId.id;
 }
 
+/** The language the article itself is written in — not the language of the surrounding UI. */
 export function getPostLang(post: Post): Language {
-  return post.id.startsWith('zh/') ? 'zh' : 'en';
+  return post.data.lang;
 }
 
 export function getPostUrl(postOrSlug: Post | string, lang: Language = 'en'): string {
@@ -28,18 +28,14 @@ export function paginatePosts(posts: Post[], page: number, pageSize = BLOG_PAGE_
   return paginate(posts, page, pageSize).items;
 }
 
-/** Published posts for a given locale, newest first. Drafts are excluded from production builds only. */
-export async function getPosts(lang: Language = 'en'): Promise<Post[]> {
-  const posts = await getCollection('blog', ({ data, id }) => {
-    const isDev = import.meta.env.DEV || !data.draft;
-    const postLang = id.startsWith('zh/') ? 'zh' : 'en';
-    return isDev && postLang === lang;
-  });
-  return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-}
-
-/** Get all posts regardless of language */
-export async function getAllPosts(): Promise<Post[]> {
+/**
+ * Every published post, newest first. Drafts are excluded from production builds only.
+ *
+ * There is deliberately no per-locale filter: an article is written in one language
+ * and listed in every locale, the same way the briefs already behave. Filtering by UI
+ * locale would leave `/zh/blog/` empty the moment the archive is all English.
+ */
+export async function getPosts(): Promise<Post[]> {
   const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
   return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }

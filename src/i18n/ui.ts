@@ -56,6 +56,7 @@ export const UI_STRINGS = {
     'blog.minRead': 'min read',
     'blog.copy': 'Copy',
     'blog.copied': 'Copied!',
+    'blog.contents': 'Contents',
 
     'pager.prev': 'Previous',
     'pager.next': 'Next',
@@ -128,6 +129,7 @@ export const UI_STRINGS = {
     'blog.minRead': '分钟阅读',
     'blog.copy': '复制',
     'blog.copied': '已复制！',
+    'blog.contents': '目录',
 
     'pager.prev': '上一页',
     'pager.next': '下一页',

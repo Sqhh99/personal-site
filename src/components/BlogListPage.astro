@@ -17,7 +17,7 @@ interface Props {
 const { lang, currentPage = 1 } = Astro.props;
 const t = useTranslations(lang);
 
-const posts = await getPosts(lang);
+const posts = await getPosts();
 const config = getColumn('blog');
 const page = paginate(posts, currentPage, config.pageSize);
 const pagePostIds = new Set(page.items.map((post) => post.id));

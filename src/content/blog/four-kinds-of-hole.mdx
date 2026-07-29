@@ -1,0 +1,145 @@
+---
+title: Four kinds of hole
+description: General relativity permits exactly four stationary black hole solutions, and they differ by only two numbers. This is a tour of the geometry — horizons, photon orbits, ergospheres and tides — with everything computed live rather than illustrated.
+date: 2026-07-28
+tag: Physics
+lang: en
+---
+
+import Figure from '../../components/figures/Figure.astro';
+import MarginNote from '../../components/figures/MarginNote.astro';
+import SchwarzschildRadius from '../../components/figures/blackhole/SchwarzschildRadius.tsx';
+import NullGeodesics from '../../components/figures/blackhole/NullGeodesics.tsx';
+import LensingGrid from '../../components/figures/blackhole/LensingGrid.tsx';
+import MetricExplorer from '../../components/figures/blackhole/MetricExplorer.tsx';
+import FrameDragging from '../../components/figures/blackhole/FrameDragging.tsx';
+import TidalForces from '../../components/figures/blackhole/TidalForces.tsx';
+
+A black hole is a much simpler object than a rock. A rock has a chemical composition, a shape, a history, a temperature gradient, a set of impurities — an unbounded amount of structure. A stationary black hole, according to general relativity, has three numbers: its mass, its electric charge, and its angular momentum. Nothing else about whatever fell in survives.
+
+That claim is the no-hair theorem, and it has an immediate consequence that is easy to miss: since the overall mass scale can be divided out, **the entire space of black holes is two-dimensional.** Two dials, one for spin and one for charge, and every stationary hole permitted by the theory is somewhere on the dial face. The four named solutions — Schwarzschild, Reissner–Nordström, Kerr, Kerr–Newman — are not four different objects. They are the four regions you land in depending on which dials you left at zero.
+
+This piece works up to that parameter space, then explores it. The figures are all live computation: the light rays are integrated geodesics, the horizons are evaluated from the metric at whatever spin and charge you set.
+
+## Where a horizon comes from
+
+The idea predates relativity. In 1783 John Michell asked what happens to a star massive and compact enough that its escape velocity reaches the speed of light, and got the right answer with entirely the wrong physics. Setting $\tfrac{1}{2}v^2 = GM/r$ and putting $v = c$ gives
+
+$$
+r_s \;=\; \frac{2GM}{c^{2}}
+$$
+
+which, by a coincidence that has confused students for a century, is exactly the Schwarzschild radius that falls out of Einstein's equations. The Newtonian derivation is wrong in every step and right in its answer.
+
+<MarginNote>
+Michell's "dark stars" would still emit light — it would simply fall back. A relativistic horizon is a one-way surface, which is a much stranger thing.
+</MarginNote>
+
+The number it produces is what makes black holes hard to form rather than hard to describe. A horizon is not exotic; every mass has one waiting at $2GM/c^2$. The difficulty is entirely in getting the mass inside it.
+
+<Figure caption="A logarithmic length ruler. The dark marker is an object's actual radius, the accent marker its Schwarzschild radius, and the shaded gap is the compression required to close them. The Earth needs to reach the size of a marble.">
+  <SchwarzschildRadius client:visible />
+</Figure>
+
+The Sun's horizon is about three kilometres across; its actual radius is 700,000 km, so it misses by a factor of $10^5$. The Earth's horizon is 9 mm. Nothing in ordinary physics pushes matter that far, which is why black holes form only where degeneracy pressure gives out — above roughly three solar masses of stellar core, where neutron degeneracy can no longer hold the collapse.
+
+## The horizon is not a surface
+
+Where the Newtonian picture breaks down is in what the horizon *is*. It is not a membrane, and there is nothing locally special about the place. An infalling observer crossing $r_s$ around a large hole notices nothing whatsoever — no wall, no jolt, no local measurement that reveals the crossing.
+
+What has changed is the causal structure. Inside $r_s$, the $r$ coordinate becomes timelike: moving toward smaller $r$ stops being a direction you can choose and becomes a direction you are moving, in the way you are moving toward next Tuesday. Escaping the interior is not difficult but impossible, in the same sense that reaching last Tuesday is impossible.
+
+The cleanest way to see the geometry from outside is to watch light move through it. In the equatorial plane, a light ray obeys
+
+$$
+\frac{d^{2}u}{d\varphi^{2}} + u \;=\; 3Mu^{2}, \qquad u \equiv \frac{1}{r}
+$$
+
+which is the Newtonian orbit equation plus one term. That $3Mu^2$ is the whole of general relativity in this problem: delete it and light bends by half as much, matching the Newtonian prediction Eddington's 1919 expedition ruled out — and nothing is ever captured.
+
+<Figure caption="Null geodesics integrated by Runge–Kutta at the impact parameter you set. Rays with b below 3√3 M ≈ 5.196 M are captured; rays just above it wind around the photon sphere several times before escaping. The dashed circle at r = 3M is where light can orbit — unstably, like a pencil balanced on its point.">
+  <NullGeodesics client:visible />
+</Figure>
+
+Set the impact parameter to 5.20 and then to 5.19. The first ray loops the hole and leaves; the second does not leave. Between those two values sits an infinite family of trajectories that orbit any number of times, and the light that escapes from arbitrarily close to that boundary is what forms the bright ring in the Event Horizon Telescope images. The dark patch inside that ring is not the horizon — it is the *shadow*, with an apparent diameter of $2\sqrt{27}\,M \approx 10.4M$, considerably larger than the horizon at $2M$.
+
+<Figure caption="The background sky, mapped through the deflection. A ray arriving at angular radius θ came from θ − θ_E²/θ behind the lens, so the grid gets pulled inside out near the centre. Drag the hole across the field; when it passes in front of a star the star's image closes into a ring. This is the weak-field approximation — good far from the hole, wrong near the shadow.">
+  <LensingGrid client:visible />
+</Figure>
+
+## Only three numbers survive
+
+Now the classification. A star has a magnetic field, a differential rotation profile, a composition gradient. Collapse it, and the theorems of Israel, Carter, Hawking and Robinson say all of that radiates away or is swallowed, and what settles down is characterised by:
+
+- its mass $M$,
+- its electric charge $Q$,
+- its angular momentum $J$, usually written as the spin parameter $a = J/Mc$.
+
+That is the whole list. Two holes with the same $(M, Q, J)$ are the same object, no matter what they were made of — one from hydrogen, one from encyclopedias.
+
+<MarginNote>
+"Black holes have no hair" is John Wheeler's phrasing. The theorem is not quite as airtight as the slogan; it assumes stationarity, four dimensions, and no exotic fields.
+</MarginNote>
+
+Measure $a$ and $Q$ in units of $M$ and there are two free parameters left. Both are bounded: the horizon radii are
+
+$$
+r_{\pm} \;=\; M \pm \sqrt{M^{2} - a^{2} - Q^{2}}
+$$
+
+and once $a^2 + Q^2 > M^2$ the square root is imaginary and there is no horizon at all — just a singularity sitting in plain view. Penrose's cosmic censorship conjecture holds that nature never does this. Nobody has proved it.
+
+<Figure caption="Left: a cross-section through the spin axis. The filled disc is the outer horizon r₊, the dashed circle the inner Cauchy horizon r₋, the tan region the ergosphere, and the marker at the centre is the singularity — a point without spin, a ring with it. Right: the parameter space itself, with the extremal arc a² + Q² = M². The four named solutions are the four corners of one continuum.">
+  <MetricExplorer client:visible />
+</Figure>
+
+Walk the sliders around the disc and watch what each dial buys:
+
+**Schwarzschild** $(a = 0,\, Q = 0)$. Karl Schwarzschild found this within weeks of Einstein publishing the field equations, while serving on the Russian front in 1915; he died a few months later. One horizon at $r = 2M$, a point singularity, perfect spherical symmetry. It is the only vacuum solution with no spin and no charge — Birkhoff's theorem — which is why the exterior of any non-rotating spherical star is Schwarzschild regardless of what the star is doing inside.
+
+**Reissner–Nordström** $(a = 0,\, Q > 0)$. Add charge and the horizon splits in two. The electromagnetic field carries energy, which gravitates, and its contribution has the opposite sign in the metric to the mass term — charge partially *resists* the collapse it is caught in. Turn $Q$ up and $r_+$ shrinks while $r_-$ grows, until at $Q = M$ they meet and the horizon becomes extremal. Astrophysically this branch is empty: any charge a real hole accumulates attracts the opposite charge from its surroundings and neutralises within seconds.
+
+**Kerr** $(a > 0,\, Q = 0)$. Roy Kerr found this one in 1963, forty-seven years after Schwarzschild, and it is by far the most physically important. Spin does three things at once. It splits the horizon, as charge does. It flattens the singularity from a point into a ring of radius $a$. And it drags the surrounding spacetime into rotation, creating a region outside the horizon — the ergosphere — in which remaining still is not merely difficult but geometrically impossible.
+
+**Kerr–Newman** $(a > 0,\, Q > 0)$. Both dials up. Complete, general, and almost certainly not instantiated anywhere in the universe, for the charge-neutralisation reason above. Real black holes are Kerr to excellent precision.
+
+## What spin does to space
+
+The ergosphere deserves its own look, because it is the most counterintuitive structure on that diagram. Between the outer horizon and the static limit at $r = 2M$, spacetime is being dragged around so hard that no observer can hold a fixed angular position. You can still escape — the ergosphere is outside the horizon — but you cannot stand still while you do it.
+
+<Figure caption="Marker lines that start straight and radial, with each point carried around at the local dragging rate ω = 2Mar/(r⁴ + a²r² + 2Ma²r). Nothing here is orbiting; these are markers held as still as the geometry permits. Wind the spin down to zero and they stay straight.">
+  <FrameDragging client:visible />
+</Figure>
+
+The dragging rate falls off as $1/r^3$, so this is not a subtle effect close in and not a detectable one far out. Gravity Probe B measured the Earth's version — 39 milliarcseconds per year — and it took a satellite with the most spherical objects ever manufactured to see it.
+
+The ergosphere is also the one part of a black hole you can extract energy from. In the Penrose process, an object dropped into the ergoregion splits in two; one fragment falls through the horizon on a trajectory with *negative* energy as measured from infinity, and the other leaves carrying more energy than the original brought in. The books balance because the hole's rotation slows. Up to 29% of a maximally spinning Kerr hole's mass is available this way, and the astrophysical version — the Blandford–Znajek mechanism, which does the same trick with magnetic field lines instead of debris — is the leading explanation for relativistic jets.
+
+## The tides, which are the surprising part
+
+One last piece of geometry, because it inverts most people's intuition about which black holes are dangerous.
+
+Tidal stretching is the *difference* in gravitational pull across a body: $\Delta a = 2GML/r^3$ for a body of length $L$. At the horizon, where $r = 2GM/c^2$, the mass mostly cancels:
+
+$$
+\Delta a\big|_{r_s} \;=\; \frac{L\,c^{6}}{4G^{2}M^{2}} \;\propto\; \frac{1}{M^{2}}
+$$
+
+The bigger the hole, the *gentler* its horizon.
+
+<Figure caption="Tidal stretch across a 1.8 m body, on a logarithmic scale. At the horizon of a ten-solar-mass hole it is around ten million g. At the horizon of a supermassive one it is less than the tide the Moon raises on you.">
+  <TidalForces client:visible />
+</Figure>
+
+At a stellar-mass horizon you are pulled apart long before you arrive — spaghettified, in Hawking's word — somewhere around a thousand kilometres out. At Sgr A*, four million solar masses, the tidal stretch at the horizon is about $10^{-4}$ g. You would cross it without noticing, which is precisely the point made earlier: there is nothing locally there. The horizon is a global statement about which futures exist, and a body small compared to the curvature scale cannot detect a global statement.
+
+## What to keep
+
+- Every mass has a Schwarzschild radius. Black holes are rare because compressing matter that far is hard, not because horizons are exotic.
+- The horizon is a causal boundary, not a surface. Crossing a large one is locally uneventful.
+- Light has an unstable circular orbit at $3M$ and a capture threshold at $b = 3\sqrt{3}M$. The ring in the EHT images comes from the first; the shadow's $10.4M$ diameter from the second.
+- Stationary black holes are fixed by mass, charge and spin. Normalised, that is a two-dimensional family, and the four named metrics are its four regions.
+- Charge is astrophysically irrelevant; real holes are Kerr. Spin is what makes them interesting, because the ergosphere makes them energy sources.
+- Tidal force at the horizon goes as $1/M^2$. The most dangerous black holes are the small ones.
+
+The remarkable thing is not that these objects are strange. It is that a theory with this much geometric machinery in it produces a family of exact solutions you can enumerate on one hand — and that the whole of it fits on a quarter-disc with two axes.

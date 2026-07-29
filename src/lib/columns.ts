@@ -25,7 +25,8 @@ export type ColumnConfig = {
 };
 
 type ColumnDefinition = ColumnConfig & {
-  getTotalItems: (lang: Language) => Promise<number>;
+  /** Neither collection is filtered per locale — every item is listed in both. */
+  getTotalItems: () => Promise<number>;
 };
 
 const COLUMNS = {
@@ -41,7 +42,7 @@ const COLUMNS = {
       empty: 'blog.empty',
       paginationLabel: 'pager.label',
     },
-    getTotalItems: async (lang) => (await getPosts(lang)).length,
+    getTotalItems: async () => (await getPosts()).length,
   },
   brief: {
     id: 'brief',
@@ -72,6 +73,6 @@ export function getColumnBasePath(id: ColumnId, lang: Language = 'en'): string {
   return `${prefix}/${getColumn(id).segment}/`;
 }
 
-export function getColumnItemCount(id: ColumnId, lang: Language): Promise<number> {
-  return COLUMNS[id].getTotalItems(lang);
+export function getColumnItemCount(id: ColumnId): Promise<number> {
+  return COLUMNS[id].getTotalItems();
 }

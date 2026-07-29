@@ -19,7 +19,7 @@ export const NAV = [
 ] as const;
 
 /** The tag vocabulary. Kept in sync with the zod enum in `src/content.config.ts`. */
-export const TAGS = ['WebRTC', 'PyTorch', 'Frontend', 'Systems', 'Notes'] as const;
+export const TAGS = ['Signals', 'Physics', 'WebRTC', 'PyTorch', 'Frontend', 'Systems', 'Notes'] as const;
 
 export type Tag = (typeof TAGS)[number];
 

@@ -383,3 +383,210 @@
   margin-block: 2em;
   box-shadow: var(--shadow);
 }
+
+/* ---------------------------------------------------------------------------
+   Essay layout — a centred measure with a sticky contents rail on the left and
+   a margin-note gutter on the right. Both rails collapse below `lg`, where the
+   prose simply takes the full width.
+   --------------------------------------------------------------------------- */
+
+.essay {
+  --measure: 46rem;
+  --rail-left: 13rem;
+  --rail-right: 15rem;
+  --rail-gap: 3rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, var(--measure));
+  justify-content: center;
+  counter-reset: section figure;
+}
+
+@media (min-width: 1180px) {
+  .essay {
+    grid-template-columns:
+      var(--rail-left)
+      minmax(0, var(--measure))
+      var(--rail-right);
+    gap: var(--rail-gap);
+  }
+}
+
+.essay-body {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.essay-rail {
+  display: none;
+}
+
+@media (min-width: 1180px) {
+  .essay-body {
+    grid-column: 2;
+  }
+
+  .essay-rail {
+    display: block;
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* Contents rail ------------------------------------------------------------ */
+
+.toc {
+  position: sticky;
+  top: 6.5rem;
+  max-height: calc(100vh - 9rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.toc-link {
+  display: block;
+  padding: 0.3rem 0 0.3rem 1rem;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--faint);
+  text-decoration: none;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+
+.toc-link[data-depth='3'] {
+  padding-left: 1.85rem;
+  font-size: 0.775rem;
+}
+
+.toc-link:hover {
+  color: var(--ink);
+}
+
+.toc-link.is-active {
+  color: var(--accent-deep);
+  border-left-color: var(--accent);
+}
+
+/* Numbered sections -------------------------------------------------------- */
+
+.essay .prose h2 {
+  counter-increment: section;
+  position: relative;
+}
+
+.essay .prose h2::before {
+  content: counter(section);
+  position: absolute;
+  left: -2.75rem;
+  top: 0.55em;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--faint);
+}
+
+@media (max-width: 1179px) {
+  .essay .prose h2::before {
+    position: static;
+    display: block;
+    margin-bottom: 0.35em;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Figures — numbered, captioned, and free to break past the measure.
+   --------------------------------------------------------------------------- */
+
+.prose figure {
+  margin-block: 3em;
+}
+
+.prose figure > figcaption {
+  counter-increment: figure;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.prose figure > figcaption::before {
+  content: 'Figure ' counter(figure);
+  display: inline;
+  margin-right: 0.6em;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Escape hatches for figures that need more room than the 46rem measure. */
+.figure-wide {
+  width: min(58rem, 92vw);
+  margin-inline: calc(50% - min(29rem, 46vw));
+}
+
+.figure-bleed {
+  width: min(72rem, 94vw);
+  margin-inline: calc(50% - min(36rem, 47vw));
+}
+
+/* ---------------------------------------------------------------------------
+   Margin notes — in the right gutter on wide screens, inline underneath the
+   paragraph they belong to on narrow ones.
+   --------------------------------------------------------------------------- */
+
+.margin-note {
+  display: block;
+  margin-block: 1.5em;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--accent);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--faint);
+}
+
+@media (min-width: 1180px) {
+  .margin-note {
+    position: absolute;
+    left: calc(100% + var(--rail-gap, 3rem));
+    width: var(--rail-right, 15rem);
+    margin-block: 0;
+    padding-left: 0.8rem;
+    transform: translateY(-1.4em);
+  }
+
+  .essay .prose {
+    position: relative;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Math — KaTeX renders at build time; this only re-tones it to the palette.
+   --------------------------------------------------------------------------- */
+
+.prose .katex {
+  color: var(--ink);
+  font-size: 1.04em;
+}
+
+.prose .katex-display {
+  margin-block: 2em;
+  padding: 1.15rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--surface-sunk) 45%, transparent);
+  /* Long metrics scroll inside the block; the page itself never does. */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.prose .katex-display > .katex {
+  font-size: 1.1em;
+}

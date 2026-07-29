@@ -1,0 +1,149 @@
+---
+title: The shape of frequency
+description: A signal is a sum of rotations. This is an attempt to make that claim obvious rather than merely true — by building the Fourier transform out of a multiplication and an integral you can watch happen.
+date: 2026-07-29
+tag: Signals
+lang: en
+featured: true
+---
+
+import Figure from '../../components/figures/Figure.astro';
+import MarginNote from '../../components/figures/MarginNote.astro';
+import HarmonicBuilder from '../../components/figures/fourier/HarmonicBuilder.tsx';
+import Epicycles from '../../components/figures/fourier/Epicycles.tsx';
+import CorrelationSweep from '../../components/figures/fourier/CorrelationSweep.tsx';
+import WindingPlane from '../../components/figures/fourier/WindingPlane.tsx';
+import DrawYourOwn from '../../components/figures/fourier/DrawYourOwn.tsx';
+import SpectralLeakage from '../../components/figures/fourier/SpectralLeakage.tsx';
+
+Most explanations of the Fourier transform begin with the formula. That is the wrong end of the object. The formula is a summary of a procedure, and the procedure is simple enough to do by hand: multiply your signal by a test wave, add up the result, and see whether you got anything.
+
+If the answer is *nothing*, that frequency is not in your signal. If the answer is *a lot*, it is. Doing this for every frequency at once, and keeping track of alignment as well as size, is the entire transform. Everything else — the complex exponentials, the conjugate symmetry, the factor of $1/N$ that half the textbooks put in a different place — is bookkeeping on top of that one idea.
+
+This piece builds the idea up in the order the pieces actually depend on each other. Every figure is live; the numbers under them are computed from whatever you have set the controls to, not baked in.
+
+## Signals add
+
+Start with the part that carries no mystery. Two waves occupying the same medium at the same time do not interfere with each other's existence — they add, sample by sample, and the medium carries the sum.
+
+<Figure caption="Three sine waves at frequencies <em>f</em>, 2<em>f</em> and 3<em>f</em>, with independent amplitude and phase, and the wave you get by adding them. Note how little the sum resembles any of its parts once the phases are unequal.">
+  <HarmonicBuilder client:visible />
+</Figure>
+
+Push the second and third amplitudes up and the sum stops looking sinusoidal almost immediately. This is the fact the whole subject leans on, read backwards: a complicated-looking wave is not evidence of a complicated cause. It is what a handful of simple causes look like once they have been added together.
+
+<MarginNote>
+The reverse claim — that *every* reasonable periodic signal is such a sum — is Fourier's, and it was controversial for decades. Dirichlet gave the first solid conditions in 1829.
+</MarginNote>
+
+So the question becomes: given the sum, can we recover the parts?
+
+## A series is a machine
+
+Before answering that, it is worth seeing what "a sum of harmonics" looks like when you take it literally. Each sine in the previous figure is the height of a point going round a circle. Chain the circles — each turning at an integer multiple of the base rate, each with the radius of its harmonic's amplitude — and the height of the final tip is the sum.
+
+<Figure caption="The Fourier series of a square wave, drawn as machinery. Each circle turns <em>n</em> times faster than the first; the height of the tip is the partial sum, traced out to the right. One term is a sine. Five terms already have corners.">
+  <Epicycles client:visible />
+</Figure>
+
+A square wave needs only the odd harmonics, with amplitudes falling off as $1/n$:
+
+$$
+\mathrm{sq}(t) \;=\; \frac{4}{\pi}\sum_{n\ \mathrm{odd}} \frac{1}{n}\,\sin(2\pi n t)
+$$
+
+Watch what the term count buys you. The first term sets the overall shape. The next few sharpen the edges. The tail is doing nothing but flattening the tops — and never quite succeeding, which is the overshoot at the corners known as the Gibbs phenomenon. It does not go away as you add terms; it just gets narrower.
+
+The triangle wave, whose coefficients fall off as $1/n^2$, converges visibly faster. That rate is not a coincidence: **how fast a signal's coefficients decay is a statement about how smooth it is.** A discontinuity costs you $1/n$. A kink in the first derivative costs $1/n^2$. A signal with no sharp features at all can have coefficients that fall off exponentially. We will get a second, more visceral look at this later.
+
+## Measuring one frequency
+
+Now, the recovery problem. We have a sum and we want to know whether a particular frequency $f$ is in it.
+
+Here is the trick, and it is the only trick. Multiply the signal by a test wave at frequency $f$, and integrate the product over the record:
+
+$$
+X(f) \;=\; \int_0^{T} x(t)\,\sin(2\pi f t)\,dt
+$$
+
+Why this works is visible rather than algebraic. If the signal contains a component at $f$, then wherever the test wave is positive the signal tends to be positive too, and where the test wave is negative the signal tends to be negative. Their product is positive nearly everywhere, and the integral piles up. If the signal contains no such component, the product spends as much time positive as negative, and the integral cancels itself to nothing.
+
+<Figure caption="Top: the signal (dark) and the test tone (tan). Middle: their product, with the accumulated area shaded — this is the integral. Bottom: the value of that area at every test frequency, which is the spectrum. Sweep the test frequency and watch the area collapse everywhere except at the two frequencies actually present.">
+  <CorrelationSweep client:visible />
+</Figure>
+
+Drag the test frequency slowly through a component. The shaded lobes swing from cancelling out to reinforcing over a very narrow range, and the curve at the bottom — which is just the area readout plotted against frequency — grows a spike. Move component B onto component A and the two spikes merge into one of twice the height.
+
+That bottom curve is the spectrum. We did not need any new mathematics to get it; we needed one multiplication and one sum, evaluated at a lot of frequencies.
+
+## Why the answer has to be complex
+
+The figure above cheats slightly, and the cheat is instructive. Both of its components are *sines with zero phase*, so testing against a sine finds them. Shift one of them a quarter-cycle and it becomes a cosine — still plainly present, still perfectly periodic, and completely invisible to a sine test, because now the product cancels exactly.
+
+A single test wave measures alignment, not presence. To measure presence you need two tests in quadrature — a sine and a cosine — and the natural way to carry a pair like that is as one complex number:
+
+$$
+X(f) \;=\; \int_{-\infty}^{\infty} x(t)\,e^{-2\pi i f t}\,dt
+$$
+
+<MarginNote>
+$e^{-2\pi i f t} = \cos(2\pi f t) - i\sin(2\pi f t)$. The exponential is not a new idea, it is the sine and cosine tests stapled together so neither can be forgotten.
+</MarginNote>
+
+Geometrically, multiplying by $e^{-2\pi i f t}$ winds the signal around the origin at $f$ turns per second. The integral is then the centre of mass of the wound-up curve. When the winding rate matches a frequency in the signal, the heavy parts of the curve stop being spread evenly around the circle and bunch on one side — and the centre of mass lurches away from the origin.
+
+<Figure caption="The signal wound around the complex plane at the winding frequency, with the centre of mass of the wound curve drawn as an arrow. Its length is the magnitude at that frequency; its angle is the phase. Sliding the signal in time rotates the arrow and leaves its length alone.">
+  <WindingPlane client:visible />
+</Figure>
+
+The time-shift slider is the point of this figure. Delaying the signal changes the phase — the arrow spins — but not the magnitude. That is the formal statement
+
+$$
+x(t - \tau) \;\longleftrightarrow\; X(f)\,e^{-2\pi i f \tau}
+$$
+
+and it is the reason magnitude spectra are so widely used and so widely misleading. Two signals with identical magnitude spectra can sound identical and look nothing alike, because everything about *where things happen* lives in the phase you threw away.
+
+## In practice: finite, sampled, discrete
+
+Real signals arrive as a finite list of numbers. The integral becomes a sum, the frequency axis becomes a set of $N/2$ bins, and the transform becomes the DFT:
+
+$$
+X_k \;=\; \sum_{n=0}^{N-1} x_n\,e^{-2\pi i kn/N}, \qquad k = 0,\dots,N-1
+$$
+
+Nothing conceptual changed. This is the same multiply-and-add, evaluated at the $N$ frequencies that fit a whole number of cycles into the record.
+
+<Figure caption="Draw a waveform in the top panel — drag with a mouse or a finger — and the bars below are its DFT, recomputed on every pointer move. Smooth curves keep their energy in the leftmost bins. Try drawing a single sharp spike.">
+  <DrawYourOwn client:visible />
+</Figure>
+
+Two things are worth doing here deliberately. Draw a slow, smooth hump: the energy sits in a handful of low bins and the rest of the spectrum is empty. Then draw one narrow spike: the bars go flat, all the way across. A perfectly localised event in time is perfectly *de*localised in frequency, and vice versa — the reason a click has no pitch, and the reason the transform of a pure tone that lasts forever is a single infinitely thin line.
+
+<MarginNote>
+This trade-off has a hard floor: the product of a signal's spread in time and its spread in frequency cannot go below a fixed constant. In quantum mechanics the same inequality is Heisenberg's.
+</MarginNote>
+
+## The thing that will bite you
+
+There is one artefact that turns up in nearly every first encounter with a real FFT, and it follows directly from the "$N$ frequencies that fit a whole number of cycles" clause above.
+
+The DFT does not analyse your record. It analyses the infinite periodic signal you would get by tiling your record end to end. If the waveform does not close cleanly across that seam, the tiled version contains a discontinuity that was never in the data — and a discontinuity, as we established, has energy at every frequency.
+
+<Figure caption="A single pure tone. At a whole number of cycles per record the tiled signal is continuous and the energy lands in one bin. At 8.5 cycles the seam jumps, and the spectrum smears across the entire axis — nearly 40 dB of it. The Hann window tapers the record to zero at both ends, removing the seam at the cost of a wider main lobe.">
+  <SpectralLeakage client:visible />
+</Figure>
+
+Set the record to exactly 8.00 cycles: one bar, everything else at the floor. Set it to 8.50: the worst case, with the tone straddling two bins and leakage across the whole spectrum. Then switch the window to Hann and watch the sidelobes drop by tens of decibels while the peak itself broadens from one bin to about three.
+
+That is the trade every window function offers, and it is the honest summary of applied spectral analysis: you cannot have arbitrarily fine frequency resolution *and* clean separation between neighbouring components from a finite record. You choose which error you would rather have.
+
+## What to keep
+
+- A signal is a sum of rotations. The transform finds the parts by testing one rotation rate at a time.
+- The test is a multiply and an integral. Matching frequencies accumulate; everything else cancels.
+- The result is complex because presence and alignment are two different questions, and one number cannot answer both. Magnitude survives a time shift; phase carries it.
+- Sharpness in time is width in frequency. There is no arrangement in which both are narrow.
+- The DFT silently assumes your record loops. Most of the strange things you will see in a spectrum are that assumption showing through.
+
+Everything in the figures above is the direct definition, computed on the fly — an $O(N^2)$ loop, no FFT anywhere. The fast Fourier transform is a genuinely beautiful algorithm, but it is an optimisation of this procedure, not a different one. It is worth being sure of the procedure first.

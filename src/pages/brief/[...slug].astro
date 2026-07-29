@@ -1,13 +1,13 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostLayout from '../../layouts/PostLayout.astro';
 import { getBriefs, getBriefUrl, type Brief } from '../../lib/briefs';
-import { formatDate, isoDate, readingTime } from '../../lib/posts';
-import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+import { readingTime } from '../../lib/posts';
+import { useTranslations } from '../../i18n/utils';
 import type { Language } from '../../i18n/ui';
 
-const lang: Language = getLangFromUrl(Astro.url);
+const lang: Language = 'en';
 const t = useTranslations(lang);
 
 export const getStaticPaths = (async () => {
@@ -33,125 +33,24 @@ const { Content } = await render(brief);
 const { title, description, date, source } = brief.data;
 ---
 
-<BaseLayout
+<PostLayout
   lang={lang}
-  title={`${title} — ${t('site.name')}`}
+  title={title}
   description={description}
-  ogType="article"
-  publishedAt={date}
+  date={date}
+  kicker={source}
+  readingLabel={readingTime(brief.body, lang)}
+  backHref="/brief/"
+  backLabel={t('briefs.back')}
+  prev={prev && { href: getBriefUrl(prev, lang), title: prev.data.title }}
+  next={next && { href: getBriefUrl(next, lang), title: next.data.title }}
+  prevLabel={t('briefs.prevBrief')}
+  nextLabel={t('briefs.nextBrief')}
+  navLabel="More briefs"
+  siteName={t('site.name')}
 >
-  <!-- Top Reading Progress Indicator -->
-  <div id="read-progress" class="fixed top-0 left-0 z-50 h-[3px] bg-accent transition-all duration-150 w-0" aria-hidden="true"></div>
-
-  <article class="shell py-12 sm:py-16">
-    <a
-      href="/brief/"
-      class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
-    >
-      <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span> {t('briefs.back')}
-    </a>
-
-    <header class="mt-8 max-w-[46rem] border-b border-line pb-10">
-      <div class="flex flex-wrap items-center gap-3">
-        <span
-          class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium"
-        >
-          <span class="size-1.5 rounded-full bg-accent"></span>
-          {source}
-        </span>
-        <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
-        <span class="label flex items-center gap-1">
-          <svg viewBox="0 0 24 24" class="size-3 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          {readingTime(brief.body, lang)}
-        </span>
-      </div>
-      <h1 class="mt-6 text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05] font-display text-ink">{title}</h1>
-      <p class="mt-6 max-w-[58ch] text-lg leading-relaxed text-muted font-sans">{description}</p>
-    </header>
-
-    <div class="prose mt-12 max-w-[46rem]">
-      <Content />
-    </div>
-
-    <!-- Author Sign-off -->
-    <div class="mt-16 max-w-[46rem] border-t border-line pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-muted">
-      <div>
-        Source: <strong class="text-ink font-medium">{source}</strong>
-      </div>
-      <a href="https://github.com/Sqhh99" target="_blank" rel="noreferrer" class="hover:text-ink transition-colors font-mono text-xs">
-        GitHub @Sqhh99
-      </a>
-    </div>
-
-    <!-- Article Navigation -->
-    <nav
-      class="mt-12 max-w-[46rem] grid gap-4 border-t border-line pt-8 sm:grid-cols-2"
-      aria-label="More briefs"
-    >
-      {
-        prev && (
-          <a href={getBriefUrl(prev, lang)} class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float">
-            <span class="label flex items-center gap-1 text-accent">
-              <span class="transition-transform group-hover:-translate-x-1">←</span> {t('briefs.prevBrief')}
-            </span>
-            <p class="mt-2 font-display text-lg leading-snug text-ink group-hover:text-accent transition-colors">{prev.data.title}</p>
-          </a>
-        )
-      }
-      {
-        next && (
-          <a
-            href={getBriefUrl(next, lang)}
-            class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float sm:col-start-2 sm:text-right"
-          >
-            <span class="label flex items-center justify-end gap-1 text-accent">
-              {t('briefs.nextBrief')} <span class="transition-transform group-hover:translate-x-1">→</span>
-            </span>
-            <p class="mt-2 font-display text-lg leading-snug text-ink group-hover:text-accent transition-colors">{next.data.title}</p>
-          </a>
-        )
-      }
-    </nav>
-  </article>
-
-  <script>
-    // Reading progress bar
-    const progress = document.getElementById('read-progress');
-    const updateProgress = () => {
-      if (!progress) return;
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      const current = window.scrollY;
-      const pct = total > 0 ? (current / total) * 100 : 0;
-      progress.style.width = `${Math.min(100, Math.max(0, pct))}%`;
-    };
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    updateProgress();
-
-    // Code copy buttons enhancement
-    document.querySelectorAll('.prose pre').forEach((pre) => {
-      const code = pre.querySelector('code');
-      if (!code) return;
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.ariaLabel = 'Copy code';
-      button.className =
-        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 rounded-md border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted backdrop-blur transition-all hover:border-line-strong hover:text-ink';
-      button.innerHTML = '<span>Copy</span>';
-
-      pre.classList.add('group');
-      pre.appendChild(button);
-
-      button.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(code.innerText);
-        button.innerHTML = '<span class="text-accent">Copied!</span>';
-        setTimeout(() => {
-          button.innerHTML = '<span>Copy</span>';
-        }, 2000);
-      });
-    });
-  </script>
-</BaseLayout>
+  <Content />
+  <Fragment slot="byline">
+    Source: <strong class="font-medium text-ink">{source}</strong>
+  </Fragment>
+</PostLayout>

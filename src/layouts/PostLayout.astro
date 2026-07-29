@@ -1,0 +1,249 @@
+---
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import { formatDate, isoDate } from '../lib/posts';
+import type { Language } from '../i18n/ui';
+
+interface NavLink {
+  href: string;
+  title: string;
+}
+
+interface Props {
+  lang: Language;
+  title: string;
+  description: string;
+  date: Date;
+  /** Text inside the accent pill above the headline — a tag, or a brief's source. */
+  kicker: string;
+  readingLabel: string;
+  backHref: string;
+  backLabel: string;
+  prev?: NavLink | null;
+  next?: NavLink | null;
+  prevLabel: string;
+  nextLabel: string;
+  navLabel: string;
+  /** Passing headings turns on the sticky contents rail. */
+  headings?: MarkdownHeading[];
+  tocLabel?: string;
+  siteName: string;
+}
+
+const {
+  lang,
+  title,
+  description,
+  date,
+  kicker,
+  readingLabel,
+  backHref,
+  backLabel,
+  prev = null,
+  next = null,
+  prevLabel,
+  nextLabel,
+  navLabel,
+  headings = [],
+  tocLabel = 'Contents',
+  siteName,
+} = Astro.props;
+
+// Only h2/h3 make it into the rail — deeper headings turn it into a wall.
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${title} — ${siteName}`}
+  description={description}
+  ogType="article"
+  publishedAt={date}
+>
+  <!-- Top Reading Progress Indicator -->
+  <div
+    id="read-progress"
+    class="fixed top-0 left-0 z-50 h-[3px] w-0 bg-accent transition-all duration-150"
+    aria-hidden="true"
+  >
+  </div>
+
+  <article class="shell py-12 sm:py-16">
+    <div class="essay">
+      {
+        toc.length > 0 && (
+          <aside class="essay-rail" aria-label={tocLabel}>
+            <nav class="toc" id="toc">
+              <p class="label mb-3 pl-4">{tocLabel}</p>
+              {toc.map((heading) => (
+                <a
+                  class="toc-link"
+                  data-depth={heading.depth}
+                  data-toc-link={heading.slug}
+                  href={`#${heading.slug}`}
+                >
+                  {heading.text}
+                </a>
+              ))}
+            </nav>
+          </aside>
+        )
+      }
+
+      <div class="essay-body">
+        <a
+          href={backHref}
+          class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
+        >
+          <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span>
+          {backLabel}
+        </a>
+
+        <header class="mt-8 border-b border-line pb-10">
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] font-medium tracking-wider text-accent"
+            >
+              <span class="size-1.5 rounded-full bg-accent"></span>
+              {kicker}
+            </span>
+            <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
+            <span class="label flex items-center gap-1">
+              <svg
+                viewBox="0 0 24 24"
+                class="size-3 text-faint"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {readingLabel}
+            </span>
+          </div>
+          <h1 class="mt-6 font-display text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05] text-ink">
+            {title}
+          </h1>
+          <p class="mt-6 max-w-[58ch] font-sans text-lg leading-relaxed text-muted">{description}</p>
+        </header>
+
+        <div class="prose mt-12">
+          <slot />
+        </div>
+
+        <div
+          class="mt-16 flex flex-col gap-4 border-t border-line pt-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div><slot name="byline" /></div>
+          <a
+            href="https://github.com/Sqhh99"
+            target="_blank"
+            rel="noreferrer"
+            class="font-mono text-xs transition-colors hover:text-ink"
+          >
+            GitHub @Sqhh99
+          </a>
+        </div>
+
+        <nav class="mt-12 grid gap-4 border-t border-line pt-8 sm:grid-cols-2" aria-label={navLabel}>
+          {
+            prev && (
+              <a
+                href={prev.href}
+                class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float"
+              >
+                <span class="label flex items-center gap-1 text-accent">
+                  <span class="transition-transform group-hover:-translate-x-1">←</span> {prevLabel}
+                </span>
+                <p class="mt-2 font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent">
+                  {prev.title}
+                </p>
+              </a>
+            )
+          }
+          {
+            next && (
+              <a
+                href={next.href}
+                class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float sm:col-start-2 sm:text-right"
+              >
+                <span class="label flex items-center justify-end gap-1 text-accent">
+                  {nextLabel} <span class="transition-transform group-hover:translate-x-1">→</span>
+                </span>
+                <p class="mt-2 font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent">
+                  {next.title}
+                </p>
+              </a>
+            )
+          }
+        </nav>
+      </div>
+    </div>
+  </article>
+
+  <script>
+    // Reading progress bar
+    const progress = document.getElementById('read-progress');
+    const updateProgress = () => {
+      if (!progress) return;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = total > 0 ? (window.scrollY / total) * 100 : 0;
+      progress.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // Code copy buttons enhancement
+    document.querySelectorAll('.prose pre').forEach((pre) => {
+      const code = pre.querySelector('code');
+      if (!code) return;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.ariaLabel = 'Copy code';
+      button.className =
+        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 rounded-md border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted backdrop-blur transition-all hover:border-line-strong hover:text-ink';
+      button.innerHTML = '<span>Copy</span>';
+
+      pre.classList.add('group');
+      pre.appendChild(button);
+
+      button.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(code.innerText);
+        button.innerHTML = '<span class="text-accent">Copied!</span>';
+        setTimeout(() => {
+          button.innerHTML = '<span>Copy</span>';
+        }, 2000);
+      });
+    });
+
+    // Contents scroll-spy. Tracks the last heading to cross the top third of the
+    // viewport rather than whichever is merely intersecting, so the rail matches
+    // what you are actually reading when several headings are on screen at once.
+    const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
+
+    if (tocLinks.length > 0) {
+      const headings = [...tocLinks]
+        .map((link) => document.getElementById(link.dataset.tocLink!))
+        .filter((el): el is HTMLElement => el !== null);
+
+      const syncActive = () => {
+        const line = window.scrollY + window.innerHeight * 0.3;
+        let activeIndex = 0;
+        for (let i = 0; i < headings.length; i += 1) {
+          if (headings[i].offsetTop <= line) activeIndex = i;
+          else break;
+        }
+        tocLinks.forEach((link, i) => link.classList.toggle('is-active', i === activeIndex));
+      };
+
+      window.addEventListener('scroll', syncActive, { passive: true });
+      window.addEventListener('resize', syncActive);
+      syncActive();
+    }
+  </script>
+</BaseLayout>

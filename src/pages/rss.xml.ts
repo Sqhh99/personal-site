@@ -1,26 +1,23 @@
 import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 import { SITE } from '../consts';
-import { getAllPosts, getPostLang, getPostUrl } from '../lib/posts';
+import { getPosts, getPostUrl } from '../lib/posts';
 
 export const GET: APIRoute = async (context) => {
-  const posts = await getAllPosts();
+  const posts = await getPosts();
 
   return rss({
     title: SITE.title,
     description: SITE.description,
     // `context.site` comes from `site` in astro.config.mjs.
     site: context.site!,
-    items: posts.map((post) => {
-      const lang = getPostLang(post);
-      return {
-        title: lang === 'zh' ? `[中文] ${post.data.title}` : post.data.title,
-        description: post.data.description,
-        pubDate: post.data.date,
-        categories: [post.data.tag],
-        link: getPostUrl(post, lang),
-      };
-    }),
+    items: posts.map((post) => ({
+      title: post.data.title,
+      description: post.data.description,
+      pubDate: post.data.date,
+      categories: [post.data.tag],
+      link: getPostUrl(post),
+    })),
     customData: '<language>en-us</language>',
   });
 };

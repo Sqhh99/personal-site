@@ -9,7 +9,7 @@ import type { Language } from '../../i18n/ui';
 
 const lang: Language = 'zh';
 const t = useTranslations(lang);
-const posts = await getPosts(lang);
+const posts = await getPosts();
 const lead = leadPostId(posts);
 ---
 
