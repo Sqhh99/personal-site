@@ -407,20 +407,15 @@
   --rail-gap: 2.5rem;
 }
 
+/* One column, always centred in the viewport. Margin notes overhang into the
+   right margin rather than claiming a grid column of their own — reserving one
+   would shift the prose off centre by half the gutter, which reads as a
+   mistake even when it is deliberate. */
 .essay {
   display: grid;
   grid-template-columns: minmax(0, var(--measure));
   justify-content: center;
   counter-reset: section figure;
-}
-
-/* Wide enough to hold the measure, both margins and a note column: shift the
-   column left by half the gutter so the pair stays optically centred. */
-@media (min-width: 1500px) {
-  .essay {
-    grid-template-columns: minmax(0, var(--measure)) var(--rail-right);
-    gap: var(--rail-gap);
-  }
 }
 
 .essay-body {
@@ -616,6 +611,8 @@
   color: var(--faint);
 }
 
+/* Needs measure + 2 × (gap + note width) = 91rem before a note can sit in the
+   margin without crowding the edge; 1500px leaves a little slack on top. */
 @media (min-width: 1500px) {
   .margin-note {
     position: absolute;

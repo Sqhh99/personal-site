@@ -4,9 +4,12 @@ interface Props {
   title: string;
   lede?: string;
   id?: string;
+  /** 1 where this is the page's only heading, so a page is never without an h1. */
+  level?: 1 | 2;
 }
 
-const { index, title, lede, id } = Astro.props;
+const { index, title, lede, id, level = 2 } = Astro.props;
+const Title = level === 1 ? 'h1' : 'h2';
 ---
 
 <div
@@ -18,7 +21,9 @@ const { index, title, lede, id } = Astro.props;
       <span class="inline-block h-px w-6 bg-accent"></span>
       {index}
     </p>
-    <h2 class="mt-4 text-4xl leading-[1.05] tracking-tight md:text-5xl text-ink font-display">{title}</h2>
+    <Title class="mt-4 text-4xl leading-[1.05] tracking-tight md:text-5xl text-ink font-display">
+      {title}
+    </Title>
   </div>
   {lede && <p class="max-w-[44ch] text-[0.975rem] leading-relaxed text-muted">{lede}</p>}
 </div>

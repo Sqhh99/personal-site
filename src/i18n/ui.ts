@@ -21,11 +21,6 @@ export const UI_STRINGS = {
     'nav.writing': 'Writing',
     'nav.briefs': 'Briefs',
 
-    'hero.badge': 'Sqhh99',
-    'hero.title': 'Sqhh99',
-    'hero.lead':
-      'Notes on realtime media, deep learning, software engineering, and systems.',
-    'hero.cta.writing': 'Read writing',
 
     'writing.index': 'Writing',
     'writing.title': 'Recent writing',
@@ -95,11 +90,6 @@ export const UI_STRINGS = {
     'nav.writing': '文章',
     'nav.briefs': '简报',
 
-    'hero.badge': 'Sqhh99',
-    'hero.title': 'Sqhh99',
-    'hero.lead':
-      '关于实时媒体、深度学习、Web 性能与系统的思考与笔记。',
-    'hero.cta.writing': '阅读文章',
 
     'writing.index': '文章',
     'writing.title': '近期文章',
