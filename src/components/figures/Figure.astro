@@ -6,8 +6,8 @@ interface Props {
   width?: 'measure' | 'wide' | 'bleed';
 }
 
-// Figures fill the measure by default, so a chart lines up with the paragraph
-// above it instead of bulging past it.
+// Figures fill --measure (58rem) by default, so a chart lines up with the
+// paragraph above it instead of bulging past it.
 const { caption, width = 'measure' } = Astro.props;
 
 const widthClass = { measure: '', wide: 'figure-wide', bleed: 'figure-bleed' }[width];
