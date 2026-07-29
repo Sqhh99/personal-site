@@ -49,8 +49,21 @@ const {
   siteName,
 } = Astro.props;
 
-// Only h2/h3 make it into the rail — deeper headings turn it into a wall.
-const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+// Only h2/h3 make it into the outline — deeper headings turn it into a wall.
+// Number them 1, 1.1, 1.2, 2 … so the panel reads like a paper's contents.
+let major = 0;
+let minor = 0;
+const toc = headings
+  .filter((heading) => heading.depth === 2 || heading.depth === 3)
+  .map((heading) => {
+    if (heading.depth === 2) {
+      major += 1;
+      minor = 0;
+      return { ...heading, number: `${major}` };
+    }
+    minor += 1;
+    return { ...heading, number: `${major}.${minor}` };
+  });
 ---
 
 <BaseLayout
@@ -68,28 +81,52 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
   >
   </div>
 
-  <article class="shell py-12 sm:py-16">
-    <div class="essay">
-      {
-        toc.length > 0 && (
-          <aside class="essay-rail" aria-label={tocLabel}>
-            <nav class="toc" id="toc">
-              <p class="label mb-3 pl-4">{tocLabel}</p>
-              {toc.map((heading) => (
-                <a
-                  class="toc-link"
-                  data-depth={heading.depth}
-                  data-toc-link={heading.slug}
-                  href={`#${heading.slug}`}
-                >
-                  {heading.text}
-                </a>
-              ))}
-            </nav>
-          </aside>
-        )
-      }
+  {
+    toc.length > 0 && (
+      <div class="toc-widget" id="toc-widget" data-open="false">
+        <button
+          type="button"
+          id="toc-toggle"
+          class="toc-toggle"
+          aria-expanded="false"
+          aria-controls="toc-panel"
+          aria-label={tocLabel}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="size-3.5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h10" />
+          </svg>
+          <span class="toc-current" id="toc-current">
+            {tocLabel}
+          </span>
+        </button>
+        <nav class="toc-panel" id="toc-panel" aria-label={tocLabel}>
+          {toc.map((heading) => (
+            <a
+              class="toc-link"
+              data-depth={heading.depth}
+              data-toc-link={heading.slug}
+              data-toc-number={heading.number}
+              href={`#${heading.slug}`}
+            >
+              <span class="toc-num">{heading.number}</span>
+              <span>{heading.text}</span>
+            </a>
+          ))}
+        </nav>
+      </div>
+    )
+  }
 
+  <article class="essay-shell py-12 sm:py-16">
+    <div class="essay">
       <div class="essay-body">
         <a
           href={backHref}
@@ -221,24 +258,58 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
       });
     });
 
-    // Contents scroll-spy. Tracks the last heading to cross the top third of the
-    // viewport rather than whichever is merely intersecting, so the rail matches
-    // what you are actually reading when several headings are on screen at once.
+    // Contents widget: a pill that names the section you are in, and opens the
+    // full outline over the page.
+    const widget = document.getElementById('toc-widget');
+    const toggle = document.getElementById('toc-toggle');
+    const panel = document.getElementById('toc-panel');
+    const current = document.getElementById('toc-current');
     const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
 
-    if (tocLinks.length > 0) {
+    if (widget && toggle && panel && tocLinks.length > 0) {
+      const setOpen = (open: boolean) => {
+        widget.dataset.open = String(open);
+        toggle.setAttribute('aria-expanded', String(open));
+      };
+
+      toggle.addEventListener('click', () => setOpen(widget.dataset.open !== 'true'));
+
+      // Jumping to a section should not leave the outline covering it.
+      panel.addEventListener('click', (event) => {
+        if ((event.target as HTMLElement).closest('a')) setOpen(false);
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!widget.contains(event.target as Node)) setOpen(false);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setOpen(false);
+      });
+
+      // Scroll-spy. Tracks the last heading to cross the top third of the
+      // viewport rather than whichever is merely intersecting, so the label
+      // matches what you are reading when several headings are on screen.
       const headings = [...tocLinks]
         .map((link) => document.getElementById(link.dataset.tocLink!))
         .filter((el): el is HTMLElement => el !== null);
 
+      let lastIndex = -1;
       const syncActive = () => {
         const line = window.scrollY + window.innerHeight * 0.3;
         let activeIndex = 0;
         for (let i = 0; i < headings.length; i += 1) {
-          if (headings[i].offsetTop <= line) activeIndex = i;
+          if (headings[i].getBoundingClientRect().top + window.scrollY <= line) activeIndex = i;
           else break;
         }
+        if (activeIndex === lastIndex) return;
+        lastIndex = activeIndex;
+
         tocLinks.forEach((link, i) => link.classList.toggle('is-active', i === activeIndex));
+        const active = tocLinks[activeIndex];
+        if (current && active) {
+          current.textContent = `§ ${active.dataset.tocNumber} ${headings[activeIndex].textContent ?? ''}`;
+        }
       };
 
       window.addEventListener('scroll', syncActive, { passive: true });
