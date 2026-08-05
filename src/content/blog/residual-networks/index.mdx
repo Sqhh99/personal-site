@@ -10,35 +10,56 @@ draft: false
 
 import Figure from '@figures/Figure.astro';
 import MarginNote from '@figures/MarginNote.astro';
-import DegradationToy from './_figures/DegradationToy.tsx';
+import DepthTrainer from './_figures/DepthTrainer.tsx';
 import ResidualBlockExplorer from './_figures/ResidualBlockExplorer.tsx';
-import GradientHighway from './_figures/GradientHighway.tsx';
-import ResidualFamilyMap from './_figures/ResidualFamilyMap.tsx';
+import SignalPropagation from './_figures/SignalPropagation.tsx';
+import PathEnsemble from './_figures/PathEnsemble.tsx';
 import CardinalityTrade from './_figures/CardinalityTrade.tsx';
+import ResidualFamilyMap from './_figures/ResidualFamilyMap.tsx';
 
 A residual network is usually introduced as an architectural motif: a few convolutions, a line drawn around them, then an addition. The line matters, but the more useful idea is what it changes about the job of each block. A plain block must produce the next representation. A residual block need only produce the correction that should be made to the representation it already has.
 
-That modest reformulation made very deep convolutional networks trainable in a way that simply stacking more of the same layers did not. It also turned out to be unusually portable. Pre-activation, wider blocks, grouped transformations and channel attention all modify the residual branch while preserving the same dependable route through the model.
+That modest reformulation made very deep convolutional networks trainable in a way that stacking more of the same layers did not. It also turned out to be unusually portable: pre-activation, wider blocks, grouped transformations and channel attention all modify the residual branch while preserving the same dependable route through the model, and the same shape reappears in segmentation decoders, in speech models and under every diffusion sampler.
 
-The identity path is not a guarantee of easy optimisation, and “better gradient flow” is not a complete explanation. It is, however, a precise piece of useful machinery. This essay follows that machinery from the degradation problem to the main branches of the family.
+What follows takes the machinery apart. The claims that can be checked in a browser are checked in a browser — the training curves below come from two networks that are actually training on this page, and the propagation curves from actual products of actual random matrices. The claims that cannot be checked here are marked as such.
 
-## More layers can make the training fit worse
+## The degradation problem
 
-Suppose a 20-layer network has learned a useful mapping. A 32-layer network of compatible shape ought, in principle, to do at least as well: the extra twelve layers could implement identity maps and leave the original solution alone. Yet the early plain convolutional networks used in the ResNet experiments often did worse as they became deeper — not only on validation data, but on the training set.
+### A deeper network contains the shallower one
 
-That distinction matters. A larger gap between training and validation error would suggest overfitting. Higher *training* error says the optimiser failed to reach solutions that the deeper model can represent. This was called the degradation problem.
+Suppose a 20-layer network has learned a useful mapping. A 32-layer network of compatible shape ought, in principle, to do at least as well. There is a constructive argument: keep the first twenty layers, and set the extra twelve to compute the identity. That solution exists inside the larger model's parameter space, and it achieves exactly the smaller model's loss.
 
-<Figure caption="Raise the plain-stack difficulty, then inspect depths 20, 56 and 152. The curves are a computed schematic rather than ImageNet measurements: watch for training error rising with depth, which overfitting alone cannot explain.">
-  <DegradationToy client:visible />
+So the deeper model's optimum is at least as good as the shallower model's optimum. Any gap that shows up in practice is a gap between the optimum and what the optimiser found.
+
+### The failure is in optimisation, not generalisation
+
+The early plain convolutional networks used in the 2015 experiments often did worse as they became deeper — not only on held-out data, but on the training set. That distinction is the whole diagnosis. A larger gap between training and validation error would suggest overfitting, which is a statement about capacity. Higher *training* error is a statement about search: the optimiser failed to reach solutions the deeper model demonstrably contains.
+
+<Figure caption="Two networks with identical width and depth, one plain and one residual, trained live by gradient descent on the same 32 points. Drag blocks down to 4 — the curves nearly coincide, and the residual model is if anything marginally behind. Drag up to 28 and the plain stack settles roughly an order of magnitude higher, sometimes far more, while the residual one carries on improving. Then step through the three initial draws: the gap moves about a good deal, which is what a sample of one looks like.">
+  <DepthTrainer client:visible />
 </Figure>
 
-The figure deliberately separates the phenomenon from any particular benchmark. Its formulas encode two effects: added depth first buys useful capacity, then makes the plain stack increasingly awkward to optimise. The residual curve is not flat and residual networks are not immune to poor training; the point is that a usable identity solution is built into every block rather than left for several weight layers to discover.
+Watch the plain curve rather than the gap. It does not overfit and it does not diverge — it flattens, and at the deepest settings it flattens somewhere much worse. The optimiser is still descending, on a surface where progress has become expensive, and the extra blocks it was given have not bought anything. The residual model, given the same extra blocks, keeps using them: its loss at 28 blocks is lower than its loss at 4.
+
+The variation between the three initial draws is worth sitting with rather than averaging away. At four blocks the ordering is not even stable — the plain model wins on some draws. Depth is what makes the difference reliable, which is exactly the shape of the original claim.
+
+### What the toy does and does not show
+
+This is a twelve-unit tanh network fitting a one-dimensional curve, not a convolutional network on ImageNet. It has no batch normalisation, no data augmentation and no validation set, and its notion of depth costs microseconds rather than GPU-days.
+
+What transfers is the mechanism, and the mechanism is visible precisely because so much else has been removed. Same width, same depth, same initial draw, same learning rate, same data — the models differ only in whether a block computes $f(x)$ or $x + \beta f(x)$.
+
+That $\beta$ deserves flagging now rather than later. It is the scale on the residual branch, and it defaults to $1/\sqrt{L}$. Set it to 1 with the control and a deep residual network here does not merely train badly, it diverges: the identity route accumulates every branch's output, the sum grows with depth, and the whole thing saturates. This is not a defect of the toy. It is the second half of the story, and section 3.2 comes back to it with measurements.
 
 <MarginNote>
-The original 2015 experiments compared plain and residual networks with matched convolutional structure. Batch normalisation was already present in both, so the gain was not simply “ResNet added normalisation”.
+The original experiments compared plain and residual networks with matched convolutional structure, and batch normalisation was already present in both. The gain was not simply "ResNet added normalisation" — which is worth remembering, because normalisation turns out to be doing more of the work than the 2015 framing suggested.
 </MarginNote>
 
-## A residual block learns an update
+What does not transfer is any quantitative claim. The ratio in the readout is a property of this toy. Read it as a direction, not a number.
+
+## The residual reformulation
+
+### Learning a correction
 
 Let $x$ be the tensor entering a block. A plain stack tries to learn some desired mapping $H(x)$. A residual block writes the same mapping as
 
@@ -46,92 +67,203 @@ $$
 y = F(x; W) + x,
 $$
 
-where the weighted branch $F$ learns the difference $H(x)-x$. If leaving the representation alone is a good local decision, the branch can move towards zero. The shortcut already supplies the identity.
+where the weighted branch $F$ learns the difference $H(x) - x$. If leaving the representation alone is a good local decision, the branch can move towards zero and the shortcut supplies the identity for free.
+
+The reformulation does not change what the block can express: $F$ ranges over the same function class either way, so the two parameterisations reach the same set of mappings. It changes which mappings are *easy to reach from initialisation*. Near zero-mean random weights, a plain block computes something arbitrary; a residual block computes something close to the identity. If the useful answer at a given depth is "mostly leave this alone, but adjust these few directions", the residual parameterisation starts nearby and the plain one does not.
 
 This does not mean every useful layer is close to identity. Some stages change spatial size or channel count, and some residual functions are large. The claim is gentler: representing a small correction is made cheap wherever a small correction is appropriate.
 
-<Figure caption="Switch between the original basic and bottleneck blocks, then hover over their stages. Change the channel count and turn on a projection shortcut to see exactly when the upper path stops being a parameter-free identity.">
+### What is inside the block
+
+<Figure caption="Switch between the basic and bottleneck blocks at 256 output channels and compare the MAC totals — the bottleneck buys its cheaper middle convolution with two extra pointwise layers. Then turn on the stage boundary and watch a projection appear in the shortcut with a real parameter count attached to it.">
   <ResidualBlockExplorer client:visible />
 </Figure>
 
-The basic block used in ResNet-18 and ResNet-34 has two $3\times3$ convolutions. In the original “v1” ordering, each convolution is followed by batch normalisation; the first also has a ReLU, and another ReLU follows the addition. When resolution is unchanged, $x$ goes around the branch untouched.
+#### The basic block
 
-The bottleneck used in ResNet-50 and deeper models has a $1\times1$, $3\times3$, $1\times1$ sequence. The first pointwise convolution reduces the channel width, the middle convolution does the spatial work cheaply, and the last expands back to the block's output width. “Bottleneck” describes the narrow middle, not a compressed network output.
+The basic block used in ResNet-18 and ResNet-34 has two $3\times3$ convolutions. In the original v1 ordering, each convolution is followed by batch normalisation; the first also has a ReLU, and another ReLU follows the addition. When resolution and width are unchanged, $x$ goes around the branch untouched.
 
-At a stage boundary, the main branch may halve height and width while increasing channels. Addition requires matching shapes, so the shortcut uses a strided $1\times1$ projection. It is still a short path, but no longer an exact identity. That qualification is easy to lose when diagrams draw every shortcut in the same way.
+Its cost is dominated by the two spatial convolutions, each $9C^2$ parameters at width $C$. That quadratic term is why the basic block does not scale to the widths deeper models want: at $C = 512$ a single $3\times3$ convolution is already 2.4 million parameters.
 
-## Addition creates a short derivative path
+#### The bottleneck
+
+The bottleneck used in ResNet-50 and deeper models has a $1\times1$, $3\times3$, $1\times1$ sequence. The first pointwise convolution reduces the channel width by four, the middle convolution does the spatial work at that reduced width, and the last expands back to the block's output width. "Bottleneck" describes the narrow middle, not a compressed network output.
+
+The arithmetic is the point. At $C = 256$, a basic block spends $9 \times 256^2 \approx 590\,000$ parameters per convolution; the bottleneck's $3\times3$ operates at width 64 and spends $9 \times 64^2 \approx 37\,000$. The two pointwise layers cost $256 \times 64$ each. The block ends up several times cheaper at the same output width, which is what lets ResNet-50 be deeper *and* smaller than a hypothetical basic-block network of the same width.
+
+#### Where the shortcut stops being free
+
+At a stage boundary the main branch halves height and width while doubling channels. Addition requires matching shapes, so the shortcut uses a strided $1\times1$ projection. It is still a short path, but it is no longer an exact identity, and it is no longer parameter-free — toggle the stage boundary in the figure and the projection's parameter count appears.
+
+There are four of these boundaries in a standard ResNet and dozens of identity shortcuts, so the projections are a small share of the model. But they are the reason the clean claim is "an identity route exists wherever shapes permit", not "an identity route exists". Diagrams that draw every shortcut the same way lose that qualification, and with it the explanation for why the very deepest stacks still benefit from careful initialisation.
+
+## Why the reformulation helps
+
+### The derivative of an addition
 
 For one block, differentiating the residual update gives
 
 $$
-\frac{\partial y}{\partial x}
-= I + \frac{\partial F}{\partial x}.
+\frac{\partial y}{\partial x} = I + \frac{\partial F}{\partial x}.
 $$
 
-The upstream gradient therefore has a term that does not pass through the residual branch's weight layers. Across many blocks, the full derivative contains many routes: long products through learned transformations, shorter mixed routes, and an identity contribution where shapes permit it.
+The upstream gradient therefore has a term that does not pass through the residual branch's weight layers. Across many blocks, the full derivative is a product of such sums, and expanding it produces many routes: long products through learned transformations, shorter mixed routes, and one route that is the identity all the way down.
 
-<Figure caption="Set the local derivative below one and increase the block count. Compare the plain product with the residual identity route; pause the pulse to inspect the two paths. The scalar readout is an approximation of matrix-valued Jacobians, not a training prediction.">
-  <GradientHighway client:visible />
+This is usually where the phrase "gradient highway" appears, and it is where most explanations stop. It is worth going two steps further, because the identity term does not do what the phrase implies.
+
+### Signal propagation is still exponential
+
+<Figure caption="Real products of real random matrices: each block gets a fresh Jacobian with entries drawn at gain g, and a vector is pushed forward and pulled back through the transposes. Set g to 1 with β = 1 and read the residual curve — it grows, and it grows exponentially. Then switch to β = 1/√L and watch it flatten.">
+  <SignalPropagation client:visible />
 </Figure>
 
-A plain scalar chain with local derivative $a$ carries a factor $a^L$ across $L$ layers. If $a=0.82$, that shrinks quickly. Real networks use matrices, batch statistics and nonlinearities, so the figure's multiplication is only a sketch. Its honest content is topological: addition puts a derivative-one edge beside the learned branch. The optimiser is not forced to send every signal through every transformation.
+#### What the measurement shows
 
-This also clarifies what a shortcut does *not* do. It does not prevent badly scaled residual branches, dead nonlinearities, unstable normalisation or a poor loss. Nor does it say that gradients literally choose one wire. Back-propagation sums contributions along all computational paths. “Gradient highway” is useful language if the highway is understood as a term in that sum.
+Model a block's Jacobian as a random matrix with entries of scale $g/\sqrt{n}$. A plain layer multiplies the squared norm by roughly $g^2$ per block, so the norm after $L$ blocks scales as $g^L$. Unless $g$ sits almost exactly at 1, that is exponential decay or exponential growth, and no amount of depth-independent tuning fixes both ends at once.
 
-## Put the clean path before the transformations
+A residual block computes $(I + \beta J)$, and because the identity and the random branch are uncorrelated, the squared norm is multiplied by $1 + \beta^2 g^2$ per block. With $\beta = 1$ and $g = 1$ that factor is 2, so the activation norm grows like $2^{L/2}$.
 
-The original block applies a ReLU after addition. ResNet-v2, or the pre-activation design, moves batch normalisation and ReLU in front of each convolution and removes the activation after the sum. Its block is closer to
+The dashed lines in the figure are those two closed forms; the solid lines are the measurement, averaged over twelve independent draws of the whole stack. They track each other closely and not exactly, which is itself worth noticing — twelve samples of a product of forty random matrices is not many, and the spread between draws A, B and C is the honest error bar.
+
+So the identity path converts a two-sided exponential into a one-sided one. That is a genuine improvement — exponential growth with a well-behaved direction is far easier to control than a product that can collapse to zero — but it is not the removal of the exponential.
+
+#### Why normalisation is not optional
+
+Set $\beta = 1/\sqrt{L}$ and the per-block factor becomes $1 + g^2/L$, whose $L$-th power tends to $e^{g^2}$ — bounded, independent of depth. This is exactly the correction that later work applies by hand: Fixup scales residual branches down with depth, and ReZero and SkipInit put a learnable scalar in front of the branch and initialise it to zero, the $\beta = 0$ setting in the figure.
+
+Batch normalisation inside the branch achieves something similar without anyone naming it as the goal. By rescaling the branch output to unit variance it suppresses the branch relative to the accumulating identity stream, and the effective $\beta$ falls as the stream's variance grows with depth. This is why the 2015 result is not "ResNet added normalisation" but also not independent of it: the identity route and the normalisation are jointly responsible for the depth-independent scale.
+
+The trainer in section 1 carries the same control, and the toy is unforgiving about it. At $\beta = 1$ and twenty blocks the residual network diverges outright — no normalisation, nothing to hold the accumulating stream down. The shortcut on its own does not make a deep network trainable. It makes a deep network trainable *given* something that controls the scale.
+
+### The unravelled view
+
+#### Counting paths
+
+Expanding the product $\prod_{l}(I + F_l)$ over $L$ blocks gives $2^L$ terms, one for each subset of blocks a route passes through. A network of 54 blocks therefore contains about $1.8 \times 10^{16}$ distinct computational paths, and their lengths are exactly binomially distributed: most paths use about half the blocks.
+
+<Figure caption="The exact binomial path counts, overlaid with the share of gradient magnitude each path length carries. Hold blocks at 54 and pull the per-branch factor down from 1.0 to 0.5: the path counts do not move, but the gradient mass slides left until almost all of it comes from routes through a fraction of the network.">
+  <PathEnsemble client:visible />
+</Figure>
+
+#### Effective depth
+
+Path counts are not the interesting distribution. If traversing one residual branch scales a gradient by a factor $a < 1$, a path of length $k$ contributes about $a^k$, so the gradient mass at length $k$ goes as $\binom{L}{k}a^k$. Summing gives a closed form for the mean length that actually carries gradient:
 
 $$
-x_{l+1} = x_l + F(\operatorname{BN}(x_l); W_l),
+\mathbb{E}[k] = \frac{La}{1 + a}.
 $$
 
-with the activation folded into $F$. From one block boundary to the next, the shortcut can now carry both activations and derivatives without being clipped by an intervening ReLU.
+The readout compares this against the summed distribution, and they match. The consequence is the one Veit and colleagues drew in 2016: a very deep residual network behaves less like one deep function and more like an ensemble of many relatively shallow ones. In a 110-layer network they found the effective paths concentrated in the range of roughly 10 to 34 blocks.
 
-Pre-activation also changes the role of normalisation: weights receive normalised, activated inputs, while the addition itself stays linear. This became the cleaner residual unit for very deep networks. It is not automatically superior in every small model or training regime, but it expresses the identity argument more faithfully than post-activation does.
+This also explains an otherwise odd empirical fact. Deleting a single block from a trained residual network usually costs very little accuracy, while deleting a layer from a trained plain network is catastrophic. Removing one block removes half the paths, but the surviving half is drawn from the same distribution — the network degrades rather than breaking.
 
-## Capacity has more than one axis
+<MarginNote>
+Stochastic depth trains with this property deliberately: each block is dropped with some probability during training, which shortens the expected path and acts as a regulariser. It is what made networks past a thousand layers trainable at all.
+</MarginNote>
 
-Once a reliable scaffold existed, depth no longer had to be the only way to spend computation. Wide Residual Networks shortened the model and increased the number of channels in each residual branch. Wider layers expose more features in parallel and often use hardware more efficiently than extremely long, narrow chains. The trade is memory: activation storage grows with width, and parameter counts can grow roughly quadratically when both input and output widths expand.
+### What the shortcut does not do
 
-ResNeXt changed a different axis, called *cardinality*. Instead of one dense transformation, its residual branch performs several transformations with the same topology and sums them. In common implementations this is a grouped convolution, not a Python loop over miniature networks.
+It does not prevent badly scaled residual branches, dead nonlinearities, unstable normalisation statistics at small batch size, or a poorly conditioned loss. It does not make learning rate schedules unnecessary — very deep residual networks still needed warmup in the original CIFAR experiments.
 
-<Figure caption="Hold branch width at 8 and sweep cardinality from 1 to 32; then trade fewer wide branches for more narrow ones. Watch aggregate width and the toy convolution count separately — cardinality is not simply another spelling of width.">
+Nor does it mean gradients literally choose one wire. Back-propagation sums contributions along all computational paths simultaneously; there is no routing decision anywhere in the algorithm. "Gradient highway" is useful language only if the highway is understood as one term in that sum — the term whose coefficient happens to be exactly one.
+
+## Ordering: pre-activation
+
+### Post-activation clips the clean route
+
+The original block applies a ReLU after the addition. That means the value handed to the next block is $\mathrm{ReLU}(x + F(x))$, and the "identity" route from block $l$ to block $l+1$ passes through a nonlinearity that discards half its range. Over a hundred blocks, the composition of a hundred ReLUs is not an identity in any useful sense.
+
+### The v2 unit
+
+ResNet-v2 moves batch normalisation and ReLU in front of each convolution and removes the activation after the sum:
+
+$$
+x_{l+1} = x_l + F(\mathrm{BN}(x_l); W_l),
+$$
+
+with the activation folded into $F$. Now the recursion unrolls cleanly: $x_L = x_l + \sum_{i=l}^{L-1} F(x_i)$. Every block boundary is connected to every later boundary by an addition and nothing else, in both directions. Pre-activation also changes the role of normalisation — weights receive normalised, activated inputs, while the addition itself stays linear.
+
+### When it matters
+
+The gain is largest exactly where the argument predicts: very deep networks, where a hundred intervening ReLUs is a hundred opportunities to clip. At 50 or 101 layers the two orderings are close, and at 18 layers post-activation is often marginally better. Pre-activation is not automatically superior; it expresses the identity argument more faithfully, and the faithfulness pays off in proportion to depth.
+
+## Other axes of capacity
+
+Once a reliable scaffold existed, depth stopped being the only way to spend computation.
+
+### Width
+
+Wide Residual Networks shorten the model and multiply the channel count in each residual branch. Wider layers expose more features in parallel and use hardware far better than extremely long, narrow chains, because a wide convolution is a large matrix multiply and a deep chain of narrow ones is a sequence of small ones with a synchronisation between each.
+
+The trade is memory and parameters. Activation storage grows linearly with width, and parameter counts grow roughly quadratically when both input and output widths expand — WRN-28-10 has about 36 million parameters against ResNet-50's 25 million, at a fraction of the depth.
+
+### Cardinality
+
+ResNeXt changed a different axis. Instead of one dense transformation, its residual branch performs $C$ transformations of identical topology and sums them. In practice this is a grouped convolution, not a loop over miniature networks.
+
+<Figure caption="The ResNeXt template, costed exactly: 256 channels in, C groups of width d, 256 out. Leave the budget locked and sweep cardinality — the solved widths are 64, 40, 24, 14 and 4, which is the paper's table recovered from the quadratic rather than transcribed from it. Watch aggregate width climb while the parameter count stays put.">
   <CardinalityTrade client:visible />
 </Figure>
 
-The split–transform–merge picture resembles an ensemble, but the branches are trained jointly and live inside one residual update. More groups increase the number of independently parameterised transformations while controlling the cost of the spatial convolution. Comparing ResNeXt models fairly therefore means matching a compute or parameter budget; “more cardinality” without that constraint is merely a larger model.
+The figure's arithmetic is worth stating in full, because it is the argument. The block's parameter count is
 
-## The residual branch is a useful place to specialise
+$$
+512\,Cd + 9\,Cd^2,
+$$
 
-Squeeze-and-Excitation blocks add a small channel-attention mechanism. They globally pool each channel, pass the resulting vector through a compact gating network, and multiply the residual features by learned channel weights before the shortcut addition. Spatial positions within a channel share a weight; this is channel selection, not full spatial self-attention.
+which at $C = 1$, $d = 64$ gives 69,632 — the standard bottleneck. Holding that number fixed and solving the quadratic for $d$ at each $C$ recovers the published configurations exactly. As cardinality rises, aggregate width $Cd$ rises with it, from 64 at $C = 1$ to 128 at $C = 32$, because grouping removes the cross-group terms that made the $3\times3$ convolution quadratic in width.
 
-SE works neatly with residual blocks because it can modulate the proposed update without erasing the identity route. If a gate suppresses a residual channel, the corresponding shortcut feature can still pass. Many later attention modules exploit the same arrangement, though extra gating is not free and gains depend on scale and task.
+So cardinality is not another spelling of width, and it is not free capacity either: it is a structural constraint that buys aggregate width by forbidding mixing between groups. Comparing ResNeXt models fairly means holding a compute or parameter budget, which is why ResNeXt-50 32×4d is quoted against ResNet-50 rather than against something larger.
+
+### Channel attention
+
+Squeeze-and-Excitation blocks pool each channel of the residual branch to a single number, pass the resulting vector through a two-layer gating network with a reduction ratio of about 16, and multiply the branch features by the learned channel weights before the shortcut addition. Spatial positions within a channel share a weight; this is channel selection, not spatial self-attention.
+
+SE works neatly with residual blocks because it modulates the proposed update without touching the identity route. If a gate suppresses a residual channel, the corresponding shortcut feature still passes. The cost is small in MACs and less small in latency, because a global pool is a synchronisation point in the middle of an otherwise local computation.
 
 <Figure caption="Tap each descendant and read the single design axis it changes. The centre is the invariant: a learned update beside a short route. The branches are related design choices, not a chronological scorecard.">
   <ResidualFamilyMap client:visible />
 </Figure>
 
-DenseNet is a useful contrast. A DenseNet layer concatenates *all* earlier features in its block:
+## Concatenation is a different answer
+
+### DenseNet's state
+
+A DenseNet layer concatenates *all* earlier features in its block:
 
 $$
 x_l = H_l([x_0, x_1, \ldots, x_{l-1}]).
 $$
 
-ResNet repeatedly adds corrections into a fixed-width state; DenseNet preserves earlier features as separate channel groups and lets later layers read them explicitly. Concatenation encourages feature reuse and gives short paths too, but activation memory grows with the accumulating feature stack. DenseNet is not a kind of ResNet. Both address deep optimisation through connectivity, with different state semantics and different memory costs.
+ResNet repeatedly adds corrections into a fixed-width running state. DenseNet preserves earlier features as separate channel groups and lets later layers read them explicitly. Both give short paths from early layers to the loss; they differ in what the state *is*.
 
-## The recipe can obscure the architecture
+### Memory is the real difference
 
-Modern “ResNet” results also reflect training choices that were absent or less developed in the original paper: better augmentation, longer schedules, decoupled weight decay, label smoothing, stochastic depth, improved initialisation and carefully chosen downsampling stems. Some changes, such as zero-initialising the last normalisation scale in a branch, explicitly start blocks close to identity.
+The addition in a residual block is destructive in a useful way: once $F(x)$ has been added, the two summands are no longer separable, and the state stays at width $C$ forever. DenseNet's state grows by the growth rate $k$ at every layer, so a block of $n$ layers ends at $C_0 + nk$ channels and every intermediate concatenation is a live tensor.
 
-These recipes matter enough that an old ResNet-50 trained well can beat a nominally newer architecture trained carelessly. They do not make the residual idea obsolete. They make architectural comparisons less clean: a model name identifies a graph, not the complete experimental method.
+That is why DenseNet-121 reaches ResNet-50-like accuracy with a third of the parameters but not a third of the training memory. Parameter count and activation memory are different budgets, and connectivity patterns trade between them. DenseNet is not a kind of ResNet, and neither is a strictly better version of the other.
+
+## The recipe is part of the result
+
+### Training changes that flatter old architectures
+
+Modern "ResNet" numbers reflect training choices that were absent or undeveloped in 2015: better augmentation, much longer schedules, cosine decay, decoupled weight decay, label smoothing, mixup, exponential moving averages of weights, and a redesigned downsampling stem. Applied together, these lift ResNet-50 from about 76% top-1 on ImageNet to about 80% — a larger gain than most of the architectural changes above, on a graph that has not changed at all.
+
+The consequence is not that architecture is irrelevant. It is that a model name identifies a graph, not a method, and a comparison that varies both tells you nothing about either.
+
+### Starting each block near identity
+
+One training refinement belongs to this article rather than to a general list. Zero-initialising the scale parameter of the last batch-norm layer in each residual branch makes every block compute exactly the identity at step zero. The network starts as a shallow model and deepens itself as the branches grow.
+
+That trick is the residual argument taken to its conclusion — and it is the $\beta = 0$ setting in the propagation figure, where the forward and backward curves are flat by construction. If a block is a proposed correction, then the right thing to propose before you have learned anything is nothing.
 
 ## What to keep
 
-- Deep degradation is an optimisation failure: a deeper plain network can fit its training data worse even though it contains enough capacity.
-- The residual update $F(x)+x$ makes “do nothing here” cheap and lets each block propose a correction rather than rebuild the state.
-- The derivative of an addition contains an identity term, giving activations and gradients short routes; it is help, not a proof that training will be easy.
-- Basic blocks spend work in two $3\times3$ convolutions; bottlenecks use $1\times1$ layers to make the central spatial convolution affordable.
-- Pre-activation cleans the identity route, width spends capacity in parallel, cardinality splits the transformation, and channel attention modulates the update.
-- DenseNet obtains short paths by concatenating earlier features. That is a related answer to deep connectivity, not residual addition under another name.
+- Degradation is an optimisation failure. A deeper plain network can fit its *training* data worse than a shallower one, even though the shallower solution sits inside its parameter space.
+- The residual update $F(x) + x$ does not change what a block can express. It changes what is cheap to express near initialisation, which is where the optimiser starts.
+- The identity term makes the per-block factor $1 + \beta^2 g^2$ instead of $g^2$: a one-sided exponential instead of a two-sided one. Bounded propagation still needs normalisation, or a branch scale that shrinks with depth.
+- A residual stack of $L$ blocks is $2^L$ paths with binomial lengths, and the gradient concentrates on the short ones. Effective depth is $La/(1+a)$, not $L$.
+- Basic blocks spend their budget on two $3\times3$ convolutions; bottlenecks use $1\times1$ layers to make the central spatial convolution affordable at four times the width.
+- Pre-activation removes the ReLU from the identity route, and pays off in proportion to depth. Width, cardinality and channel attention spend capacity on three different axes under one scaffold.
+- DenseNet gets short paths by concatenation instead of addition. It trades parameters against activation memory — a different answer to the same question, not the same answer renamed.
+- Training recipes now account for several points of ImageNet accuracy. A model name identifies a graph, not an experiment.

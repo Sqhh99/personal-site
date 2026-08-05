@@ -7,11 +7,16 @@ description: Author, extend or remove a long-form article on this site — write
 
 Articles on this site are long-form explanatory essays with interactive figures —
 in the register of transformer-circuits.pub, with animations in the spirit of
-ciechanow.ski. The two that exist are the reference:
-`src/content/blog/the-shape-of-frequency/` and
-`src/content/blog/four-kinds-of-hole/`. **Read one end-to-end before writing a new
-one** — layout, caption tone, and figure structure are defined by those files, not
-by abstract rules alone.
+ciechanow.ski. **Read one end-to-end before writing a new one** — layout, caption
+tone, and figure structure are defined by those files, not by abstract rules alone.
+
+Read `src/content/blog/residual-networks/` first. It is the reference for the
+three-level heading tree and for figures that genuinely compute:
+`DepthTrainer.tsx` trains two real networks in the page, `SignalPropagation.tsx`
+multiplies real random matrices, `PathEnsemble.tsx` evaluates exact binomials.
+`src/content/blog/u-net-and-beyond/` is the second reference.
+`the-shape-of-frequency/` and `four-kinds-of-hole/` are older and still carry a
+flat, h2-only outline — match their prose, not their structure.
 
 This skill is for **blog essays only**. Daily AI briefs live under
 `src/content/brief/` with a different schema and pipeline — do not mix the two.
@@ -196,9 +201,28 @@ unless the subject truly requires it and you accept the weight.
 ### What makes a good figure here
 
 Figures **compute**, they do not illustrate. The spectra are a real O(N²) DFT;
-the light rays are a real RK4 integration of the null orbit equation. At these
-sizes the naive algorithm is fast enough and far more legible than an optimised
-one — that honesty is the point of the format.
+the light rays are a real RK4 integration of the null orbit equation; the ResNet
+loss curves come from two networks doing real gradient descent in the page. At
+these sizes the naive algorithm is fast enough and far more legible than an
+optimised one — that honesty is the point of the format.
+
+Three ways a figure fails this test, all of which have shipped here and been
+rewritten:
+
+1. **The fitted curve.** Plotting a hand-tuned analytic expression that *looks
+   like* the phenomenon — `0.43 - useful + difficulty * ...` — teaches the reader
+   the author's intuition, not the subject. Run the real thing at a small size
+   instead, or plot the exact closed form and say that is what it is.
+2. **The circular demo.** An ablation whose "reconstruction" is computed from the
+   ground truth cannot show anything about reconstruction. Derive the result from
+   the inputs the real system has.
+3. **The labelled box.** A diagram of named rectangles with no arithmetic behind
+   it is a slide, not a figure. If a diagram is genuinely the right form — a
+   family map, a block layout — give it real numbers to carry: parameters, MACs,
+   memory, receptive field.
+
+Where a computed figure is necessarily a toy, say so in the caption *and* in the
+prose, and name what does and does not transfer.
 
 Each figure should:
 
@@ -221,12 +245,12 @@ Each figure should:
 - **Measure** is `--measure: 58rem` in `global.css`. Figures fill it flush by
   default — that alignment is deliberate. `Figure` `width="wide" | "bleed"`
   (classes `.figure-wide` / `.figure-bleed`) exist for a figure that genuinely
-  earns more room; both reference articles currently use neither.
+  earns more room; no article currently uses either.
 - **Figures** are auto-numbered. Write the caption text only; the `Figure N`
   prefix is a CSS counter.
-- **Sections** (`##`) are auto-numbered too and populate the floating contents
-  pill. `###` nests under them as `1.1`. Nothing deeper appears in the outline
-  (`PostLayout` only indexes h2/h3).
+- **Sections** are auto-numbered and populate the floating contents pill. See
+  the heading tree below — the numbering, the margin numbers and the outline are
+  one system.
 - **Margin notes** — `<MarginNote>` for an aside worth keeping but not worth
   interrupting the paragraph for. Right gutter on wide screens, inline below.
 - **Maths** — `$inline$` and `$$display$$`, typeset by KaTeX at **build time**
@@ -237,13 +261,51 @@ Each figure should:
 - **Code blocks** use Shiki dual themes (github-light / github-dark); no extra
   setup in the article.
 
+## The heading tree
+
+An essay is outlined **three levels deep**, and the outline is load-bearing:
+`PostLayout.astro` indexes h2/h3/h4, numbers them `1` / `1.1` / `1.1.1`, and
+renders them as an indented tree with guide rails in the contents panel. The same
+numbers appear in the left margin of the prose, so a number quoted in the panel
+can be found in the body without counting headings.
+
+| Level | Markdown | Role |
+| --- | --- | --- |
+| Section | `##` | One claim. The heading states it. |
+| Subsection | `###` | One move within that claim — a mechanism, a caveat, a variant. |
+| Point | `####` | A named paragraph group: a specific case, a derivation step, a cost. |
+
+Rules:
+
+- **Every `##` gets at least two `###`.** A section with one subsection is a
+  section that has not been decomposed; either split it further or drop the
+  subsection.
+- **`####` is optional and used where the material genuinely enumerates** — the
+  three block types, the two ways out of an artefact, the parts of a cost. Do not
+  add a third level for symmetry.
+- **Never skip a level.** An `####` under an `##` with no `###` between breaks
+  the numbering, which counts from the nearest ancestor.
+- **h5 and deeper never appear in the outline** and have no styling. If you want
+  one, you wanted a `####` or a bolded lead-in instead.
+- Aim for **6–10 sections** and **15–25 headings in total** for a full essay. Any
+  fewer and the panel is a list rather than a map; any more and it is a copy of
+  the article.
+- Close with a `##` **What to keep** — always the last section, never subdivided.
+
 ## Prose
 
-Match the two existing articles:
+Match the reference articles:
 
 - Lead with the idea, not the formalism. Introduce the equation once the reader
   already knows what it is going to say.
 - One claim per section. The heading states the claim.
+- Go past the received summary. Where the standard explanation of a thing is
+  incomplete — "residual connections fix vanishing gradients" — say what it
+  actually does, give the arithmetic, and say what it leaves unfixed. That
+  correction is usually the reason the article is worth writing.
+- Prefer a checkable number to an adjective: 140-pixel receptive field, 69,632
+  parameters, 4:1 gain ratio. Numbers a reader can verify are the difference
+  between an essay and a summary.
 - Captions say what to *do* with the figure — "set the impact parameter to 5.20
   and then to 5.19" — not what it contains.
 - Close with a **What to keep** list: the handful of claims worth remembering,
@@ -280,6 +342,9 @@ In the browser:
   palette without a reload. This is the most likely thing to have broken;
 - narrow to mobile: no horizontal page scroll, KaTeX display blocks scroll
   inside their own box, the contents pill collapses to its icon;
+- open the contents panel: the outline is a tree, no level is skipped, and the
+  numbers run `1` → `1.1` → `1.1.1` without a gap. Below 1100px the margin
+  numbers move above their headings — check one at that width;
 - enable `prefers-reduced-motion` in devtools: figures render a static frame and
   remain interactive;
 - confirm the post is hidden from `npm run build` output while `draft: true`, and
@@ -296,4 +361,6 @@ In the browser:
 | Fans spin, tab janks | Drew without `useFigureCanvas`, or forced `client:load` on every figure |
 | MDX parse error near maths | LaTeX backslashes not escaped for MDX |
 | Article missing in production | Left `draft: true` |
+| Outline numbers jump, e.g. `2` then `2.0.1` | Skipped a level — an `####` with no `###` above it in the section |
+| Contents panel is a flat list | Article has only `##` headings; decompose the sections |
 | Empty filter chip forever | Added a tag string in MDX but not to `TAGS` (build should fail — if you bypassed schema, fix properly) |
