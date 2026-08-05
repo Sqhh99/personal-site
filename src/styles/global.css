@@ -254,6 +254,16 @@
   color: var(--ink);
 }
 
+/* The third outline level. Deliberately close in size to the body text — it is
+   a labelled paragraph group, not another headline. */
+.prose h4 {
+  margin-top: 1.7em;
+  margin-bottom: -0.5em;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
 .prose strong {
   color: var(--ink);
   font-weight: 600;
@@ -415,7 +425,7 @@
   display: grid;
   grid-template-columns: minmax(0, var(--measure));
   justify-content: center;
-  counter-reset: section figure;
+  counter-reset: section subsection subpoint figure;
 }
 
 .essay-body {
@@ -474,7 +484,7 @@
 .toc-panel {
   display: none;
   margin-top: 0.4rem;
-  width: min(22rem, calc(100vw - 2.5rem));
+  width: min(24rem, calc(100vw - 2.5rem));
   max-height: min(72vh, 36rem);
   overflow-y: auto;
   padding: 0.55rem;
@@ -488,9 +498,14 @@
   display: block;
 }
 
+/* The outline is a tree. Depth is carried three ways at once — the number, the
+   indent, and a guide rail — because at a glance in a small panel any one of
+   them alone is easy to misread. */
 .toc-link {
+  position: relative;
   display: grid;
-  grid-template-columns: 2.1rem minmax(0, 1fr);
+  /* Wide enough for a three-part number like 10.2.1 without wrapping. */
+  grid-template-columns: 2.8rem minmax(0, 1fr);
   align-items: baseline;
   padding: 0.3rem 0.45rem;
   border-radius: 0.4rem;
@@ -501,10 +516,43 @@
   transition: background-color 150ms ease, color 150ms ease;
 }
 
+/* Sections carry the weight; everything nested under one steps back. */
+.toc-link[data-depth='2'] {
+  font-weight: 500;
+}
+
 .toc-link[data-depth='3'] {
   padding-left: 1.15rem;
   font-size: 0.775rem;
   color: var(--muted);
+}
+
+.toc-link[data-depth='4'] {
+  padding-left: 2.15rem;
+  font-size: 0.75rem;
+  color: var(--faint);
+}
+
+/* Guide rails. Rows are adjacent and each rail spans its whole row, so the
+   segments join into one continuous line down the branch. */
+.toc-link[data-depth='3']::before,
+.toc-link[data-depth='4']::before,
+.toc-link[data-depth='4']::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--border);
+}
+
+.toc-link[data-depth='3']::before,
+.toc-link[data-depth='4']::after {
+  left: 0.5rem;
+}
+
+.toc-link[data-depth='4']::before {
+  left: 1.5rem;
 }
 
 .toc-link:hover {
@@ -529,16 +577,47 @@
 
 /* Numbered sections -------------------------------------------------------- */
 
+/* The same 1 / 1.1 / 1.1.1 scheme the contents panel uses, so a number quoted
+   in the outline can be found in the body without counting headings. */
+
 .essay .prose h2 {
   counter-increment: section;
+  counter-reset: subsection subpoint;
+  position: relative;
+}
+
+.essay .prose h3 {
+  counter-increment: subsection;
+  counter-reset: subpoint;
+  position: relative;
+}
+
+.essay .prose h4 {
+  counter-increment: subpoint;
   position: relative;
 }
 
 .essay .prose h2::before {
   content: counter(section);
-  position: absolute;
-  left: -2.75rem;
   top: 0.55em;
+}
+
+.essay .prose h3::before {
+  content: counter(section) '.' counter(subsection);
+  top: 0.35em;
+}
+
+.essay .prose h4::before {
+  content: counter(section) '.' counter(subsection) '.' counter(subpoint);
+  top: 0.2em;
+}
+
+/* Right-aligned in a fixed column so all three depths hang off one edge. */
+.essay .prose :is(h2, h3, h4)::before {
+  position: absolute;
+  left: -3.7rem;
+  width: 3.1rem;
+  text-align: right;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 500;
@@ -547,9 +626,11 @@
 
 /* Below the point where the margin can hold it, the number sits above. */
 @media (max-width: 1099px) {
-  .essay .prose h2::before {
+  .essay .prose :is(h2, h3, h4)::before {
     position: static;
     display: block;
+    width: auto;
+    text-align: left;
     margin-bottom: 0.35em;
   }
 }

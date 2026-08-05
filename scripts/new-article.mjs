@@ -59,8 +59,11 @@ piece is going to establish and why it is worth the reader's time.
 
 ## First section
 
-Sections are numbered automatically and appear in the contents pill. Keep one
-claim per section.
+Headings are numbered automatically — 1, 1.1, 1.1.1 — and build the tree in the
+contents pill. Keep one claim per section, and give every section at least two
+subsections; a section with one has not been decomposed.
+
+### First move within that claim
 
 <Figure caption="Say what the reader should do with the figure, not what it contains. 'Drag the frequency slider through a component and watch the shaded lobes stop cancelling' beats 'a plot of correlation against frequency'.">
   <ExampleFigure client:visible />
@@ -71,11 +74,18 @@ An aside that is worth saying but would derail the paragraph. Sits in the right
 gutter on wide screens, inline below it otherwise.
 </MarginNote>
 
+### Second move
+
 Inline maths is $e^{i\\pi} + 1 = 0$; display maths is:
 
 $$
 X(f) = \\int_{-\\infty}^{\\infty} x(t)\\,e^{-2\\pi i f t}\\,dt
 $$
+
+#### A third level, where the material genuinely enumerates
+
+Optional. Use it for a specific case, a derivation step or a cost — not for
+symmetry. Never skip a level: an h4 with no h3 above it breaks the numbering.
 
 ## What to keep
 

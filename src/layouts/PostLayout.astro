@@ -49,20 +49,21 @@ const {
   siteName,
 } = Astro.props;
 
-// Only h2/h3 make it into the outline — deeper headings turn it into a wall.
-// Number them 1, 1.1, 1.2, 2 … so the panel reads like a paper's contents.
-let major = 0;
-let minor = 0;
+// The outline is a tree three levels deep: h2 sections, h3 subsections, h4
+// points. Numbering them 1 / 1.1 / 1.1.1 means a link's place in the hierarchy
+// is legible from the number alone, not only from its indentation.
+//
+// h5 and below are deliberately excluded. Past three levels the panel stops
+// being a map and becomes a second copy of the article.
+const counters = [0, 0, 0];
 const toc = headings
-  .filter((heading) => heading.depth === 2 || heading.depth === 3)
+  .filter((heading) => heading.depth >= 2 && heading.depth <= 4)
   .map((heading) => {
-    if (heading.depth === 2) {
-      major += 1;
-      minor = 0;
-      return { ...heading, number: `${major}` };
-    }
-    minor += 1;
-    return { ...heading, number: `${major}.${minor}` };
+    const level = heading.depth - 2;
+    counters[level] += 1;
+    // Opening a section restarts everything nested inside it.
+    for (let deeper = level + 1; deeper < counters.length; deeper += 1) counters[deeper] = 0;
+    return { ...heading, number: counters.slice(0, level + 1).join('.') };
   });
 ---
 
