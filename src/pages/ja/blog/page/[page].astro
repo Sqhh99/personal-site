@@ -1,0 +1,14 @@
+---
+import BlogListPage from '../../../../components/BlogListPage.astro';
+import { columnPageStaticPaths } from '../../../../lib/column-pages';
+
+export const getStaticPaths = () => columnPageStaticPaths('blog', 'ja');
+
+interface Props {
+  page: number;
+}
+
+const { page } = Astro.props;
+---
+
+<BlogListPage lang="ja" currentPage={page} />

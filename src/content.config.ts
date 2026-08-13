@@ -21,7 +21,7 @@ const blog = defineCollection({
     tag: z.enum(TAGS),
     // Each article is written in exactly one language; there are no translated
     // pairs. This only labels the prose — the UI chrome is localised separately.
-    lang: z.enum(['en', 'zh']).default('en'),
+    lang: z.enum(['en', 'zh', 'ja']).default('en'),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
   }),

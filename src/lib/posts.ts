@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import type { Language } from '../i18n/ui';
+import { DATE_LOCALE, type Language } from '../i18n/ui';
+import { langPrefix } from '../i18n/utils';
 import { DEFAULT_PAGE_SIZE, getPagedListUrl, paginate } from './pagination';
 
 export type Post = CollectionEntry<'blog'>;
@@ -17,11 +18,11 @@ export function getPostLang(post: Post): Language {
 
 export function getPostUrl(postOrSlug: Post | string, lang: Language = 'en'): string {
   const slug = getPostSlug(postOrSlug);
-  return lang === 'zh' ? `/zh/blog/${slug}/` : `/blog/${slug}/`;
+  return `${langPrefix(lang)}/blog/${slug}/`;
 }
 
 export function getBlogListUrl(lang: Language = 'en', page = 1): string {
-  return getPagedListUrl(lang === 'zh' ? '/zh/blog' : '/blog', page);
+  return getPagedListUrl(`${langPrefix(lang)}/blog`, page);
 }
 
 export function paginatePosts(posts: Post[], page: number, pageSize = BLOG_PAGE_SIZE): Post[] {
@@ -33,7 +34,7 @@ export function paginatePosts(posts: Post[], page: number, pageSize = BLOG_PAGE_
  *
  * There is deliberately no per-locale filter: an article is written in one language
  * and listed in every locale, the same way the briefs already behave. Filtering by UI
- * locale would leave `/zh/blog/` empty the moment the archive is all English.
+ * locale would leave `/ja/blog/` empty the moment the archive is all English.
  */
 export async function getPosts(): Promise<Post[]> {
   const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
@@ -61,22 +62,24 @@ export function readingTime(body = '', lang: Language = 'en'): string {
   const latin = (text.replace(/[\u4e00-\u9fff\u3040-\u30ff]/g, ' ').match(/\S+/g) ?? []).length;
 
   const mins = Math.max(1, Math.round((cjk + latin) / 220));
-  return lang === 'zh' ? `${mins} 分钟阅读` : `${mins} min read`;
+  if (lang === 'zh') return `${mins} 分钟阅读`;
+  if (lang === 'ja') return `${mins} 分で読めます`;
+  return `${mins} min read`;
 }
 
 export function formatDate(date: Date, lang: Language = 'en'): string {
-  if (lang === 'zh') {
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
+  if (lang === 'en') {
+    return date.toLocaleDateString(DATE_LOCALE.en, {
       day: 'numeric',
+      month: 'short',
+      year: 'numeric',
       timeZone: 'UTC',
     });
   }
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
+  return date.toLocaleDateString(DATE_LOCALE[lang], {
     year: 'numeric',
+    month: 'long',
+    day: 'numeric',
     timeZone: 'UTC',
   });
 }

@@ -13,7 +13,7 @@ export default defineConfig({
   site: 'https://sqhh99.dev',
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'zh'],
+    locales: ['en', 'zh', 'ja'],
     routing: {
       prefixDefaultLocale: false,
     },

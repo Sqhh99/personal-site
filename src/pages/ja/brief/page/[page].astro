@@ -1,0 +1,14 @@
+---
+import BriefListPage from '../../../../components/BriefListPage.astro';
+import { columnPageStaticPaths } from '../../../../lib/column-pages';
+
+export const getStaticPaths = () => columnPageStaticPaths('brief', 'ja');
+
+interface Props {
+  page: number;
+}
+
+const { page } = Astro.props;
+---
+
+<BriefListPage lang="ja" currentPage={page} />

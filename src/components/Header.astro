@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from './react/ThemeToggle';
+import LanguageSwitch from './LanguageSwitch.astro';
 import { getLangFromUrl, getLocalizedPath, useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 import { SITE } from '../consts';
@@ -12,20 +13,17 @@ const path = Astro.url.pathname;
 const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const homeHref = lang === 'zh' ? '/zh/' : '/';
+const homeHref = getLocalizedPath('/', lang);
 const navItems = [
-  { href: lang === 'zh' ? '/zh/' : '/', label: t('nav.home') },
-  { href: lang === 'zh' ? '/zh/blog/' : '/blog/', label: t('nav.writing') },
-  { href: lang === 'zh' ? '/zh/brief/' : '/brief/', label: t('nav.briefs') },
+  { href: getLocalizedPath('/', lang), label: t('nav.home') },
+  { href: getLocalizedPath('/blog/', lang), label: t('nav.writing') },
+  { href: getLocalizedPath('/brief/', lang), label: t('nav.briefs') },
 ];
 
 const isActive = (href: string) => {
-  if (href === '/' || href === '/zh/') return path === href;
+  if (href === homeHref) return path === href || path === href.replace(/\/$/, '');
   return path.startsWith(href);
 };
-
-const enPath = getLocalizedPath(path, 'en');
-const zhPath = getLocalizedPath(path, 'zh');
 ---
 
 <header
@@ -60,33 +58,7 @@ const zhPath = getLocalizedPath(path, 'zh');
     </nav>
 
     <div class="flex items-center gap-3">
-      <!-- Language Switcher -->
-      <div class="flex items-center rounded-lg border border-line bg-surface/80 p-0.5 font-mono text-[0.725rem]">
-        <a
-          href={enPath}
-          data-lang-btn="en"
-          class:list={[
-            'rounded-md px-2 py-0.5 transition-colors',
-            lang === 'en'
-              ? 'bg-accent text-surface font-medium'
-              : 'text-muted hover:text-ink',
-          ]}
-        >
-          EN
-        </a>
-        <a
-          href={zhPath}
-          data-lang-btn="zh"
-          class:list={[
-            'rounded-md px-2 py-0.5 transition-colors',
-            lang === 'zh'
-              ? 'bg-accent text-surface font-medium'
-              : 'text-muted hover:text-ink',
-          ]}
-        >
-          中文
-        </a>
-      </div>
+      <LanguageSwitch lang={lang} />
 
       <ThemeToggle client:load />
 
@@ -142,16 +114,6 @@ const zhPath = getLocalizedPath(path, 'zh');
 </header>
 
 <script>
-  // Save preferred language when clicking language switcher links
-  document.querySelectorAll<HTMLAnchorElement>('[data-lang-btn]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const targetLang = btn.getAttribute('data-lang-btn');
-      if (targetLang) {
-        localStorage.setItem('preferred-lang', targetLang);
-      }
-    });
-  });
-
   const button = document.getElementById('menu-toggle')!;
   const nav = document.getElementById('mobile-nav')!;
 

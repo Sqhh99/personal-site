@@ -1,11 +1,24 @@
 export const LANGUAGES = {
   en: 'EN',
   zh: '中文',
+  ja: '日本語',
 } as const;
 
 export type Language = keyof typeof LANGUAGES;
 
 export const DEFAULT_LANG: Language = 'en';
+
+export const HTML_LANG: Record<Language, string> = {
+  en: 'en',
+  zh: 'zh-CN',
+  ja: 'ja',
+};
+
+export const DATE_LOCALE: Record<Language, string> = {
+  en: 'en-GB',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+};
 
 export const UI_STRINGS = {
   en: {
@@ -20,6 +33,7 @@ export const UI_STRINGS = {
     'nav.home': 'Home',
     'nav.writing': 'Writing',
     'nav.briefs': 'Briefs',
+    'nav.language': 'Language',
 
 
     'writing.index': 'Writing',
@@ -74,8 +88,11 @@ export const UI_STRINGS = {
 
     '404.title': '404 — Page Not Found',
     '404.heading': 'Page not found',
+    '404.kicker': 'Error 404',
     '404.message': "The page you're looking for doesn't exist or has been moved.",
     '404.back': 'Back to Home',
+
+    'a11y.skip': 'Skip to content',
   },
   zh: {
     'site.title': 'Sqhh99',
@@ -89,6 +106,7 @@ export const UI_STRINGS = {
     'nav.home': '首页',
     'nav.writing': '文章',
     'nav.briefs': '简报',
+    'nav.language': '语言',
 
 
     'writing.index': '文章',
@@ -142,8 +160,82 @@ export const UI_STRINGS = {
 
     '404.title': '404 — 页面未找到',
     '404.heading': '页面未找到',
+    '404.kicker': '错误 404',
     '404.message': '您访问的页面不存在或已被移动。',
     '404.back': '返回首页',
+
+    'a11y.skip': '跳到正文',
+  },
+  ja: {
+    'site.title': 'Sqhh99',
+    'site.name': 'Sqhh99',
+    'site.role': 'ソフトウェアエンジニア',
+    'site.tagline': 'ソフトウェア、システム、エンジニアリングについてのノート',
+    'site.description':
+      'リアルタイムメディア、深層学習、ソフトウェア工学、システムについての文章。',
+    'site.subtitle': 'Writing',
+
+    'nav.home': 'ホーム',
+    'nav.writing': '文章',
+    'nav.briefs': 'ブリーフ',
+    'nav.language': '言語',
+
+    'writing.index': '文章',
+    'writing.title': '最近の文章',
+    'writing.lede': 'ソフトウェア工学、メディアパイプライン、システムについてのノートとエッセイ。',
+    'writing.viewAll': 'すべての文章を見る',
+
+    'contact.index': '連絡',
+    'contact.title': '連絡する、またはソースを読む。',
+    'contact.source': 'このサイトのソースコード',
+
+    'blog.title': '文章 — Sqhh99',
+    'blog.heading': '文章',
+    'blog.description': 'リアルタイムメディア、深層学習、ソフトウェアシステムについての記事。',
+    'blog.searchPlaceholder': 'タイトル、タグ、トピックで検索...',
+    'blog.showing': '表示中',
+    'blog.postSingular': '件',
+    'blog.postPlural': '件',
+    'blog.filterAll': 'すべて',
+    'blog.empty': '条件に合う記事がありません。',
+    'blog.searchAria': '文章を検索',
+    'blog.clearSearch': '検索をクリア',
+    'blog.filterByTag': 'タグで絞り込む',
+    'blog.back': '文章一覧へ戻る',
+    'blog.readPost': '記事を読む',
+    'blog.prevNote': '前の記事',
+    'blog.nextNote': '次の記事',
+    'blog.minRead': '分で読めます',
+    'blog.copy': 'コピー',
+    'blog.copied': 'コピーしました',
+    'blog.contents': '目次',
+
+    'pager.prev': '前へ',
+    'pager.next': '次へ',
+    'pager.status': '{current} / {total} ページ',
+    'pager.label': 'ページ送り',
+
+    'briefs.title': 'AI ブリーフ — Sqhh99',
+    'briefs.heading': 'AI デイリーブリーフ',
+    'briefs.description': 'モデル公開、研究、業界の動きを追う毎日の AI ニュース。',
+    'briefs.empty': 'まだブリーフはありません。',
+    'briefs.back': 'ブリーフ一覧へ戻る',
+    'briefs.readBrief': 'ブリーフを読む',
+    'briefs.prevBrief': '前のブリーフ',
+    'briefs.nextBrief': '次のブリーフ',
+
+    'footer.builtWith': 'Astro で構築、Cloudflare にデプロイ',
+    'footer.rss': 'RSS',
+    'footer.source': 'ソース',
+    'footer.backToTop': 'ページ上部へ',
+
+    '404.title': '404 — ページが見つかりません',
+    '404.heading': 'ページが見つかりません',
+    '404.kicker': 'エラー 404',
+    '404.message': 'お探しのページは存在しないか、移動した可能性があります。',
+    '404.back': 'ホームへ戻る',
+
+    'a11y.skip': '本文へスキップ',
   },
 } as const;
 

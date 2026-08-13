@@ -1,11 +1,12 @@
 import type { Language, UiKey } from '../i18n/ui';
+import { langPrefix } from '../i18n/utils';
 import { getBriefs } from './briefs';
 import { DEFAULT_PAGE_SIZE } from './pagination';
 import { getPosts } from './posts';
 
 /**
  * Adding a column should require only a registry entry, its content collection
- * and card, plus thin EN/ZH index and paged route shells.
+ * and card, plus thin per-locale index and paged route shells.
  */
 export type ColumnId = 'blog' | 'brief';
 
@@ -69,8 +70,7 @@ export function listColumns(): ColumnConfig[] {
 }
 
 export function getColumnBasePath(id: ColumnId, lang: Language = 'en'): string {
-  const prefix = lang === 'zh' ? '/zh' : '';
-  return `${prefix}/${getColumn(id).segment}/`;
+  return `${langPrefix(lang)}/${getColumn(id).segment}/`;
 }
 
 export function getColumnItemCount(id: ColumnId): Promise<number> {

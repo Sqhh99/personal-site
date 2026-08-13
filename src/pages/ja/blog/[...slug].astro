@@ -1,0 +1,57 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import PostLayout from '../../../layouts/PostLayout.astro';
+import { getPosts, getPostSlug, getPostUrl, readingTime, type Post } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
+
+const lang: Language = 'ja';
+const t = useTranslations(lang);
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { slug: getPostSlug(post) },
+    props: {
+      post,
+      prev: posts[index + 1] ?? null,
+      next: posts[index - 1] ?? null,
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: Post;
+  prev: Post | null;
+  next: Post | null;
+}
+
+const { post, prev, next } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, tag, date } = post.data;
+---
+
+<PostLayout
+  lang={lang}
+  title={title}
+  description={description}
+  date={date}
+  kicker={tag}
+  readingLabel={readingTime(post.body, lang)}
+  backHref="/ja/blog/"
+  backLabel={t('blog.back')}
+  prev={prev && { href: getPostUrl(prev, lang), title: prev.data.title }}
+  next={next && { href: getPostUrl(next, lang), title: next.data.title }}
+  prevLabel={t('blog.prevNote')}
+  nextLabel={t('blog.nextNote')}
+  navLabel="More posts"
+  headings={headings}
+  tocLabel={t('blog.contents')}
+  siteName={t('site.name')}
+>
+  <Content />
+  <Fragment slot="byline">
+    Written by <strong class="font-medium text-ink">{t('site.name')}</strong>
+  </Fragment>
+</PostLayout>

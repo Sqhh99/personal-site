@@ -1,0 +1,56 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import PostLayout from '../../../layouts/PostLayout.astro';
+import { getBriefs, getBriefUrl, type Brief } from '../../../lib/briefs';
+import { readingTime } from '../../../lib/posts';
+import { useTranslations } from '../../../i18n/utils';
+import type { Language } from '../../../i18n/ui';
+
+const lang: Language = 'ja';
+const t = useTranslations(lang);
+
+export const getStaticPaths = (async () => {
+  const briefs = await getBriefs();
+  return briefs.map((brief, index) => ({
+    params: { slug: brief.id },
+    props: {
+      brief,
+      prev: briefs[index + 1] ?? null,
+      next: briefs[index - 1] ?? null,
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  brief: Brief;
+  prev: Brief | null;
+  next: Brief | null;
+}
+
+const { brief, prev, next } = Astro.props;
+const { Content } = await render(brief);
+const { title, description, date, source } = brief.data;
+---
+
+<PostLayout
+  lang={lang}
+  title={title}
+  description={description}
+  date={date}
+  kicker={source}
+  readingLabel={readingTime(brief.body, lang)}
+  backHref="/ja/brief/"
+  backLabel={t('briefs.back')}
+  prev={prev && { href: getBriefUrl(prev, lang), title: prev.data.title }}
+  next={next && { href: getBriefUrl(next, lang), title: next.data.title }}
+  prevLabel={t('briefs.prevBrief')}
+  nextLabel={t('briefs.nextBrief')}
+  navLabel="More briefs"
+  siteName={t('site.name')}
+>
+  <Content />
+  <Fragment slot="byline">
+    Source: <strong class="font-medium text-ink">{source}</strong>
+  </Fragment>
+</PostLayout>

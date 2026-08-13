@@ -12,23 +12,37 @@ export function useTranslations(lang: Language) {
   };
 }
 
+export function listLanguages(): Language[] {
+  return Object.keys(LANGUAGES) as Language[];
+}
+
+/** Empty for the default locale; `"/zh"` / `"/ja"` otherwise. */
+export function langPrefix(lang: Language): string {
+  return lang === DEFAULT_LANG ? '' : `/${lang}`;
+}
+
+export function stripLangPrefix(pathname: string): string {
+  const segments = pathname.split('/');
+  const maybeLang = segments[1];
+  if (maybeLang && maybeLang in LANGUAGES && maybeLang !== DEFAULT_LANG) {
+    const rest = segments.slice(2).join('/');
+    return rest ? `/${rest}` : '/';
+  }
+  return pathname || '/';
+}
+
+function withTrailingSlash(path: string): string {
+  if (path === '/') return '/';
+  return path.endsWith('/') ? path : `${path}/`;
+}
+
 /**
- * Given a URL pathname (e.g. "/" or "/zh/" or "/blog/foo" or "/zh/blog/foo")
- * and a target language ("en" or "zh"), returns the corresponding localized pathname.
+ * Given a URL pathname (e.g. "/" or "/zh/blog/foo") and a target language,
+ * returns the corresponding localized pathname.
  */
 export function getLocalizedPath(pathname: string, targetLang: Language): string {
-  // Normalize path by removing /zh prefix if present
-  let cleanPath = pathname;
-  if (cleanPath.startsWith('/zh/') || cleanPath === '/zh') {
-    cleanPath = cleanPath.replace(/^\/zh/, '') || '/';
-  }
-
-  // Ensure trailing slash for non-anchor routes to match site conventions
-  if (targetLang === 'zh') {
-    if (cleanPath === '/') return '/zh/';
-    return `/zh${cleanPath.endsWith('/') ? cleanPath : cleanPath + '/'}`;
-  } else {
-    if (cleanPath === '/') return '/';
-    return cleanPath.endsWith('/') ? cleanPath : cleanPath + '/';
-  }
+  const clean = withTrailingSlash(stripLangPrefix(pathname));
+  if (targetLang === DEFAULT_LANG) return clean;
+  if (clean === '/') return `${langPrefix(targetLang)}/`;
+  return `${langPrefix(targetLang)}${clean}`;
 }

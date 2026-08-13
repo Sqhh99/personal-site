@@ -1,0 +1,90 @@
+---
+import { LANGUAGES, type Language } from '../i18n/ui';
+import { getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const path = Astro.url.pathname;
+const options = listLanguages().map((code) => ({
+  code,
+  label: LANGUAGES[code],
+  href: getLocalizedPath(path, code),
+  current: code === lang,
+}));
+---
+
+<details id="lang-switch" class="group relative">
+  <summary
+    class="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-line bg-surface/80 px-2.5 py-1 font-mono text-[0.725rem] text-ink transition-colors hover:border-line-strong marker:content-none [&::-webkit-details-marker]:hidden"
+    aria-label={t('nav.language')}
+  >
+    <span>{LANGUAGES[lang]}</span>
+    <svg
+      viewBox="0 0 16 16"
+      class="size-3 text-faint transition-transform duration-200 group-open:rotate-180"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 6l4 4 4-4"></path>
+    </svg>
+  </summary>
+  <div
+    class="absolute right-0 z-50 mt-1.5 min-w-[8.5rem] rounded-xl border border-line bg-surface p-1 shadow-card"
+    role="menu"
+    aria-label={t('nav.language')}
+  >
+    {
+      options.map((option) => (
+        <a
+          href={option.href}
+          data-lang-btn={option.code}
+          role="menuitem"
+          aria-current={option.current ? 'true' : undefined}
+          class:list={[
+            'flex items-center justify-between rounded-lg px-2.5 py-1.5 font-mono text-[0.725rem] transition-colors',
+            option.current
+              ? 'bg-accent/10 text-accent-deep'
+              : 'text-muted hover:bg-surface-sunk/70 hover:text-ink',
+          ]}
+        >
+          <span>{option.label}</span>
+          {option.current && (
+            <svg viewBox="0 0 16 16" class="size-3" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M3.5 8.5l3 3 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          )}
+        </a>
+      ))
+    }
+  </div>
+</details>
+
+<script>
+  const root = document.getElementById('lang-switch');
+  if (root instanceof HTMLDetailsElement) {
+    const close = () => {
+      root.open = false;
+    };
+
+    document.addEventListener('click', (event) => {
+      if (!root.contains(event.target as Node)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') close();
+    });
+    root.querySelectorAll<HTMLAnchorElement>('[data-lang-btn]').forEach((link) => {
+      link.addEventListener('click', () => {
+        const targetLang = link.getAttribute('data-lang-btn');
+        if (targetLang) localStorage.setItem('preferred-lang', targetLang);
+      });
+    });
+  }
+</script>

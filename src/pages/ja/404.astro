@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { useTranslations } from '../../i18n/utils';
 import type { Language } from '../../i18n/ui';
 
-const lang: Language = 'zh';
+const lang: Language = 'ja';
 const t = useTranslations(lang);
 ---
 
@@ -21,13 +21,13 @@ const t = useTranslations(lang);
     </p>
     <div class="mt-10 flex flex-wrap items-center gap-5">
       <a
-        href="/zh/blog/"
+        href="/ja/blog/"
         class="inline-flex h-12 items-center gap-2 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface shadow-xs transition-all hover:bg-accent-deep hover:shadow-md"
       >
         {t('writing.viewAll')} →
       </a>
       <a
-        href="/zh/"
+        href="/ja/"
         class="border-b border-line-strong pb-1 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
       >
         {t('404.back')}
