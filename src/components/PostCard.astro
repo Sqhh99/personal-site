@@ -11,9 +11,12 @@ interface Props {
   delay?: number;
   lang?: Language;
   hidden?: boolean;
+  /** CSS IntersectionObserver reveal. Off when a page owns its own motion. */
+  reveal?: boolean;
+  enter?: 'card';
 }
 
-const { post, feature = false, delay = 0, lang = 'en', hidden = false } = Astro.props;
+const { post, feature = false, delay = 0, lang = 'en', hidden = false, reveal = true, enter } = Astro.props;
 const { title, description, tag, date } = post.data;
 const t = useTranslations(lang);
 
@@ -28,12 +31,14 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
   data-post
   data-tag={tag}
   data-search={search}
+  data-enter={enter}
   hidden={hidden}
   class:list={[
-    'reveal group relative flex flex-col rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float',
+    'group relative flex flex-col rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float',
+    reveal && 'reveal',
     feature ? 'p-8 sm:col-span-2 sm:p-10 border-line-strong/60 shadow-xs' : 'p-7',
   ]}
-  style={`--reveal-delay:${delay}ms`}
+  style={reveal ? `--reveal-delay:${delay}ms` : undefined}
 >
   <div class="flex items-center justify-between gap-4">
     <span class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium">

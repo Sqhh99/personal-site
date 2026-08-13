@@ -1,27 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PostCard from '../components/PostCard.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import { getPosts, leadPostId } from '../lib/posts';
-import { useTranslations } from '../i18n/utils';
-import type { Language } from '../i18n/ui';
-
-const lang: Language = 'en';
-const t = useTranslations(lang);
-const posts = await getPosts();
-const lead = leadPostId(posts);
+import HomePage from '../components/HomePage.astro';
 ---
 
-<BaseLayout lang={lang}>
-  <section id="writing" class="shell py-16 sm:py-20">
-    <SectionHeading
-      index={t('writing.index')}
-      title={t('writing.title')}
-      lede={t('writing.lede')}
-      level={1}
-    />
-    <div class="grid gap-6 sm:grid-cols-2">
-      {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} delay={i * 60} lang={lang} />)}
-    </div>
-  </section>
+<BaseLayout lang="en">
+  <HomePage lang="en" />
 </BaseLayout>

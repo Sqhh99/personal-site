@@ -1,0 +1,103 @@
+---
+import PostCard from './PostCard.astro';
+import { getPosts, leadPostId } from '../lib/posts';
+import { getColumnBasePath } from '../lib/columns';
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const posts = await getPosts();
+const lead = leadPostId(posts);
+const writingHref = getColumnBasePath('blog', lang);
+const briefsHref = getColumnBasePath('brief', lang);
+---
+
+<div id="home-page">
+  <script is:inline>
+    (() => {
+      const root = document.getElementById('home-page');
+      if (!root) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      root.setAttribute('data-ready', '');
+    })();
+  </script>
+
+  <section class="shell pt-16 pb-6 sm:pt-24 sm:pb-8">
+    <p class="label flex items-center gap-3">
+      <span data-enter="rule" class="inline-block h-px w-6 bg-accent"></span>
+      <span data-enter="hero">{t('site.role')}</span>
+    </p>
+    <h1
+      class="mt-5 max-w-[22rem] font-display text-4xl leading-[1.08] tracking-tight text-ink sm:max-w-[36rem] sm:text-5xl md:text-[3.35rem]"
+      data-enter="hero"
+    >
+      {t('site.tagline')}
+    </h1>
+    <div class="mt-8 flex flex-wrap items-center gap-5" data-enter="hero">
+      <a
+        href={writingHref}
+        class="inline-flex h-11 items-center rounded-xl bg-accent px-5 text-[0.9rem] font-medium text-surface shadow-xs transition-colors hover:bg-accent-deep"
+      >
+        {t('writing.viewAll')}
+      </a>
+      <a
+        href={briefsHref}
+        class="border-b border-line-strong pb-0.5 text-[0.9rem] text-muted transition-colors hover:border-ink hover:text-ink"
+      >
+        {t('nav.briefs')}
+      </a>
+    </div>
+  </section>
+
+  <section id="writing" class="shell pb-16 pt-10 sm:pb-20 sm:pt-14">
+    <div class="flex flex-col justify-between gap-6 pb-12 md:flex-row md:items-end md:gap-16">
+      <div data-enter="heading">
+        <p class="label flex items-center gap-3">
+          <span class="inline-block h-px w-6 bg-accent"></span>
+          {t('writing.index')}
+        </p>
+        <h2 class="mt-4 font-display text-4xl leading-[1.05] tracking-tight text-ink md:text-5xl">
+          {t('writing.title')}
+        </h2>
+      </div>
+      <p class="max-w-[44ch] text-[0.975rem] leading-relaxed text-muted" data-enter="heading">
+        {t('writing.lede')}
+      </p>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2">
+      {
+        posts.map((post) => (
+          <PostCard post={post} feature={post.id === lead} lang={lang} reveal={false} enter="card" />
+        ))
+      }
+    </div>
+  </section>
+</div>
+
+<style is:global>
+  #home-page[data-ready] [data-enter]:not([data-in]) {
+    opacity: 0;
+  }
+
+  #home-page[data-ready] [data-enter='hero']:not([data-in]),
+  #home-page[data-ready] [data-enter='heading']:not([data-in]),
+  #home-page[data-ready] [data-enter='card']:not([data-in]) {
+    transform: translate3d(0, 1.15rem, 0);
+  }
+
+  #home-page[data-ready] [data-enter='rule']:not([data-in]) {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+</style>
+
+<script>
+  import { initHomeMotion } from '../lib/home-motion';
+
+  initHomeMotion(document.getElementById('home-page'));
+</script>
