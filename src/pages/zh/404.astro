@@ -1,37 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { useTranslations } from '../../i18n/utils';
-import type { Language } from '../../i18n/ui';
-
-const lang: Language = 'zh';
-const t = useTranslations(lang);
+import NotFoundPage from '../../components/NotFoundPage.astro';
 ---
 
-<BaseLayout lang={lang} title={t('404.title')} description={t('404.message')}>
-  <div class="shell flex min-h-[65svh] flex-col justify-center py-24">
-    <p class="label flex items-center gap-3">
-      <span class="inline-block h-px w-6 bg-accent"></span>
-      {t('404.kicker')}
-    </p>
-    <h1 class="mt-4 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.03] font-display text-ink">
-      {t('404.heading')}
-    </h1>
-    <p class="mt-6 max-w-[46ch] text-lg leading-relaxed text-muted">
-      {t('404.message')}
-    </p>
-    <div class="mt-10 flex flex-wrap items-center gap-5">
-      <a
-        href="/zh/blog/"
-        class="inline-flex h-12 items-center gap-2 rounded-xl bg-accent px-6 text-[0.95rem] font-medium text-surface shadow-xs transition-all hover:bg-accent-deep hover:shadow-md"
-      >
-        {t('writing.viewAll')} →
-      </a>
-      <a
-        href="/zh/"
-        class="border-b border-line-strong pb-1 text-[0.95rem] text-muted transition-colors hover:border-ink hover:text-ink"
-      >
-        {t('404.back')}
-      </a>
-    </div>
-  </div>
-</BaseLayout>
+<NotFoundPage lang="zh" />

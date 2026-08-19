@@ -15,12 +15,12 @@ const t = useTranslations(lang);
 ---
 
 <article
-  class="reveal group relative flex flex-col rounded-2xl border border-line bg-surface p-7 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float"
+  class="reveal group sketch-frame sketch-ticks relative flex flex-col p-7"
   style={`--reveal-delay:${delay}ms`}
 >
   <div class="flex items-center justify-between gap-4">
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] tracking-wider text-accent font-medium">
-      <span class="size-1.5 rounded-full bg-accent"></span>
+    <span class="stamp">
+      <span class="stamp-dot" aria-hidden="true"></span>
       {brief.data.source}
     </span>
     <time datetime={isoDate(brief.data.date)} class="label">{formatDate(brief.data.date, lang)}</time>

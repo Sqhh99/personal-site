@@ -11,8 +11,8 @@ function release(targets: gsap.TweenTarget) {
 
 /**
  * Homepage motion. Scoped to #home-page, sequenced on a timeline, then
- * ScrollTrigger-batched for the cards. Transforms and autoAlpha only.
- * gsap.matchMedia() reverts everything when the query no longer matches.
+ * ScrollTrigger-batched for the cards. Transform only — copy stays visible
+ * if the module loads late. gsap.matchMedia() reverts when the query drops.
  */
 export function initHomeMotion(root: HTMLElement | null): () => void {
   if (!root) return () => undefined;
@@ -33,6 +33,7 @@ export function initHomeMotion(root: HTMLElement | null): () => void {
 
       if (reduceMotion) {
         gsap.set([rule, ...hero, ...heading, ...cards].filter(Boolean), { autoAlpha: 1, y: 0, scaleX: 1 });
+        release([rule, ...hero, ...heading, ...cards].filter(Boolean));
         return;
       }
 
@@ -43,7 +44,7 @@ export function initHomeMotion(root: HTMLElement | null): () => void {
       if (rule) {
         tl.fromTo(
           rule,
-          { scaleX: 0, autoAlpha: 1 },
+          { scaleX: 0 },
           {
             scaleX: 1,
             duration: 0.7,
@@ -56,13 +57,13 @@ export function initHomeMotion(root: HTMLElement | null): () => void {
 
       tl.fromTo(
         hero,
-        { autoAlpha: 0, y: 22 },
-        { autoAlpha: 1, y: 0, stagger: 0.09, onComplete: () => release(hero) },
+        { y: 14 },
+        { y: 0, stagger: 0.09, onComplete: () => release(hero) },
         rule ? '-=0.45' : 0,
       ).fromTo(
         heading,
-        { autoAlpha: 0, y: 16 },
-        { autoAlpha: 1, y: 0, stagger: 0.06, onComplete: () => release(heading) },
+        { y: 10 },
+        { y: 0, stagger: 0.06, onComplete: () => release(heading) },
         '-=0.5',
       );
 
@@ -74,9 +75,8 @@ export function initHomeMotion(root: HTMLElement | null): () => void {
           onEnter: (batch) => {
             gsap.fromTo(
               batch,
-              { autoAlpha: 0, y: 28 },
+              { y: 18 },
               {
-                autoAlpha: 1,
                 y: 0,
                 duration: 0.75,
                 ease: 'power3.out',

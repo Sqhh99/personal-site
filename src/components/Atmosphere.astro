@@ -1,0 +1,10 @@
+<canvas id="site-atmosphere" class="atmosphere-canvas" aria-hidden="true"></canvas>
+
+<script>
+  import { initAtmosphere } from '../lib/atmosphere';
+
+  const canvas = document.getElementById('site-atmosphere');
+  if (canvas instanceof HTMLCanvasElement) {
+    initAtmosphere(canvas);
+  }
+</script>

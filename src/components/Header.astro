@@ -28,14 +28,18 @@ const isActive = (href: string) => {
 
 <header
   id="site-header"
-  class="sticky top-0 z-50 border-b border-line/60 bg-bg/85 backdrop-blur-md transition-all duration-300"
+  class="sticky top-0 z-50 border-b border-line/70 bg-bg/90"
 >
   <div class="shell flex h-16 items-center justify-between gap-6">
-    <a href={homeHref} class="group flex items-center gap-2 font-display text-xl font-medium tracking-tight text-ink hover:text-accent transition-colors" aria-label={`${t('site.name')} — home`}>
-      <span>{t('site.name')}</span>
+    <a
+      href={homeHref}
+      class="wordmark text-[1.35rem] text-ink transition-colors hover:text-accent"
+      aria-label={`${t('site.name')} — home`}
+    >
+      {t('site.name')}
     </a>
 
-    <nav class="hidden items-center gap-1 sm:flex" aria-label="Primary">
+    <nav class="hidden items-center gap-6 sm:flex" aria-label="Primary">
       {
         navItems.map((item) => {
           const active = isActive(item.href);
@@ -44,10 +48,10 @@ const isActive = (href: string) => {
               href={item.href}
               aria-current={active ? 'page' : undefined}
               class:list={[
-                'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                'font-mono text-[0.72rem] tracking-[0.14em] uppercase transition-colors',
                 active
-                  ? 'text-ink font-semibold bg-surface-sunk/60'
-                  : 'text-muted hover:text-ink hover:bg-surface-sunk/30',
+                  ? 'text-ink border-b border-accent pb-0.5'
+                  : 'text-muted hover:text-ink',
               ]}
             >
               {item.label}
@@ -57,7 +61,7 @@ const isActive = (href: string) => {
       }
     </nav>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <LanguageSwitch lang={lang} />
 
       <ThemeToggle client:load />
@@ -66,13 +70,8 @@ const isActive = (href: string) => {
         href={SITE.github}
         target="_blank"
         rel="noreferrer"
-        class="hidden items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-ink sm:inline-flex"
+        class="hidden items-center gap-1.5 font-mono text-[0.72rem] tracking-wider text-muted transition-colors hover:text-ink sm:inline-flex"
       >
-        <svg viewBox="0 0 24 24" class="size-4 fill-current" aria-hidden="true">
-          <path
-            d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.35 1.08 2.92.83.09-.64.35-1.08.64-1.33-2.22-.25-4.55-1.1-4.55-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86V21c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"
-          ></path>
-        </svg>
         GitHub
       </a>
 
@@ -82,9 +81,9 @@ const isActive = (href: string) => {
         aria-expanded="false"
         aria-controls="mobile-nav"
         aria-label="Open menu"
-        class="grid size-8 place-items-center rounded-lg border border-line bg-surface text-ink transition-colors sm:hidden"
+        class="sketch-control grid size-8 place-items-center text-ink sm:hidden"
       >
-        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <path d="M4 8h16M4 16h16"></path>
         </svg>
       </button>
@@ -93,7 +92,7 @@ const isActive = (href: string) => {
 
   <nav
     id="mobile-nav"
-    class="grid grid-rows-[0fr] overflow-hidden border-t-0 border-line bg-bg/95 backdrop-blur-xl transition-[grid-template-rows] duration-300 sm:hidden"
+    class="grid grid-rows-[0fr] overflow-hidden border-t-0 border-line bg-bg/95 transition-[grid-template-rows] duration-300 sm:hidden"
     aria-label="Primary (mobile)"
   >
     <div class="min-h-0 overflow-hidden">

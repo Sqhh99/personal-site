@@ -19,7 +19,7 @@ const options = listLanguages().map((code) => ({
 
 <details id="lang-switch" class="group relative">
   <summary
-    class="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-line bg-surface/80 px-2.5 py-1 font-mono text-[0.725rem] text-ink transition-colors hover:border-line-strong marker:content-none [&::-webkit-details-marker]:hidden"
+    class="sketch-control flex cursor-pointer list-none items-center gap-1.5 px-2.5 py-1 font-mono text-[0.725rem] text-ink marker:content-none [&::-webkit-details-marker]:hidden"
     aria-label={t('nav.language')}
   >
     <span>{LANGUAGES[lang]}</span>
@@ -37,7 +37,7 @@ const options = listLanguages().map((code) => ({
     </svg>
   </summary>
   <div
-    class="absolute right-0 z-50 mt-1.5 min-w-[8.5rem] rounded-xl border border-line bg-surface p-1 shadow-card"
+    class="absolute right-0 z-50 mt-1.5 min-w-[8.5rem] border border-line bg-surface p-1 shadow-card"
     role="menu"
     aria-label={t('nav.language')}
   >
@@ -49,7 +49,7 @@ const options = listLanguages().map((code) => ({
           role="menuitem"
           aria-current={option.current ? 'true' : undefined}
           class:list={[
-            'flex items-center justify-between rounded-lg px-2.5 py-1.5 font-mono text-[0.725rem] transition-colors',
+            'flex items-center justify-between px-2.5 py-1.5 font-mono text-[0.725rem] transition-colors',
             option.current
               ? 'bg-accent/10 text-accent-deep'
               : 'text-muted hover:bg-surface-sunk/70 hover:text-ink',

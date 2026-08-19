@@ -77,7 +77,7 @@ const toc = headings
   <!-- Top Reading Progress Indicator -->
   <div
     id="read-progress"
-    class="fixed top-0 left-0 z-50 h-[3px] w-0 bg-accent transition-all duration-150"
+    class="fixed top-0 left-0 z-[80] h-0.5 w-0 bg-accent transition-all duration-150"
     aria-hidden="true"
   >
   </div>
@@ -139,10 +139,8 @@ const toc = headings
 
         <header class="mt-8 border-b border-line pb-10">
           <div class="flex flex-wrap items-center gap-3">
-            <span
-              class="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-sunk/40 px-3 py-1 font-mono text-[0.65rem] font-medium tracking-wider text-accent"
-            >
-              <span class="size-1.5 rounded-full bg-accent"></span>
+            <span class="stamp">
+              <span class="stamp-dot" aria-hidden="true"></span>
               {kicker}
             </span>
             <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
@@ -192,7 +190,7 @@ const toc = headings
             prev && (
               <a
                 href={prev.href}
-                class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float"
+                class="group sketch-frame sketch-ticks p-6"
               >
                 <span class="label flex items-center gap-1 text-accent">
                   <span class="transition-transform group-hover:-translate-x-1">←</span> {prevLabel}
@@ -207,7 +205,7 @@ const toc = headings
             next && (
               <a
                 href={next.href}
-                class="group rounded-2xl border border-line bg-surface p-6 transition-all hover:border-line-strong hover:shadow-float sm:col-start-2 sm:text-right"
+                class="group sketch-frame sketch-ticks p-6 sm:col-start-2 sm:text-right"
               >
                 <span class="label flex items-center justify-end gap-1 text-accent">
                   {nextLabel} <span class="transition-transform group-hover:translate-x-1">→</span>
@@ -244,7 +242,7 @@ const toc = headings
       button.type = 'button';
       button.ariaLabel = 'Copy code';
       button.className =
-        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 rounded-md border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted backdrop-blur transition-all hover:border-line-strong hover:text-ink';
+        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted transition-all hover:border-line-strong hover:text-ink';
       button.innerHTML = '<span>Copy</span>';
 
       pre.classList.add('group');

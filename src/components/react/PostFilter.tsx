@@ -114,13 +114,13 @@ export default function PostFilter({
   };
 
   const pagerControlClass =
-    'inline-flex min-w-20 items-center justify-center rounded-full border border-line bg-surface/80 px-3 py-2 font-mono text-[0.7rem] tracking-wider text-muted transition-colors';
+    'sketch-control inline-flex min-w-20 items-center justify-center px-3 py-2 font-mono text-[0.7rem] tracking-wider text-muted';
 
   return (
     <>
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <label className="group relative flex h-12 w-full max-w-md items-center gap-3 rounded-xl border border-line bg-surface/90 px-4 shadow-2xs transition-all duration-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 hover:border-line-strong">
+          <label className="group sketch-control relative flex h-12 w-full max-w-md items-center gap-3 px-4 focus-within:border-accent">
             <svg
               viewBox="0 0 24 24"
               className="size-4 shrink-0 text-faint transition-colors group-focus-within:text-accent"
@@ -181,9 +181,9 @@ export default function PostFilter({
                   setFilterPage(1);
                 }}
                 className={[
-                  'rounded-full border px-4 py-1.5 font-mono text-[0.7rem] tracking-wider transition-all duration-200 active:scale-95',
+                  'border px-3 py-1.5 font-mono text-[0.7rem] tracking-wider transition-colors',
                   selected
-                    ? 'border-accent bg-accent text-surface shadow-xs font-semibold'
+                    ? 'border-accent bg-accent text-surface font-semibold'
                     : 'border-line bg-surface/80 text-muted hover:border-line-strong hover:text-ink hover:bg-surface-sunk/50',
                 ].join(' ')}
               >

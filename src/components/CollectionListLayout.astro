@@ -42,15 +42,15 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
   description={t(config.i18n.description)}
 >
   <div class="shell py-16 md:py-24">
-    <header class="reveal max-w-[48ch]">
-      <p class="label flex items-center gap-3">
-        <span class="inline-block h-px w-6 bg-accent"></span>
+    <header class="reveal zine-plate sketch-frame sketch-ticks">
+      <p class="label relative flex items-center gap-3">
+        <span class="ink-rule"></span>
         {t(config.i18n.nav)}
       </p>
-      <h1 class="mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">
+      <h1 class="relative mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">
         {t(config.i18n.heading)}
       </h1>
-      <p class="mt-6 text-lg leading-relaxed text-muted">
+      <p class="relative mt-6 text-lg leading-relaxed text-muted">
         {totalItems} {t(config.i18n.description)}
       </p>
     </header>
@@ -61,7 +61,7 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
       </div>
     )}
 
-    <div id={gridId} class="mt-10 grid gap-6 sm:grid-cols-2">
+    <div id={gridId} class="mt-12 grid gap-7 sm:grid-cols-2">
       <slot name="grid" />
     </div>
 

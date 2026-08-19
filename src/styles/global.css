@@ -5,48 +5,53 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ---------------------------------------------------------------------------
-   Palette — Refined warm ivory / ink / coral system with dark slate mode.
-   Deliberately no pure #000 or #fff.
+   Palette — paper cream / warm ink / cinnabar wash.
+   Hand-drawn zine, not neon glass. Deliberately no pure #000 or #fff.
    --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #f5f3ec;
-  --surface: #faf9f5;
-  --surface-sunk: #ece9df;
-  --surface-glass: rgba(250, 249, 245, 0.75);
-  --ink: #141413;
-  --muted: #5e5b55;
-  --faint: #858177;
-  --border: #dfdcd3;
-  --border-strong: #c8c4b7;
-  --accent: #cc785c;
-  --accent-deep: #b35b3d;
-  --accent-glow: rgba(204, 120, 92, 0.15);
-  --kraft: #d4a27f;
-  --manilla: #ebdbbc;
-  --code-bg: #1e1e1e;
-  --shadow: 0 2px 4px rgb(20 20 19 / 0.03), 0 12px 32px rgb(20 20 19 / 0.05);
-  --shadow-lg: 0 4px 12px rgb(20 20 19 / 0.04), 0 24px 48px rgb(20 20 19 / 0.08);
+  --bg: #f3eee3;
+  --surface: #f8f4ea;
+  --surface-sunk: #e8e1d2;
+  --surface-glass: rgba(248, 244, 234, 0.86);
+  --ink: #1c1814;
+  --muted: #534c43;
+  --faint: #6f675d;
+  --border: #d4ccbc;
+  --border-strong: #b8ae9a;
+  --accent: #c45c3e;
+  --accent-deep: #a8472c;
+  --accent-glow: rgba(196, 92, 62, 0.16);
+  --kraft: #c9a07a;
+  --manilla: #ead8b6;
+  --code-bg: #1e1c19;
+  --shadow: 0 1px 0 rgb(28 24 20 / 0.05);
+  --shadow-lg: 0 1px 0 rgb(28 24 20 / 0.08);
+  --paper-hatch: rgb(28 24 20 / 0.016);
+  --tick: rgb(28 24 20 / 0.48);
+  --tick-size: 15px;
 }
 
 [data-theme='dark'] {
-  --bg: #161514;
-  --surface: #1f1d1b;
-  --surface-sunk: #121110;
-  --surface-glass: rgba(31, 29, 27, 0.75);
-  --ink: #f2f0e9;
-  --muted: #a19d93;
-  --faint: #78746b;
-  --border: #2e2b27;
-  --border-strong: #44403a;
-  --accent: #d97757;
-  --accent-deep: #e88a6b;
-  --accent-glow: rgba(217, 119, 87, 0.2);
-  --kraft: #d4a27f;
-  --manilla: #ebdbbc;
-  --code-bg: #121110;
-  --shadow: 0 2px 4px rgb(0 0 0 / 0.25), 0 12px 32px rgb(0 0 0 / 0.35);
-  --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.3), 0 24px 48px rgb(0 0 0 / 0.45);
+  --bg: #161310;
+  --surface: #1e1a16;
+  --surface-sunk: #110f0c;
+  --surface-glass: rgba(30, 26, 22, 0.86);
+  --ink: #f1eadc;
+  --muted: #b0a89c;
+  --faint: #8a8276;
+  --border: #322c25;
+  --border-strong: #4a4238;
+  --accent: #d9785c;
+  --accent-deep: #e58b70;
+  --accent-glow: rgba(217, 120, 92, 0.22);
+  --kraft: #c9a07a;
+  --manilla: #ead8b6;
+  --code-bg: #110f0c;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 1px 0 rgb(0 0 0 / 0.45);
+  --paper-hatch: rgb(241 234 220 / 0.022);
+  --tick: rgb(241 234 220 / 0.42);
 }
 
 /* `inline` so utilities compile to `var(--bg)` and follow theme swap at runtime */
@@ -64,8 +69,10 @@
   --color-kraft: var(--kraft);
   --color-manilla: var(--manilla);
 
-  --font-display: 'Newsreader Variable', ui-serif, Georgia, 'Times New Roman', serif;
-  --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Newsreader Variable', 'Songti SC', 'Hiragino Mincho ProN', 'Yu Mincho',
+    'Noto Serif CJK SC', ui-serif, Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
   --shadow-card: var(--shadow);
@@ -84,10 +91,16 @@
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
     -webkit-text-size-adjust: 100%;
+    background-color: var(--bg);
   }
 
   body {
     background-color: var(--bg);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 18px,
+      var(--paper-hatch) 18px 19px
+    );
     color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -118,7 +131,7 @@
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
-    border-radius: 6px;
+    border-radius: 2px;
   }
 
   /* Custom subtle scrollbar */
@@ -179,13 +192,21 @@
   color: var(--faint);
 }
 
-/* Fades content in on scroll; `.is-visible` is applied by IntersectionObserver */
+/* Fades content in on scroll; `.is-visible` is applied by IntersectionObserver.
+   Hidden only after JS marks the document, so first paint and no-JS stay readable. */
 @utility reveal {
-  opacity: 0;
-  transform: translateY(1.25rem);
+  opacity: 1;
+}
+
+html[data-reveal] .reveal {
   transition:
     opacity 700ms var(--ease-spring) var(--reveal-delay, 0ms),
     transform 700ms var(--ease-spring) var(--reveal-delay, 0ms);
+}
+
+html[data-reveal] .reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(1.25rem);
 }
 
 .reveal.is-visible {
@@ -450,9 +471,9 @@
   max-width: max(2.65rem, calc((100vw - var(--measure)) / 2 - 2.5rem));
   padding: 0.42rem 0.6rem;
   border: 1px solid var(--border);
-  border-radius: 0.6rem;
+  border-radius: 2px;
   background-color: var(--surface-glass);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.02em;
@@ -489,7 +510,7 @@
   overflow-y: auto;
   padding: 0.55rem;
   border: 1px solid var(--border);
-  border-radius: 0.85rem;
+  border-radius: 2px;
   background-color: var(--surface);
   box-shadow: var(--shadow-lg);
 }
@@ -731,4 +752,260 @@
 
 .prose .katex-display > .katex {
   font-size: 1.1em;
+}
+
+/* ---------------------------------------------------------------------------
+   Sketch / paper chrome — hairlines, corner ticks, grain, zine plate.
+   Atmosphere canvas sits behind type; grain is a paper overlay, not a texture
+   baked into the letters.
+   --------------------------------------------------------------------------- */
+
+.atmosphere-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.032;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+[data-theme='dark'] .paper-grain {
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+}
+
+.site-stack {
+  position: relative;
+  z-index: 2;
+}
+
+.page-frame {
+  position: fixed;
+  inset: 0.65rem;
+  z-index: 70;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+.page-frame::before,
+.page-frame::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+}
+
+.page-frame::before {
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.page-frame::after {
+  inset: -1px;
+  background:
+    linear-gradient(var(--tick), var(--tick)) left top / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left top / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / 1px var(--tick-size) no-repeat;
+}
+
+@media (max-width: 640px) {
+  .page-frame {
+    inset: 0.35rem;
+  }
+}
+
+.sketch-frame {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  outline: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+  outline-offset: 3px;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    outline-color 180ms ease;
+}
+
+.sketch-frame:hover:not(.zine-plate) {
+  border-color: var(--border-strong);
+  outline-color: color-mix(in srgb, var(--border-strong) 55%, transparent);
+  background-color: color-mix(in srgb, var(--surface-sunk) 28%, var(--surface));
+}
+
+.sketch-ticks::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  transform: rotate(0.12deg);
+  background:
+    linear-gradient(var(--tick), var(--tick)) left top / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left top / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / 1px var(--tick-size) no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / var(--tick-size) 1px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / 1px var(--tick-size) no-repeat;
+}
+
+.zine-plate {
+  position: relative;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 3.5vw, 2.75rem)
+    clamp(1.75rem, 4vw, 3.15rem);
+}
+
+.zine-plate.sketch-frame {
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.zine-plate .hero-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.zine-rule {
+  margin-top: 1.6rem;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    var(--border-strong),
+    color-mix(in srgb, var(--border) 40%, transparent)
+  );
+}
+
+.seal {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.15rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.45rem;
+  height: 2.45rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  transform: rotate(11deg);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.seal::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.ink-rule {
+  display: inline-block;
+  height: 1px;
+  width: 1.55rem;
+  background-color: var(--accent);
+}
+
+.ink-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  padding-inline: 1.2rem;
+  border: 1px solid var(--accent-deep);
+  border-radius: 2px;
+  background-color: var(--accent);
+  color: var(--surface);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--accent-deep) 45%, transparent);
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.ink-btn:hover {
+  background-color: var(--accent-deep);
+}
+
+.ghost-link {
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 0.15rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.ghost-link:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: 1px;
+  background-color: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--accent-deep);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stamp-dot {
+  width: 0.35rem;
+  height: 0.35rem;
+  background-color: var(--accent);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.sketch-control {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+}
+
+.sketch-control:hover {
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sketch-ticks::after,
+  .seal {
+    transform: none;
+  }
 }

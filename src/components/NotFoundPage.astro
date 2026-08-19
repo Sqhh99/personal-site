@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLocalizedPath, useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t('404.title')} description={t('404.message')}>
+  <div class="shell flex min-h-[65svh] flex-col justify-center py-24">
+    <div class="zine-plate sketch-frame sketch-ticks max-w-[40rem]">
+      <span class="seal" aria-hidden="true"></span>
+      <p class="label relative flex items-center gap-3">
+        <span class="ink-rule"></span>
+        {t('404.kicker')}
+      </p>
+      <h1 class="relative mt-4 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.03] font-display text-ink">
+        {t('404.heading')}
+      </h1>
+      <p class="relative mt-6 max-w-[46ch] text-lg leading-relaxed text-muted">
+        {t('404.message')}
+      </p>
+      <div class="zine-rule relative"></div>
+      <div class="relative mt-8 flex flex-wrap items-center gap-5">
+        <a href={getLocalizedPath('/blog/', lang)} class="ink-btn">
+          {t('writing.viewAll')}
+        </a>
+        <a href={getLocalizedPath('/', lang)} class="ghost-link">
+          {t('404.back')}
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,8 +1,10 @@
 ---
 import '@fontsource-variable/inter';
 import '@fontsource-variable/newsreader';
+import '@fontsource-variable/newsreader/wght-italic.css';
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
+import Atmosphere from '../components/Atmosphere.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getLangFromUrl, getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
@@ -59,8 +61,8 @@ const alternates = listLanguages().map((code) => ({
     {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
     <meta name="twitter:card" content="summary_large_image" />
 
-    <meta name="theme-color" content="#f0eee6" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1f1e1d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3eee3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)" />
 
     <!-- Resolve the theme before first paint so the ivory palette never flashes
          in front of someone who chose dark. -->
@@ -74,28 +76,39 @@ const alternates = listLanguages().map((code) => ({
   </head>
 
   <body class="min-h-screen bg-bg text-ink antialiased">
-    <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:border focus:border-line focus:bg-surface focus:px-4 focus:py-2 focus:text-sm"
-    >
-      {t('a11y.skip')}
-    </a>
+    <Atmosphere />
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-frame" aria-hidden="true"></div>
 
-    <Header lang={lang} />
+    <div class="site-stack">
+      <a
+        href="#main"
+        class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-line focus:bg-surface focus:px-4 focus:py-2 focus:text-sm"
+      >
+        {t('a11y.skip')}
+      </a>
 
-    <main id="main">
-      <slot />
-    </main>
+      <Header lang={lang} />
 
-    <Footer lang={lang} />
+      <main id="main">
+        <slot />
+      </main>
+
+      <Footer lang={lang} />
+    </div>
 
     <script>
-      // Scroll reveal. Elements opt in with `class="reveal"`; without JS they are
-      // never hidden in the first place, because `.is-visible` is the default in
-      // the no-JS path below.
+      // Scroll reveal. Elements opt in with `class="reveal"`. First paint stays
+      // visible; we only hide below-the-fold items after this script runs.
       const targets = document.querySelectorAll<HTMLElement>('.reveal');
 
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const inView = (el: HTMLElement) => el.getBoundingClientRect().top < window.innerHeight * 0.92;
+        targets.forEach((el) => {
+          if (inView(el)) el.classList.add('is-visible');
+        });
+        document.documentElement.setAttribute('data-reveal', '');
+
         const observer = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
@@ -106,7 +119,9 @@ const alternates = listLanguages().map((code) => ({
           },
           { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
         );
-        targets.forEach((el) => observer.observe(el));
+        targets.forEach((el) => {
+          if (!el.classList.contains('is-visible')) observer.observe(el);
+        });
       } else {
         targets.forEach((el) => el.classList.add('is-visible'));
       }

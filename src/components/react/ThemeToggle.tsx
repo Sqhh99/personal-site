@@ -24,7 +24,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
       title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="group relative grid size-9 place-items-center rounded-xl border border-line bg-surface/90 text-ink shadow-xs transition-all duration-300 hover:border-line-strong hover:bg-surface-sunk/50 hover:scale-105 active:scale-95"
+      className="group sketch-control relative grid size-9 place-items-center text-ink"
     >
       <span className={mounted ? 'contents' : 'invisible contents'}>
         <span className={`transition-transform duration-500 ease-out ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0 absolute'}`}>
