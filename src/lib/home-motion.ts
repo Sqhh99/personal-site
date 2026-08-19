@@ -52,6 +52,7 @@ export function initHomeMotion(root: HTMLElement | null): () => void {
             transformOrigin: 'left center',
             onComplete: () => rule.setAttribute('data-in', ''),
           },
+          0.08,
         );
       }
 

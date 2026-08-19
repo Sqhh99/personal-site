@@ -42,7 +42,7 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
   description={t(config.i18n.description)}
 >
   <div class="shell py-16 md:py-24">
-    <header class="reveal zine-plate sketch-frame sketch-ticks">
+    <header class="reveal hero-stage max-w-[46rem]">
       <p class="label relative flex items-center gap-3">
         <span class="ink-rule"></span>
         {t(config.i18n.nav)}
@@ -53,6 +53,7 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
       <p class="relative mt-6 text-lg leading-relaxed text-muted">
         {totalItems} {t(config.i18n.description)}
       </p>
+      <div class="zine-rule relative"></div>
     </header>
 
     {Astro.slots.has('toolbar') && (

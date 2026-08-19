@@ -183,7 +183,7 @@ export default function PostFilter({
                 className={[
                   'border px-3 py-1.5 font-mono text-[0.7rem] tracking-wider transition-colors',
                   selected
-                    ? 'border-accent bg-accent text-surface font-semibold'
+                    ? 'border-accent bg-accent text-on-accent font-semibold'
                     : 'border-line bg-surface/80 text-muted hover:border-line-strong hover:text-ink hover:bg-surface-sunk/50',
                 ].join(' ')}
               >

@@ -39,7 +39,7 @@ const alternates = listLanguages().map((code) => ({
 ---
 
 <!doctype html>
-<html lang={htmlLang} data-theme="light">
+<html lang={htmlLang} data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -61,23 +61,22 @@ const alternates = listLanguages().map((code) => ({
     {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
     <meta name="twitter:card" content="summary_large_image" />
 
-    <meta name="theme-color" content="#f3eee3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e6e8ec" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080a0e" media="(prefers-color-scheme: dark)" />
 
-    <!-- Resolve the theme before first paint so the ivory palette never flashes
-         in front of someone who chose dark. -->
+    <!-- Resolve the theme before first paint so the void never flashes
+         in front of someone who chose light. -->
     <script is:inline>
       (() => {
         const stored = localStorage.getItem('theme');
-        const preferred = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.dataset.theme = stored ?? preferred;
+        document.documentElement.dataset.theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
       })();
     </script>
   </head>
 
   <body class="min-h-screen bg-bg text-ink antialiased">
     <Atmosphere />
-    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="void-grain" aria-hidden="true"></div>
     <div class="page-frame" aria-hidden="true"></div>
 
     <div class="site-stack">

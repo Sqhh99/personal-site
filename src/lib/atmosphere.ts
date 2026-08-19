@@ -1,17 +1,10 @@
-type Mote = {
+type Star = {
   x: number;
   y: number;
-  fall: number;
-  slip: number;
-  spin: number;
-  spinRate: number;
-  roll: number;
-  rollRate: number;
-  scale: number;
-  alpha: number;
-  w: number;
-  h: number;
-  hue: number;
+  r: number;
+  a: number;
+  layer: 0 | 1 | 2;
+  spike: boolean;
 };
 
 function clamp(n: number, a: number, b: number) {
@@ -34,57 +27,74 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 /**
- * A few paper scraps / muted petals behind the type.
- * Tumble is a horizontal scale through zero so each scrap goes edge-on;
- * sideways slip is driven by that same angle. Pauses off-tab and under
- * prefers-reduced-motion (still frame parked in the margins).
+ * Sparse observatory field: cached stars, a faint gravitational ring, one
+ * satellite tick. Pointer parallax is damped and layer-split so the field
+ * pivots rather than sliding as a poster. Pauses off-tab and under
+ * prefers-reduced-motion (still frame, designed three-quarter pose).
  */
 export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return () => undefined;
 
   const reduceMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const coarseMq = window.matchMedia('(pointer: coarse)');
   let reduce = reduceMq.matches;
   let width = 0;
   let height = 0;
-  let motes: Mote[] = [];
+  let stars: Star[] = [];
   let raf = 0;
   let last = 0;
   let running = false;
+  let angle = 0.32;
+  let targetX = 0;
+  let targetY = 0;
+  let smoothX = reduce ? 0.28 : 0;
+  let smoothY = reduce ? -0.12 : 0;
   let colors = readColors();
 
   function readColors() {
     const style = getComputedStyle(document.documentElement);
     return {
-      kraft: style.getPropertyValue('--kraft').trim() || '#c9a07a',
-      manilla: style.getPropertyValue('--manilla').trim() || '#ead8b6',
-      accent: style.getPropertyValue('--accent').trim() || '#c45c3e',
+      ink: style.getPropertyValue('--ink').trim() || '#eee8dc',
+      accent: style.getPropertyValue('--accent').trim() || '#d4b483',
+      kraft: style.getPropertyValue('--kraft').trim() || '#8aa0b5',
     };
   }
 
   function countForSize() {
-    const k = clamp(Math.sqrt((width * height) / (1440 * 900)), 0.45, 1.15);
-    return Math.max(6, Math.round(11 * k));
+    const k = clamp(Math.sqrt((width * height) / (1440 * 900)), 0.4, 1.2);
+    return Math.round(90 * k);
   }
 
-  function spawn(partial: Partial<Mote> = {}): Mote {
-    return {
-      x: Math.random() * Math.max(width, 1),
-      y: Math.random() * Math.max(height, 1),
-      fall: 10 + Math.random() * 20,
-      slip: 7 + Math.random() * 14,
-      spin: Math.random() * Math.PI * 2,
-      spinRate: (0.3 + Math.random() * 0.85) * (Math.random() < 0.5 ? -1 : 1),
-      roll: Math.random() * Math.PI * 2,
-      rollRate: (0.08 + Math.random() * 0.35) * (Math.random() < 0.5 ? -1 : 1),
-      scale: 0.4 + Math.random() * 0.7,
-      alpha: 0.09 + Math.random() * 0.14,
-      w: 8 + Math.random() * 7,
-      h: 13 + Math.random() * 9,
-      hue: Math.random(),
-      ...partial,
-    };
+  function catalog() {
+    const rand = mulberry32(99_019);
+    const n = countForSize();
+    const next: Star[] = [];
+    for (let i = 0; i < n; i += 1) {
+      const roll = rand();
+      const layer: 0 | 1 | 2 = roll < 0.62 ? 0 : roll < 0.9 ? 1 : 2;
+      next.push({
+        x: rand(),
+        y: rand(),
+        r: layer === 0 ? 0.45 + rand() * 0.55 : layer === 1 ? 0.7 + rand() * 0.7 : 1.05 + rand() * 0.85,
+        a: layer === 0 ? 0.18 + rand() * 0.22 : layer === 1 ? 0.32 + rand() * 0.28 : 0.55 + rand() * 0.35,
+        layer,
+        spike: layer === 2 && rand() < 0.35,
+      });
+    }
+    stars = next;
   }
 
   function resize() {
@@ -97,33 +107,71 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = countForSize();
-    if (motes.length === 0) {
-      motes = Array.from({ length: n }, () => spawn());
-    } else if (motes.length < n) {
-      while (motes.length < n) motes.push(spawn({ y: -20 }));
-    } else {
-      motes.length = n;
+    catalog();
+  }
+
+  function wrap(v: number, span: number) {
+    return ((v % span) + span) % span;
+  }
+
+  function depth(layer: 0 | 1 | 2) {
+    return layer === 0 ? 6 : layer === 1 ? 14 : 26;
+  }
+
+  function rgba(hex: string, alpha: number) {
+    const [r, g, b] = hexToRgb(hex);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function drawStars() {
+    const ink = colors.ink;
+    const accent = colors.accent;
+    for (const star of stars) {
+      const x = wrap(star.x * width + smoothX * depth(star.layer), width);
+      const y = wrap(star.y * height - smoothY * depth(star.layer) * 0.7, height);
+      ctx.fillStyle = rgba(star.spike ? accent : ink, star.a);
+      ctx.beginPath();
+      ctx.arc(x, y, star.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (!star.spike) continue;
+      const spike = 5 + star.r * 3;
+      ctx.strokeStyle = rgba(accent, star.a * 0.28);
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x - spike, y);
+      ctx.lineTo(x + spike, y);
+      ctx.moveTo(x, y - spike);
+      ctx.lineTo(x, y + spike);
+      ctx.stroke();
     }
   }
 
-  function fillFor(mote: Mote, back: boolean) {
-    const hex = mote.hue < 0.5 ? colors.kraft : mote.hue < 0.82 ? colors.manilla : colors.accent;
-    const [r, g, b] = hexToRgb(hex);
-    return `rgba(${r}, ${g}, ${b}, ${back ? mote.alpha * 0.55 : mote.alpha})`;
-  }
+  function drawRing() {
+    const cx = width * (0.72 + smoothX * 0.03);
+    const cy = height * (0.38 - smoothY * 0.025);
+    const rx = Math.min(width, height) * 0.38;
+    const ry = rx * 0.42;
 
-  function drawMote(mote: Mote) {
-    const tumble = Math.cos(mote.spin);
     ctx.save();
-    ctx.translate(mote.x, mote.y);
-    ctx.rotate(mote.roll);
-    ctx.scale(tumble * mote.scale, mote.scale);
-    ctx.fillStyle = fillFor(mote, tumble < 0);
+    ctx.translate(cx, cy);
+    ctx.rotate(-0.18 + smoothX * 0.04);
+    ctx.strokeStyle = rgba(colors.accent, 0.14);
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, -mote.h / 2);
-    ctx.quadraticCurveTo(mote.w / 2, -mote.h / 8, 0, mote.h / 2);
-    ctx.quadraticCurveTo(-mote.w / 2, -mote.h / 8, 0, -mote.h / 2);
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = rgba(colors.kraft, 0.08);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx * 0.62, ry * 0.62, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const satX = Math.cos(angle) * rx;
+    const satY = Math.sin(angle) * ry;
+    ctx.fillStyle = rgba(colors.accent, 0.72);
+    ctx.beginPath();
+    ctx.arc(satX, satY, 1.7, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -131,19 +179,15 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
   function draw() {
     if (width < 2 || height < 2) return;
     ctx.clearRect(0, 0, width, height);
-    for (const mote of motes) drawMote(mote);
+    drawStars();
+    drawRing();
   }
 
   function step(dt: number) {
-    for (const mote of motes) {
-      mote.spin += mote.spinRate * dt;
-      mote.roll += mote.rollRate * dt;
-      mote.x += Math.sin(mote.spin) * mote.slip * dt;
-      mote.y += mote.fall * dt;
-      if (mote.y > height + 24) Object.assign(mote, spawn({ y: -24, x: Math.random() * width }));
-      if (mote.x < -24) mote.x = width + 24;
-      if (mote.x > width + 24) mote.x = -24;
-    }
+    const alpha = 1 - Math.pow(1 - 0.055, dt * 60);
+    smoothX += (targetX - smoothX) * alpha;
+    smoothY += (targetY - smoothY) * alpha;
+    if (!reduce) angle += dt * ((Math.PI * 2) / 96);
   }
 
   function frame(now: number) {
@@ -156,7 +200,7 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
   }
 
   function start() {
-    if (running || reduce || document.hidden) return;
+    if (running || document.hidden) return;
     running = true;
     last = 0;
     raf = requestAnimationFrame(frame);
@@ -168,13 +212,11 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
   }
 
   function composeStill() {
-    motes.forEach((mote, i) => {
-      const left = i % 2 === 0;
-      mote.x = left ? 18 + (i % 3) * 22 : width - 72 + (i % 3) * 18;
-      mote.y = 72 + (i / Math.max(motes.length, 1)) * Math.max(height - 140, 80);
-      mote.spin = 0.35 + (i % 5) * 0.28;
-      mote.roll = (i % 3) * 0.35 - 0.35;
-    });
+    targetX = 0.28;
+    targetY = -0.12;
+    smoothX = 0.28;
+    smoothY = -0.12;
+    angle = 0.7;
     draw();
   }
 
@@ -197,7 +239,8 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
 
   const onVis = () => {
     if (document.hidden) stop();
-    else if (!reduce) start();
+    else if (reduce) composeStill();
+    else start();
   };
   const onReduce = () => {
     reduce = reduceMq.matches;
@@ -205,8 +248,21 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
       stop();
       composeStill();
     } else {
+      targetX = 0;
+      targetY = 0;
       start();
     }
+  };
+
+  const onPointer = (event: PointerEvent) => {
+    if (reduce || event.pointerType === 'touch' || coarseMq.matches) return;
+    targetX = (event.clientX / Math.max(width, 1)) * 2 - 1;
+    targetY = (event.clientY / Math.max(height, 1)) * 2 - 1;
+  };
+  const onLeave = () => {
+    if (reduce) return;
+    targetX = 0;
+    targetY = 0;
   };
 
   resize();
@@ -214,6 +270,8 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
   else start();
 
   document.addEventListener('visibilitychange', onVis);
+  document.addEventListener('pointermove', onPointer, { passive: true });
+  document.addEventListener('pointerleave', onLeave);
   reduceMq.addEventListener('change', onReduce);
 
   return () => {
@@ -221,6 +279,8 @@ export function initAtmosphere(canvas: HTMLCanvasElement): () => void {
     ro.disconnect();
     themeObs.disconnect();
     document.removeEventListener('visibilitychange', onVis);
+    document.removeEventListener('pointermove', onPointer);
+    document.removeEventListener('pointerleave', onLeave);
     reduceMq.removeEventListener('change', onReduce);
   };
 }

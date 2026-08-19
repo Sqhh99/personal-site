@@ -13,13 +13,12 @@ const t = useTranslations(lang);
 
 <BaseLayout lang={lang} title={t('404.title')} description={t('404.message')}>
   <div class="shell flex min-h-[65svh] flex-col justify-center py-24">
-    <div class="zine-plate sketch-frame sketch-ticks max-w-[40rem]">
-      <span class="seal" aria-hidden="true"></span>
+    <div class="hero-stage max-w-[40rem]">
       <p class="label relative flex items-center gap-3">
         <span class="ink-rule"></span>
         {t('404.kicker')}
       </p>
-      <h1 class="relative mt-4 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.03] font-display text-ink">
+      <h1 class="relative mt-5 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.03] font-display text-ink">
         {t('404.heading')}
       </h1>
       <p class="relative mt-6 max-w-[46ch] text-lg leading-relaxed text-muted">

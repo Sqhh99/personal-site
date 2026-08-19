@@ -29,7 +29,7 @@ export function Canvas({
       ref={canvasRef}
       role="img"
       aria-label={label}
-      className={`block w-full touch-none select-none rounded-xl bg-surface ${className}`}
+      className={`block w-full touch-none select-none rounded-sm bg-surface ${className}`}
       style={{ aspectRatio: String(aspect), ...style }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -98,7 +98,7 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`inline-flex items-center gap-2.5 rounded-full border px-3 py-1.5 font-mono text-[0.7rem] tracking-wider transition-colors ${
+      className={`inline-flex items-center gap-2.5 rounded-sm border px-3 py-1.5 font-mono text-[0.7rem] tracking-wider transition-colors ${
         checked
           ? 'border-accent/50 bg-accent/10 text-accent-deep'
           : 'border-line bg-surface text-muted hover:border-line-strong hover:text-ink'
@@ -127,7 +127,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div role="group" aria-label={label}>
       {label && <span className="label mb-1.5 block">{label}</span>}
-      <div className="inline-flex flex-wrap gap-1 rounded-lg border border-line bg-sunk p-1">
+      <div className="inline-flex flex-wrap gap-1 rounded-sm border border-line bg-sunk p-1">
         {options.map((option) => {
           const selected = option.value === value;
           return (
@@ -136,7 +136,7 @@ export function SegmentedControl<T extends string>({
               type="button"
               aria-pressed={selected}
               onClick={() => onChange(option.value)}
-              className={`rounded-md px-2.5 py-1 font-mono text-[0.7rem] tracking-wider transition-colors ${
+              className={`rounded-sm px-2.5 py-1 font-mono text-[0.7rem] tracking-wider transition-colors ${
                 selected
                   ? 'bg-surface text-accent-deep shadow-xs'
                   : 'text-muted hover:text-ink'
@@ -157,7 +157,7 @@ export function PlayPause({ playing, onChange }: { playing: boolean; onChange: (
       type="button"
       onClick={() => onChange(!playing)}
       aria-label={playing ? 'Pause animation' : 'Play animation'}
-      className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:border-line-strong hover:text-ink"
+      className="inline-flex items-center gap-2 rounded-sm border border-line bg-surface px-3 py-1.5 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:border-line-strong hover:text-ink"
     >
       {playing ? (
         <svg viewBox="0 0 24 24" className="size-3 fill-current" aria-hidden="true">
@@ -177,7 +177,7 @@ export function PlayPause({ playing, onChange }: { playing: boolean; onChange: (
 /** A small key/value readout for derived quantities the reader should watch. */
 export function Readout({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-line bg-sunk/50 px-3 py-2">
+    <div className="rounded-sm border border-line bg-sunk/50 px-3 py-2">
       <div className="label">{label}</div>
       <div className="mt-0.5 font-mono text-sm tabular-nums text-ink">{value}</div>
       {hint && <div className="mt-0.5 font-mono text-[0.65rem] text-faint">{hint}</div>}
@@ -187,5 +187,5 @@ export function Readout({ label, value, hint }: { label: string; value: string; 
 
 /** Wraps a figure's canvas + controls. Adds the card chrome. */
 export function FigureBody({ children }: { children: ReactNode }) {
-  return <div className="rounded-2xl border border-line bg-surface p-3 sm:p-4">{children}</div>;
+  return <div className="rounded-sm border border-line bg-surface p-3 sm:p-4">{children}</div>;
 }

@@ -28,18 +28,19 @@ const isActive = (href: string) => {
 
 <header
   id="site-header"
-  class="sticky top-0 z-50 border-b border-line/70 bg-bg/90"
+  class="site-header"
+  data-scrolled="false"
 >
   <div class="shell flex h-16 items-center justify-between gap-6">
     <a
       href={homeHref}
-      class="wordmark text-[1.35rem] text-ink transition-colors hover:text-accent"
+      class="wordmark text-[1.3rem] text-ink transition-colors hover:text-accent"
       aria-label={`${t('site.name')} — home`}
     >
       {t('site.name')}
     </a>
 
-    <nav class="hidden items-center gap-6 sm:flex" aria-label="Primary">
+    <nav class="hidden items-center gap-7 sm:flex" aria-label="Primary">
       {
         navItems.map((item) => {
           const active = isActive(item.href);
@@ -48,7 +49,7 @@ const isActive = (href: string) => {
               href={item.href}
               aria-current={active ? 'page' : undefined}
               class:list={[
-                'font-mono text-[0.72rem] tracking-[0.14em] uppercase transition-colors',
+                'font-mono text-[0.7rem] tracking-[0.16em] uppercase transition-colors',
                 active
                   ? 'text-ink border-b border-accent pb-0.5'
                   : 'text-muted hover:text-ink',
@@ -70,7 +71,7 @@ const isActive = (href: string) => {
         href={SITE.github}
         target="_blank"
         rel="noreferrer"
-        class="hidden items-center gap-1.5 font-mono text-[0.72rem] tracking-wider text-muted transition-colors hover:text-ink sm:inline-flex"
+        class="hidden items-center gap-1.5 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:text-ink sm:inline-flex"
       >
         GitHub
       </a>
@@ -128,4 +129,12 @@ const isActive = (href: string) => {
   nav?.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).closest('a')) setOpen(false);
   });
+
+  const header = document.getElementById('site-header');
+  const syncScroll = () => {
+    if (!header) return;
+    header.dataset.scrolled = window.scrollY > 8 ? 'true' : 'false';
+  };
+  syncScroll();
+  window.addEventListener('scroll', syncScroll, { passive: true });
 </script>
