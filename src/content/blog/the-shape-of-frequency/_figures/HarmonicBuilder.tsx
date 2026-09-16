@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Toolbar, PlayPause, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Toolbar, PlayPause, Slider, Toggle } from '@figures/controls';
 import { TAU, baseline, box, curve, label } from '@figures/plot';
 
 const HARMONICS = [1, 2, 3];
@@ -69,30 +69,30 @@ export default function HarmonicBuilder() {
           <PlayPause playing={playing} onChange={setPlaying} />
           <Toggle label="Show components" checked={showParts} onChange={setShowParts} />
         </Toolbar>
+        <Dock columns={3}>
+          {HARMONICS.map((h, i) => (
+            <Slider
+              key={`a${h}`}
+              label={`amplitude · ${h}f`}
+              value={amps[i]}
+              min={0}
+              max={1}
+              onChange={(v) => setAmps(setAt(amps, i, v))}
+            />
+          ))}
+          {HARMONICS.map((h, i) => (
+            <Slider
+              key={`p${h}`}
+              label={`phase · ${h}f`}
+              value={phases[i]}
+              min={0}
+              max={TAU}
+              format={(v) => `${(v / Math.PI).toFixed(2)}π`}
+              onChange={(v) => setPhases(setAt(phases, i, v))}
+            />
+          ))}
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        {HARMONICS.map((h, i) => (
-          <Slider
-            key={`a${h}`}
-            label={`amplitude · ${h}f`}
-            value={amps[i]}
-            min={0}
-            max={1}
-            onChange={(v) => setAmps(setAt(amps, i, v))}
-          />
-        ))}
-        {HARMONICS.map((h, i) => (
-          <Slider
-            key={`p${h}`}
-            label={`phase · ${h}f`}
-            value={phases[i]}
-            min={0}
-            max={TAU}
-            format={(v) => `${(v / Math.PI).toFixed(2)}π`}
-            onChange={(v) => setPhases(setAt(phases, i, v))}
-          />
-        ))}
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
 import { TAU, baseline, box, bx, by, curve, dot, label, polyline } from '@figures/plot';
 
 const SAMPLES = 600;
@@ -179,43 +179,43 @@ export default function CorrelationSweep() {
             hint={Math.abs(current) > 0.15 ? 'lobes reinforce' : 'lobes cancel'}
           />
         </Metrics>
+        <Dock columns={2}>
+          <Slider
+            label="test frequency f"
+            value={testF}
+            min={F_MIN}
+            max={F_MAX}
+            step={0.02}
+            format={(v) => `${v.toFixed(2)} Hz`}
+            onChange={setTestF}
+          />
+          <Slider
+            label="component A"
+            value={fA}
+            min={1}
+            max={11}
+            step={1}
+            format={(v) => `${v} Hz`}
+            onChange={setFA}
+          />
+          <Slider
+            label="component B"
+            value={fB}
+            min={1}
+            max={11}
+            step={1}
+            format={(v) => `${v} Hz`}
+            onChange={setFB}
+          />
+          <Slider
+            label="amplitude of B"
+            value={ampB}
+            min={0}
+            max={1}
+            onChange={setAmpB}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="test frequency f"
-          value={testF}
-          min={F_MIN}
-          max={F_MAX}
-          step={0.02}
-          format={(v) => `${v.toFixed(2)} Hz`}
-          onChange={setTestF}
-        />
-        <Slider
-          label="component A"
-          value={fA}
-          min={1}
-          max={11}
-          step={1}
-          format={(v) => `${v} Hz`}
-          onChange={setFA}
-        />
-        <Slider
-          label="component B"
-          value={fB}
-          min={1}
-          max={11}
-          step={1}
-          format={(v) => `${v} Hz`}
-          onChange={setFB}
-        />
-        <Slider
-          label="amplitude of B"
-          value={ampB}
-          min={0}
-          max={1}
-          onChange={setAmpB}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

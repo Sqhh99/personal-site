@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 const G = 6.6743e-11;
@@ -218,27 +218,27 @@ export default function SchwarzschildRadius() {
             onChange={choose}
           />
         </Toolbar>
+        <Dock columns={2}>
+          <Slider
+            label="mass"
+            value={logMass}
+            min={22}
+            max={40}
+            step={0.05}
+            format={(v) => `${(10 ** v / M_SUN).toPrecision(3)} M☉`}
+            onChange={(v) => setLogMass(v)}
+          />
+          <Slider
+            label="radius"
+            value={logRadius}
+            min={AXIS_MIN}
+            max={AXIS_MAX}
+            step={0.05}
+            format={(v) => format(10 ** v)}
+            onChange={(v) => setLogRadius(v)}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="mass"
-          value={logMass}
-          min={22}
-          max={40}
-          step={0.05}
-          format={(v) => `${(10 ** v / M_SUN).toPrecision(3)} M☉`}
-          onChange={(v) => setLogMass(v)}
-        />
-        <Slider
-          label="radius"
-          value={logRadius}
-          min={AXIS_MIN}
-          max={AXIS_MAX}
-          step={0.05}
-          format={(v) => format(10 ** v)}
-          onChange={(v) => setLogRadius(v)}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

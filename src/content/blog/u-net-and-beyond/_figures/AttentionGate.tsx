@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, circle, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -356,40 +356,40 @@ export default function AttentionGate() {
           <Readout label="requested energy kept" value={`${(evaluated.objectRetained * 100).toFixed(0)}%`} />
           <Readout label="everything else kept" value={`${(evaluated.clutterRetained * 100).toFixed(0)}%`} />
         </Metrics>
+        <Dock columns={3}>
+          {/* Buttons, not a slider: changing this retrains the gate, which costs
+              about a tenth of a second and would stutter under a drag. */}
+          <SegmentedControl
+            label="intermediate channels"
+            value={String(inner)}
+            options={[
+              { value: '4', label: '4' },
+              { value: '8', label: '8' },
+              { value: '16', label: '16' },
+            ]}
+            onChange={(v) => setInner(Number(v))}
+          />
+          <Slider
+            label="gate sharpness"
+            value={sharpness}
+            min={0.25}
+            max={4}
+            step={0.25}
+            format={(v) => `${v.toFixed(2)}×`}
+            onChange={setSharpness}
+          />
+          <SegmentedControl
+            label="weight draw"
+            value={seedKey}
+            options={[
+              { value: 'a', label: 'A' },
+              { value: 'b', label: 'B' },
+              { value: 'c', label: 'C' },
+            ]}
+            onChange={setSeedKey}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        {/* Buttons, not a slider: changing this retrains the gate, which costs
-            about a tenth of a second and would stutter under a drag. */}
-        <SegmentedControl
-          label="intermediate channels"
-          value={String(inner)}
-          options={[
-            { value: '4', label: '4' },
-            { value: '8', label: '8' },
-            { value: '16', label: '16' },
-          ]}
-          onChange={(v) => setInner(Number(v))}
-        />
-        <Slider
-          label="gate sharpness"
-          value={sharpness}
-          min={0.25}
-          max={4}
-          step={0.25}
-          format={(v) => `${v.toFixed(2)}×`}
-          onChange={setSharpness}
-        />
-        <SegmentedControl
-          label="weight draw"
-          value={seedKey}
-          options={[
-            { value: 'a', label: 'A' },
-            { value: 'b', label: 'B' },
-            { value: 'c', label: 'C' },
-          ]}
-          onChange={setSeedKey}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

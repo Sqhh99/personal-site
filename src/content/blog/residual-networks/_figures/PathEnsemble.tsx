@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, byUp, fillRoundRect, label, polyline } from '@figures/plot';
 
 /**
@@ -188,19 +188,19 @@ export default function PathEnsemble() {
         <Toolbar>
           <Toggle label="cumulative curve" checked={showCumulative} onChange={setShowCumulative} />
         </Toolbar>
+        <Dock columns={2}>
+          <Slider label="blocks (L)" value={blocks} min={8} max={MAX_BLOCKS} step={2} format={(v) => String(v)} onChange={setBlocks} />
+          <Slider
+            label="per-branch gradient factor"
+            value={branchFactor}
+            min={0.05}
+            max={1}
+            step={0.05}
+            format={(v) => v.toFixed(2)}
+            onChange={setBranchFactor}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider label="blocks (L)" value={blocks} min={8} max={MAX_BLOCKS} step={2} format={(v) => String(v)} onChange={setBlocks} />
-        <Slider
-          label="per-branch gradient factor"
-          value={branchFactor}
-          min={0.05}
-          max={1}
-          step={0.05}
-          format={(v) => v.toFixed(2)}
-          onChange={setBranchFactor}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

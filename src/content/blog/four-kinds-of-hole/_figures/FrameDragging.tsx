@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, PlayPause, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, PlayPause, Readout, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 const M = 1;
@@ -116,23 +116,23 @@ export default function FrameDragging() {
             onClick={() => {
               clockRef.current = 0;
             }}
-            className="inline-flex items-center rounded-sm border border-line/80 bg-surface/85 px-2 py-1 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
+            className="inline-flex min-h-11 items-center rounded-sm border border-line/80 bg-surface/85 px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
           >
             Reset
           </button>
         </Toolbar>
+        <Dock columns={1}>
+          <Slider
+            label="spin a / M"
+            value={a}
+            min={0}
+            max={0.999}
+            step={0.001}
+            format={(v) => v.toFixed(3)}
+            onChange={setA}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={1}>
-        <Slider
-          label="spin a / M"
-          value={a}
-          min={0}
-          max={0.999}
-          step={0.001}
-          format={(v) => v.toFixed(3)}
-          onChange={setA}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

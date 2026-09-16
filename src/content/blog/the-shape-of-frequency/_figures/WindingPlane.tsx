@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
 import { TAU, box, bx, byUp, circle, dot, label, polyline } from '@figures/plot';
 
 const SAMPLES = 900;
@@ -171,36 +171,36 @@ export default function WindingPlane() {
             hint="length is unchanged"
           />
         </Metrics>
+        <Dock columns={3}>
+          <Slider
+            label="winding frequency"
+            value={windF}
+            min={F_MIN}
+            max={F_MAX}
+            step={0.01}
+            format={(v) => `${v.toFixed(2)} Hz`}
+            onChange={setWindF}
+          />
+          <Slider
+            label="signal frequency"
+            value={signalF}
+            min={1}
+            max={7}
+            step={1}
+            format={(v) => `${v} Hz`}
+            onChange={setSignalF}
+          />
+          <Slider
+            label="time shift"
+            value={shift}
+            min={0}
+            max={1}
+            step={0.005}
+            format={(v) => `${v.toFixed(3)} s`}
+            onChange={setShift}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <Slider
-          label="winding frequency"
-          value={windF}
-          min={F_MIN}
-          max={F_MAX}
-          step={0.01}
-          format={(v) => `${v.toFixed(2)} Hz`}
-          onChange={setWindF}
-        />
-        <Slider
-          label="signal frequency"
-          value={signalF}
-          min={1}
-          max={7}
-          step={1}
-          format={(v) => `${v} Hz`}
-          onChange={setSignalF}
-        />
-        <Slider
-          label="time shift"
-          value={shift}
-          min={0}
-          max={1}
-          step={0.005}
-          format={(v) => `${v.toFixed(3)} s`}
-          onChange={setShift}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

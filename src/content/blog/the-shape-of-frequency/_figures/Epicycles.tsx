@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Toolbar, PlayPause, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Toolbar, PlayPause, SegmentedControl, Slider } from '@figures/controls';
 import { TAU, circle, dot, label, polyline } from '@figures/plot';
 
 type Shape = 'square' | 'sawtooth' | 'triangle';
@@ -150,26 +150,26 @@ export default function Epicycles() {
           />
           <PlayPause playing={playing} onChange={setPlaying} />
         </Toolbar>
+        <Dock columns={2}>
+          <Slider
+            label="terms"
+            value={terms}
+            min={1}
+            max={24}
+            step={1}
+            format={(v) => String(v)}
+            onChange={setTerms}
+          />
+          <Slider
+            label="speed"
+            value={speed}
+            min={0.05}
+            max={1}
+            format={(v) => `${v.toFixed(2)}×`}
+            onChange={setSpeed}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="terms"
-          value={terms}
-          min={1}
-          max={24}
-          step={1}
-          format={(v) => String(v)}
-          onChange={setTerms}
-        />
-        <Slider
-          label="speed"
-          value={speed}
-          min={0.05}
-          max={1}
-          format={(v) => `${v.toFixed(2)}×`}
-          onChange={setSpeed}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

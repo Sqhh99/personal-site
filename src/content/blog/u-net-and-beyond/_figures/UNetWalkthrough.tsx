@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -252,34 +252,34 @@ export default function UNetWalkthrough() {
         <Toolbar>
           <Toggle label="lateral skips" checked={showSkips} onChange={setShowSkips} />
         </Toolbar>
+        <Dock columns={3}>
+          <Slider
+            label="resolution levels"
+            value={levels}
+            min={2}
+            max={5}
+            step={1}
+            format={(v) => String(v)}
+            onChange={(v) => {
+              setLevels(v);
+              setSelected(0);
+            }}
+          />
+          <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
+          <Slider
+            label="input size"
+            value={inputSize}
+            min={128}
+            max={512}
+            step={128}
+            format={(v) => `${v}²`}
+            onChange={setInputSize}
+          />
+          <p className="col-span-full border-t border-line/40 pt-1.5 font-mono text-[0.6rem] leading-relaxed text-faint">
+            bottom-level receptive field covers {(coverage * 100).toFixed(0)}% of the input edge
+          </p>
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <Slider
-          label="resolution levels"
-          value={levels}
-          min={2}
-          max={5}
-          step={1}
-          format={(v) => String(v)}
-          onChange={(v) => {
-            setLevels(v);
-            setSelected(0);
-          }}
-        />
-        <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
-        <Slider
-          label="input size"
-          value={inputSize}
-          min={128}
-          max={512}
-          step={128}
-          format={(v) => `${v}²`}
-          onChange={setInputSize}
-        />
-      </Panel>
-      <p className="border-t border-line bg-sunk/40 px-2.5 py-1.5 font-mono text-[0.6rem] leading-relaxed text-faint">
-        bottom-level receptive field covers {(coverage * 100).toFixed(0)}% of the input edge
-      </p>
     </FigureBody>
-  );  );
+  );
 }

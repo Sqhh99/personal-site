@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, PlayPause, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, PlayPause, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, bx, by, byUp, label, polyline } from '@figures/plot';
 
 /**
@@ -362,31 +362,31 @@ export default function DepthTrainer() {
         <Toolbar>
           <PlayPause playing={playing} onChange={setPlaying} />
         </Toolbar>
+        <Dock columns={3}>
+          <Slider label="blocks" value={blocks} min={2} max={28} step={1} format={(v) => String(v)} onChange={setBlocks} />
+          <Slider label="learning rate" value={lr} min={0.005} max={0.08} step={0.005} format={(v) => v.toFixed(3)} onChange={setLr} />
+          <Slider label="init gain" value={gain} min={0.6} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
+          <SegmentedControl
+            label="residual branch scale"
+            value={betaMode}
+            options={[
+              { value: 'depth', label: 'β=1/√L' },
+              { value: 'one', label: 'β=1' },
+            ]}
+            onChange={setBetaMode}
+          />
+          <SegmentedControl
+            label="initial draw"
+            value={seedKey}
+            options={[
+              { value: 'a', label: 'A' },
+              { value: 'b', label: 'B' },
+              { value: 'c', label: 'C' },
+            ]}
+            onChange={setSeedKey}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <Slider label="blocks" value={blocks} min={2} max={28} step={1} format={(v) => String(v)} onChange={setBlocks} />
-        <Slider label="learning rate" value={lr} min={0.005} max={0.08} step={0.005} format={(v) => v.toFixed(3)} onChange={setLr} />
-        <Slider label="init gain" value={gain} min={0.6} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
-        <SegmentedControl
-          label="residual branch scale"
-          value={betaMode}
-          options={[
-            { value: 'depth', label: 'β=1/√L' },
-            { value: 'one', label: 'β=1' },
-          ]}
-          onChange={setBetaMode}
-        />
-        <SegmentedControl
-          label="initial draw"
-          value={seedKey}
-          options={[
-            { value: 'a', label: 'A' },
-            { value: 'b', label: 'B' },
-            { value: 'c', label: 'C' },
-          ]}
-          onChange={setSeedKey}
-        />
-      </Panel>
     </FigureBody>
   );
 }

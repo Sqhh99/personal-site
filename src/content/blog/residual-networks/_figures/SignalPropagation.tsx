@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, bx, byUp, label, polyline } from '@figures/plot';
 
 /**
@@ -253,21 +253,21 @@ export default function SignalPropagation() {
             onChange={setSeedKey}
           />
         </Toolbar>
+        <Dock columns={3}>
+          <Slider label="blocks (L)" value={blocks} min={4} max={64} step={2} format={(v) => String(v)} onChange={setBlocks} />
+          <Slider label="branch gain (g)" value={gain} min={0.2} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
+          <SegmentedControl
+            label="branch scale"
+            value={betaMode}
+            options={[
+              { value: 'one', label: 'β=1' },
+              { value: 'depth', label: 'β=1/√L' },
+              { value: 'zero', label: 'β=0' },
+            ]}
+            onChange={setBetaMode}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <Slider label="blocks (L)" value={blocks} min={4} max={64} step={2} format={(v) => String(v)} onChange={setBlocks} />
-        <Slider label="branch gain (g)" value={gain} min={0.2} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
-        <SegmentedControl
-          label="branch scale"
-          value={betaMode}
-          options={[
-            { value: 'one', label: 'β=1' },
-            { value: 'depth', label: 'β=1/√L' },
-            { value: 'zero', label: 'β=0' },
-          ]}
-          onChange={setBetaMode}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

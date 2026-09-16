@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider, Toggle } from '@figures/controls';
 import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -239,39 +239,39 @@ export default function ResidualBlockExplorer() {
             }}
           />
         </Toolbar>
+        <Dock columns={3}>
+          <SegmentedControl
+            label="block"
+            value={kind}
+            options={[
+              { value: 'basic', label: 'basic' },
+              { value: 'bottleneck', label: 'bottleneck' },
+            ]}
+            onChange={(value) => {
+              setKind(value);
+              setActive(0);
+            }}
+          />
+          <Slider
+            label="output channels"
+            value={channels}
+            min={64}
+            max={512}
+            step={64}
+            format={(v) => String(v)}
+            onChange={setChannels}
+          />
+          <Slider
+            label="input resolution"
+            value={size}
+            min={14}
+            max={56}
+            step={14}
+            format={(v) => `${v}²`}
+            onChange={setSize}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <SegmentedControl
-          label="block"
-          value={kind}
-          options={[
-            { value: 'basic', label: 'basic' },
-            { value: 'bottleneck', label: 'bottleneck' },
-          ]}
-          onChange={(value) => {
-            setKind(value);
-            setActive(0);
-          }}
-        />
-        <Slider
-          label="output channels"
-          value={channels}
-          min={64}
-          max={512}
-          step={64}
-          format={(v) => String(v)}
-          onChange={setChannels}
-        />
-        <Slider
-          label="input resolution"
-          value={size}
-          min={14}
-          max={56}
-          step={14}
-          format={(v) => `${v}²`}
-          onChange={setSize}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

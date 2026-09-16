@@ -180,5 +180,5 @@ export default function DrawYourOwn() {
         </Toolbar>
       </FigureStage>
     </FigureBody>
-  );  );
+  );
 }
