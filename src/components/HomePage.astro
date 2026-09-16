@@ -1,8 +1,6 @@
 ---
 import PostCard from './PostCard.astro';
 import { getPosts, leadPostId } from '../lib/posts';
-import { getColumnBasePath } from '../lib/columns';
-import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
 interface Props {
@@ -10,53 +8,12 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const t = useTranslations(lang);
 const posts = await getPosts();
 const lead = leadPostId(posts);
-const writingHref = getColumnBasePath('blog', lang);
-const briefsHref = getColumnBasePath('brief', lang);
 ---
 
 <div id="home-page">
-  <section class="shell pt-20 pb-8 sm:pt-28 sm:pb-12">
-    <div class="hero-stage">
-      <p class="label relative flex items-center gap-3">
-        <span data-enter="rule" class="ink-rule"></span>
-        <span data-enter="hero">{t('site.role')}</span>
-      </p>
-      <h1
-        class="relative mt-6 max-w-[18ch] font-display text-5xl leading-[1.04] tracking-tight text-ink sm:max-w-[20ch] sm:text-6xl md:text-[4.35rem]"
-        data-enter="hero"
-      >
-        {t('site.tagline')}
-      </h1>
-      <div class="zine-rule relative" data-enter="hero"></div>
-      <div class="relative mt-8 flex flex-wrap items-center gap-5" data-enter="hero">
-        <a href={writingHref} class="ink-btn">
-          {t('writing.viewAll')}
-        </a>
-        <a href={briefsHref} class="ghost-link">
-          {t('nav.briefs')}
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section id="writing" class="shell pb-16 pt-10 sm:pb-20 sm:pt-14">
-    <div class="flex flex-col justify-between gap-6 pb-12 md:flex-row md:items-end md:gap-16">
-      <div data-enter="heading">
-        <p class="label flex items-center gap-3">
-          <span class="ink-rule"></span>
-          {t('writing.index')}
-        </p>
-        <h2 class="mt-4 font-display text-4xl leading-[1.05] tracking-tight text-ink md:text-5xl">
-          {t('writing.title')}
-        </h2>
-      </div>
-      <p class="max-w-[44ch] text-[0.975rem] leading-relaxed text-muted" data-enter="heading">
-        {t('writing.lede')}
-      </p>
-    </div>
+  <section class="shell pb-16 pt-12 sm:pb-20 sm:pt-16">
     <div class="grid gap-7 sm:grid-cols-2">
       {
         posts.map((post) => (

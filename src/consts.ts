@@ -3,7 +3,6 @@ export const SITE = {
   handle: '@Sqhh99',
   title: 'Sqhh99',
   role: 'Software Engineer',
-  tagline: 'Notes on software, systems, and engineering',
   description:
     'Writing on realtime media, deep learning, software engineering, and systems.',
   location: 'China',
