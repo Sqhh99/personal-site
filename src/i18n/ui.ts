@@ -24,8 +24,6 @@ export const UI_STRINGS = {
   en: {
     'site.title': 'Sqhh99',
     'site.name': 'Sqhh99',
-    'site.role': 'Software Engineer',
-    'site.tagline': 'Notes on software, systems, and engineering',
     'site.description':
       'Writing on realtime media, deep learning, software engineering, and systems.',
     'site.subtitle': 'Writing',
@@ -34,12 +32,6 @@ export const UI_STRINGS = {
     'nav.writing': 'Writing',
     'nav.briefs': 'Briefs',
     'nav.language': 'Language',
-
-
-    'writing.index': 'Writing',
-    'writing.title': 'Recent writing',
-    'writing.lede': 'Notes and essays on software engineering, media pipelines, and systems.',
-    'writing.viewAll': 'View all writing',
 
     'contact.index': 'Contact',
     'contact.title': 'Get in touch, or read the source.',
@@ -97,8 +89,6 @@ export const UI_STRINGS = {
   zh: {
     'site.title': 'Sqhh99',
     'site.name': 'Sqhh99',
-    'site.role': '软件工程师',
-    'site.tagline': '关于软件、系统与工程的思考与笔记',
     'site.description':
       '关于 WebRTC 与实时媒体、PyTorch 与深度学习、Web 性能与系统的文章与笔记。',
     'site.subtitle': 'Writing',
@@ -107,12 +97,6 @@ export const UI_STRINGS = {
     'nav.writing': '文章',
     'nav.briefs': '简报',
     'nav.language': '语言',
-
-
-    'writing.index': '文章',
-    'writing.title': '近期文章',
-    'writing.lede': '记录在工程实践与系统调优过程中的思考与细节。',
-    'writing.viewAll': '查看全部文章',
 
     'contact.index': '联系',
     'contact.title': '保持联系，或查看源码。',
@@ -169,8 +153,6 @@ export const UI_STRINGS = {
   ja: {
     'site.title': 'Sqhh99',
     'site.name': 'Sqhh99',
-    'site.role': 'ソフトウェアエンジニア',
-    'site.tagline': 'ソフトウェア、システム、エンジニアリングについてのノート',
     'site.description':
       'リアルタイムメディア、深層学習、ソフトウェア工学、システムについての文章。',
     'site.subtitle': 'Writing',
@@ -179,12 +161,6 @@ export const UI_STRINGS = {
     'nav.writing': '文章',
     'nav.briefs': 'ブリーフ',
     'nav.language': '言語',
-
-    'writing.index': '文章',
-    'writing.title': '最近の文章',
-    'writing.lede': 'ソフトウェア工学、メディアパイプライン、システムについてのノートとエッセイ。',
-    'writing.viewAll': 'すべての文章を見る',
-
     'contact.index': '連絡',
     'contact.title': '連絡する、またはソースを読む。',
     'contact.source': 'このサイトのソースコード',
