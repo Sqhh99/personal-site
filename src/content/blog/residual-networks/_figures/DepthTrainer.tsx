@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, PlayPause, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, bx, by, byUp, label, polyline } from '@figures/plot';
 
 /**
@@ -344,18 +344,29 @@ export default function DepthTrainer() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Two networks of matching shape, one plain and one residual, trained live: their training-loss curves and their current fits to the target function."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Two networks of matching shape, one plain and one residual, trained live: their training-loss curves and their current fits to the target function."
+        />
+        <Metrics>
+          <Readout label="plain MSE" value={show(plainLoss)} />
+          <Readout label="residual MSE" value={show(residualLoss)} />
+          <Readout
+            label="plain ÷ residual"
+            value={Number.isFinite(ratio) ? `${ratio.toFixed(1)}×` : '—'}
+            hint={`β = ${beta.toFixed(3)}`}
+          />
+        </Metrics>
+        <Toolbar>
+          <PlayPause playing={playing} onChange={setPlaying} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={3}>
         <Slider label="blocks" value={blocks} min={2} max={28} step={1} format={(v) => String(v)} onChange={setBlocks} />
         <Slider label="learning rate" value={lr} min={0.005} max={0.08} step={0.005} format={(v) => v.toFixed(3)} onChange={setLr} />
         <Slider label="init gain" value={gain} min={0.6} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
-      </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <PlayPause playing={playing} onChange={setPlaying} />
         <SegmentedControl
           label="residual branch scale"
           value={betaMode}
@@ -375,16 +386,7 @@ export default function DepthTrainer() {
           ]}
           onChange={setSeedKey}
         />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="plain training MSE" value={show(plainLoss)} />
-        <Readout label="residual training MSE" value={show(residualLoss)} />
-        <Readout
-          label="plain ÷ residual"
-          value={Number.isFinite(ratio) ? `${ratio.toFixed(1)}×` : '—'}
-          hint={`same width and depth · β = ${beta.toFixed(3)}`}
-        />
-      </div>
+      </Panel>
     </FigureBody>
   );
 }

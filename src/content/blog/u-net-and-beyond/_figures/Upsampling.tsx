@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -201,11 +201,23 @@ export default function Upsampling() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A small input map, its upsampled output, and the per-cell gain the upsampling operator applies, with a profile of that gain along one row."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A small input map, its upsampled output, and the per-cell gain the upsampling operator applies, with a profile of that gain along one row."
+        />
+        <Metrics>
+          <Readout label="output size" value={`${output.size}²`} hint={`from ${N}²`} />
+          <Readout label="interior gain" value={`${stats.lo.toFixed(2)} – ${stats.hi.toFixed(2)}`} />
+          <Readout label="worst ratio" value={`${stats.ratio.toFixed(2)}×`} hint="brightest ÷ dimmest cell" />
+          <Readout
+            label="k mod s"
+            value={String(kernel % stride)}
+            hint={kernel % stride === 0 ? 'even coverage' : 'uneven coverage'}
+          />
+        </Metrics>
+      </FigureStage>
       <Panel columns={3}>
         <SegmentedControl
           label="operator"
@@ -219,16 +231,6 @@ export default function Upsampling() {
         <Slider label="kernel" value={kernel} min={2} max={6} step={1} format={(v) => `${v}×${v}`} onChange={setKernel} />
         <Slider label="stride" value={stride} min={2} max={4} step={1} format={(v) => String(v)} onChange={setStride} />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="output size" value={`${output.size}²`} hint={`from ${N}²`} />
-        <Readout label="interior gain" value={`${stats.lo.toFixed(2)} – ${stats.hi.toFixed(2)}`} />
-        <Readout label="worst ratio" value={`${stats.ratio.toFixed(2)}×`} hint="brightest ÷ dimmest cell" />
-        <Readout
-          label="k mod s"
-          value={String(kernel % stride)}
-          hint={kernel % stride === 0 ? 'even coverage' : 'uneven coverage'}
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

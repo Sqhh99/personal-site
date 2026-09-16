@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider, Toggle } from '@figures/controls';
 import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -210,14 +210,36 @@ export default function ResidualBlockExplorer() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A residual block with its stages, its shortcut, and a bar showing how the block's multiply-accumulates are distributed across those stages."
-        className="cursor-pointer"
-        onPointerMove={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
-        onPointerDown={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A residual block with its stages, its shortcut, and a bar showing how the block's multiply-accumulates are distributed across those stages."
+          className="cursor-pointer"
+          onPointerMove={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
+          onPointerDown={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
+        />
+        <Metrics>
+          <Readout label="selected stage" value={chosen.name} hint={chosen.detail} />
+          <Readout label="block parameters" value={compact(totalParams)} />
+          <Readout label="block MACs" value={compact(totalMacs)} />
+          <Readout
+            label={`${other} at same width`}
+            value={`${(otherMacs / totalMacs).toFixed(2)}×`}
+            hint="multiplies, equal output width"
+          />
+        </Metrics>
+        <Toolbar>
+          <Toggle
+            label="stage boundary — stride 2"
+            checked={downsample}
+            onChange={(v) => {
+              setDownsample(v);
+              setActive(0);
+            }}
+          />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={3}>
         <SegmentedControl
           label="block"
@@ -250,26 +272,6 @@ export default function ResidualBlockExplorer() {
           onChange={setSize}
         />
       </Panel>
-      <div className="mt-4">
-        <Toggle
-          label="stage boundary — stride 2, channels double"
-          checked={downsample}
-          onChange={(v) => {
-            setDownsample(v);
-            setActive(0);
-          }}
-        />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="selected stage" value={chosen.name} hint={chosen.detail} />
-        <Readout label="block parameters" value={compact(totalParams)} />
-        <Readout label="block MACs" value={compact(totalMacs)} />
-        <Readout
-          label={`${other} at same width`}
-          value={`${(otherMacs / totalMacs).toFixed(2)}×`}
-          hint="multiplies, equal output width"
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

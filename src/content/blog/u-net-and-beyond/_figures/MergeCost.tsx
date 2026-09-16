@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, circle, dot, fillRoundRect, label, polyline } from '@figures/plot';
 
 /**
@@ -192,26 +192,28 @@ export default function MergeCost() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="The fusion-node graph of a U-Net decoder with node area proportional to activation memory, beside a comparison of parameters and activation memory for concatenation, addition and nested skips."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="The fusion-node graph of a U-Net decoder with node area proportional to activation memory, beside a comparison of parameters and activation memory for concatenation, addition and nested skips."
+        />
+        <Metrics>
+          <Readout label="fusion nodes" value={String(current.count)} />
+          <Readout label="fusion parameters" value={compact(current.params)} />
+          <Readout label="fusion activations" value={bytes(current.activation)} hint={`at ${INPUT}² input`} />
+          <Readout
+            label="vs concatenation"
+            value={`${(current.activation / baselineActivation).toFixed(2)}×`}
+            hint="activation memory"
+          />
+        </Metrics>
+      </FigureStage>
       <Panel columns={3}>
         <SegmentedControl label="merge" value={variant} options={VARIANTS} onChange={setVariant} />
         <Slider label="resolution levels" value={levels} min={2} max={5} step={1} format={(v) => String(v)} onChange={setLevels} />
         <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="fusion nodes" value={String(current.count)} />
-        <Readout label="fusion parameters" value={compact(current.params)} />
-        <Readout label="fusion activations" value={bytes(current.activation)} hint={`at ${INPUT}² input`} />
-        <Readout
-          label="vs concatenation"
-          value={`${(current.activation / baselineActivation).toFixed(2)}×`}
-          hint="activation memory"
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

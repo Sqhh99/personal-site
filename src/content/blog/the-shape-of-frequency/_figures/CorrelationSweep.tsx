@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
 import { TAU, baseline, box, bx, by, curve, dot, label, polyline } from '@figures/plot';
 
 const SAMPLES = 600;
@@ -164,11 +164,22 @@ export default function CorrelationSweep() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A signal multiplied by a test sinusoid, the shaded product area, and the resulting spectrum."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A signal multiplied by a test sinusoid, the shaded product area, and the resulting spectrum."
+        />
+        <Metrics>
+          <Readout label="test f" value={`${testF.toFixed(2)} Hz`} />
+          <Readout label="correlation" value={current.toFixed(3)} hint="the shaded area" />
+          <Readout
+            label="verdict"
+            value={Math.abs(current) > 0.15 ? 'present' : 'absent'}
+            hint={Math.abs(current) > 0.15 ? 'lobes reinforce' : 'lobes cancel'}
+          />
+        </Metrics>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="test frequency f"
@@ -205,15 +216,6 @@ export default function CorrelationSweep() {
           onChange={setAmpB}
         />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="test f" value={`${testF.toFixed(2)} Hz`} />
-        <Readout label="correlation" value={current.toFixed(3)} hint="the shaded area" />
-        <Readout
-          label="verdict"
-          value={Math.abs(current) > 0.15 ? 'present' : 'absent'}
-          hint={Math.abs(current) > 0.15 ? 'lobes reinforce' : 'lobes cancel'}
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

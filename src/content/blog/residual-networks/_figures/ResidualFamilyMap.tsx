@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors, type ThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Readout } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout } from '@figures/controls';
 import { type Box, box, circle, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -298,37 +298,41 @@ export default function ResidualFamilyMap() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label={`A residual block specimen. ${family.name} changes ${family.axis}: ${family.idea}.`}
-      />
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" role="group" aria-label="Residual family">
-        {FAMILIES.map((entry, i) => {
-          const on = i === selected;
-          return (
-            <button
-              key={entry.kind}
-              type="button"
-              aria-pressed={on}
-              onClick={() => setSelected(i)}
-              className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
-                on ? 'border-accent/50 bg-accent/10' : 'border-line bg-sunk/50 hover:border-line-strong'
-              }`}
-            >
-              <div className={`font-mono text-[0.7rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
-                {entry.name}
-              </div>
-              <div className="mt-0.5 font-mono text-[0.65rem] text-faint">{entry.axis}</div>
-            </button>
-          );
-        })}
-      </div>
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Readout label={family.name} value={family.idea} />
-        <Readout label="design axis" value={family.axis} />
-        <Readout label="this block" value={family.metric} hint={family.metricHint} />
-      </div>
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label={`A residual block specimen. ${family.name} changes ${family.axis}: ${family.idea}.`}
+        />
+        <Metrics>
+          <Readout label={family.name} value={family.idea} />
+          <Readout label="design axis" value={family.axis} />
+          <Readout label="this block" value={family.metric} hint={family.metricHint} />
+        </Metrics>
+      </FigureStage>
+      <Panel columns={1}>
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Residual family">
+          {FAMILIES.map((entry, i) => {
+            const on = i === selected;
+            return (
+              <button
+                key={entry.kind}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setSelected(i)}
+                className={`rounded-sm border px-2 py-1 text-left transition-colors ${
+                  on ? 'border-accent/50 bg-accent/10' : 'border-line/80 bg-surface/80 hover:border-line-strong'
+                }`}
+              >
+                <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
+                  {entry.name}
+                </div>
+                <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
+              </button>
+            );
+          })}
+        </div>
+      </Panel>
     </FigureBody>
-  );
+  );  );
 }

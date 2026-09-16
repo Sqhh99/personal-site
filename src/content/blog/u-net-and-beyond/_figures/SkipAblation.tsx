@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
 import { box, frame, label } from '@figures/plot';
 
 /**
@@ -256,11 +256,19 @@ export default function SkipAblation() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A 64 by 64 target map, its reconstruction after pooling and upsampling with a chosen number of lateral routes, and the pixels where the thresholded result disagrees with the target."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A 64 by 64 target map, its reconstruction after pooling and upsampling with a chosen number of lateral routes, and the pixels where the thresholded result disagrees with the target."
+        />
+        <Metrics>
+          <Readout label="IoU" value={result.iou.toFixed(3)} />
+          <Readout label="boundary F1" value={result.boundaryF1.toFixed(3)} hint="1-pixel tolerance" />
+          <Readout label="bottleneck carries" value={`${result.bottleneckValues} values`} hint="per channel" />
+          <Readout label="lateral routes carry" value={`${result.lateralValues} values`} hint="per channel" />
+        </Metrics>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="pooling steps"
@@ -283,17 +291,9 @@ export default function SkipAblation() {
           format={(v) => `${v} of ${depth}`}
           onChange={setRouted}
         />
-      </Panel>
-      <Panel columns={2}>
         <Slider label="skip strength" value={strength} min={0} max={1} step={0.05} format={(v) => v.toFixed(2)} onChange={setStrength} />
         <Slider label="bottleneck noise" value={noise} min={0} max={0.4} step={0.02} format={(v) => v.toFixed(2)} onChange={setNoise} />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="IoU" value={result.iou.toFixed(3)} />
-        <Readout label="boundary F1" value={result.boundaryF1.toFixed(3)} hint="1-pixel tolerance" />
-        <Readout label="bottleneck carries" value={`${result.bottleneckValues} values`} hint="per channel" />
-        <Readout label="lateral routes carry" value={`${result.lateralValues} values`} hint="per channel" />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

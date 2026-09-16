@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
 import { TAU, box, bx, byUp, circle, dot, label, polyline } from '@figures/plot';
 
 const SAMPLES = 900;
@@ -156,11 +156,22 @@ export default function WindingPlane() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A signal wound around the complex plane, its centre of mass, and the magnitude spectrum."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A signal wound around the complex plane, its centre of mass, and the magnitude spectrum."
+        />
+        <Metrics>
+          <Readout label="magnitude" value={magnitude.toFixed(3)} hint="arrow length" />
+          <Readout label="phase" value={`${(phase / Math.PI).toFixed(2)}π`} hint="arrow angle" />
+          <Readout
+            label="on shifting time"
+            value={shift === 0 ? 'aligned' : 'rotated'}
+            hint="length is unchanged"
+          />
+        </Metrics>
+      </FigureStage>
       <Panel columns={3}>
         <Slider
           label="winding frequency"
@@ -190,15 +201,6 @@ export default function WindingPlane() {
           onChange={setShift}
         />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="magnitude" value={magnitude.toFixed(3)} hint="arrow length" />
-        <Readout label="phase" value={`${(phase / Math.PI).toFixed(2)}π`} hint="arrow angle" />
-        <Readout
-          label="on shifting time"
-          value={shift === 0 ? 'aligned' : 'rotated'}
-          hint="length is unchanged"
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

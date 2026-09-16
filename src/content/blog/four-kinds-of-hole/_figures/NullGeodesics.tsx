@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units: G = c = 1, M = 1. The horizon is then at r = 2, the photon
@@ -160,11 +160,31 @@ export default function NullGeodesics() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Light rays bending around a Schwarzschild black hole, some escaping and some captured."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Light rays bending around a Schwarzschild black hole, some escaping and some captured."
+        />
+        <Metrics>
+          <Readout label="impact parameter" value={`${b.toFixed(3)} M`} />
+          <Readout
+            label="outcome"
+            value={highlighted.captured ? 'captured' : 'escapes'}
+            hint={b < B_CRIT ? 'below b_crit' : 'above b_crit'}
+          />
+          <Readout
+            label="deflection"
+            value={
+              highlighted.captured ? '—' : `${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`
+            }
+            hint={highlighted.deflection > Math.PI ? 'more than a full loop' : undefined}
+          />
+        </Metrics>
+        <Toolbar>
+          <Toggle label="Show ray fan" checked={fan} onChange={setFan} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={1}>
         <Slider
           label="impact parameter b"
@@ -176,24 +196,6 @@ export default function NullGeodesics() {
           onChange={setB}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Toggle label="Show ray fan" checked={fan} onChange={setFan} />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="impact parameter" value={`${b.toFixed(3)} M`} />
-        <Readout
-          label="outcome"
-          value={highlighted.captured ? 'captured' : 'escapes'}
-          hint={b < B_CRIT ? 'below b_crit' : 'above b_crit'}
-        />
-        <Readout
-          label="deflection"
-          value={
-            highlighted.captured ? '—' : `${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`
-          }
-          hint={highlighted.deflection > Math.PI ? 'more than a full loop' : undefined}
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

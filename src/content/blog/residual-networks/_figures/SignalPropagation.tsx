@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, bx, byUp, label, polyline } from '@figures/plot';
 
 /**
@@ -229,11 +229,31 @@ export default function SignalPropagation() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Measured forward activation norms and backward gradient norms through a stack of random Jacobians, for plain and residual layers, against their closed-form predictions."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Measured forward activation norms and backward gradient norms through a stack of random Jacobians, for plain and residual layers, against their closed-form predictions."
+        />
+        <Metrics>
+          <Readout label="plain gain over L" value={fmt(plainTotal)} hint={`g^L = ${gain.toFixed(2)}^${blocks}`} />
+          <Readout label="residual gain over L" value={fmt(residualTotal)} hint={`(1+β²g²)^{L/2}`} />
+          <Readout label="per-block factor" value={`${Math.sqrt(plainPerBlock).toFixed(3)} → ${Math.sqrt(residualPerBlock).toFixed(3)}`} />
+          <Readout label="branch scale" value={BETA_LABEL[betaMode]} hint={beta === 0 ? 'exact identity' : `β = ${beta.toFixed(3)}`} />
+        </Metrics>
+        <Toolbar>
+          <SegmentedControl
+            label="random draw"
+            value={seedKey}
+            options={[
+              { value: 'a', label: 'A' },
+              { value: 'b', label: 'B' },
+              { value: 'c', label: 'C' },
+            ]}
+            onChange={setSeedKey}
+          />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={3}>
         <Slider label="blocks (L)" value={blocks} min={4} max={64} step={2} format={(v) => String(v)} onChange={setBlocks} />
         <Slider label="branch gain (g)" value={gain} min={0.2} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
@@ -248,24 +268,6 @@ export default function SignalPropagation() {
           onChange={setBetaMode}
         />
       </Panel>
-      <div className="mt-4">
-        <SegmentedControl
-          label="random draw"
-          value={seedKey}
-          options={[
-            { value: 'a', label: 'A' },
-            { value: 'b', label: 'B' },
-            { value: 'c', label: 'C' },
-          ]}
-          onChange={setSeedKey}
-        />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="plain gain over L" value={fmt(plainTotal)} hint={`g^L = ${gain.toFixed(2)}^${blocks}`} />
-        <Readout label="residual gain over L" value={fmt(residualTotal)} hint={`(1+β²g²)^{L/2}`} />
-        <Readout label="per-block factor" value={`${Math.sqrt(plainPerBlock).toFixed(3)} → ${Math.sqrt(residualPerBlock).toFixed(3)}`} />
-        <Readout label="branch scale" value={BETA_LABEL[betaMode]} hint={beta === 0 ? 'exact identity' : `β = ${beta.toFixed(3)}`} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

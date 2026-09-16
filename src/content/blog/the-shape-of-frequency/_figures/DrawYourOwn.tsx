@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, SegmentedControl } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Toolbar, SegmentedControl } from '@figures/controls';
 import { TAU, box, bx, by, dft, label, polyline } from '@figures/plot';
 
 const N = 256;
@@ -143,40 +143,42 @@ export default function DrawYourOwn() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A waveform you can draw, with its discrete Fourier transform magnitudes below."
-        className="cursor-crosshair"
-        onPointerDown={(e) => {
-          drawingRef.current = true;
-          lastIndexRef.current = null;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          writeAt(e.clientX, e.clientY, e.currentTarget);
-        }}
-        onPointerMove={(e) => {
-          if (!drawingRef.current) return;
-          writeAt(e.clientX, e.clientY, e.currentTarget);
-        }}
-        onPointerUp={() => {
-          drawingRef.current = false;
-          lastIndexRef.current = null;
-        }}
-      />
-      <div className="mt-4">
-        <SegmentedControl
-          label="start from"
-          value={kind}
-          options={[
-            { value: 'sine', label: 'sine' },
-            { value: 'square', label: 'square' },
-            { value: 'pulse', label: 'pulse' },
-            { value: 'chirp', label: 'chirp' },
-            { value: 'clear', label: 'clear' },
-          ]}
-          onChange={applyPreset}
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A waveform you can draw, with its discrete Fourier transform magnitudes below."
+          className="cursor-crosshair"
+          onPointerDown={(e) => {
+            drawingRef.current = true;
+            lastIndexRef.current = null;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            writeAt(e.clientX, e.clientY, e.currentTarget);
+          }}
+          onPointerMove={(e) => {
+            if (!drawingRef.current) return;
+            writeAt(e.clientX, e.clientY, e.currentTarget);
+          }}
+          onPointerUp={() => {
+            drawingRef.current = false;
+            lastIndexRef.current = null;
+          }}
         />
-      </div>
+        <Toolbar>
+          <SegmentedControl
+            label="start from"
+            value={kind}
+            options={[
+              { value: 'sine', label: 'sine' },
+              { value: 'square', label: 'square' },
+              { value: 'pulse', label: 'pulse' },
+              { value: 'chirp', label: 'chirp' },
+              { value: 'clear', label: 'clear' },
+            ]}
+            onChange={applyPreset}
+          />
+        </Toolbar>
+      </FigureStage>
     </FigureBody>
-  );
+  );  );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { TAU, box, bx, by, byUp, dft, label, polyline } from '@figures/plot';
 
 const N = 256;
@@ -152,11 +152,21 @@ export default function SpectralLeakage() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A windowed pure tone and its spectrum in decibels, showing spectral leakage."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A windowed pure tone and its spectrum in decibels, showing spectral leakage."
+        />
+        <Metrics>
+          <Readout
+            label="alignment"
+            value={Math.abs(cycles - Math.round(cycles)) < 0.02 ? 'on a bin' : 'between bins'}
+          />
+          <Readout label="energy spilled" value={`${(spill * 100).toFixed(1)}%`} hint="outside ±1 bin" />
+          <Readout label="window" value={window === 'hann' ? 'Hann' : 'rectangular'} />
+        </Metrics>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="cycles in the record"
@@ -179,14 +189,6 @@ export default function SpectralLeakage() {
           />
         </div>
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout
-          label="alignment"
-          value={Math.abs(cycles - Math.round(cycles)) < 0.02 ? 'on a bin' : 'between bins'}
-        />
-        <Readout label="energy spilled" value={`${(spill * 100).toFixed(1)}%`} hint="outside ±1 bin" />
-        <Readout label="window" value={window === 'hann' ? 'Hann' : 'rectangular'} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Toolbar, PlayPause, Slider, Toggle } from '@figures/controls';
 import { TAU, baseline, box, curve, label } from '@figures/plot';
 
 const HARMONICS = [1, 2, 3];
@@ -59,11 +59,17 @@ export default function HarmonicBuilder() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Three sine harmonics and the wave formed by adding them together."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Three sine harmonics and the wave formed by adding them together."
+        />
+        <Toolbar>
+          <PlayPause playing={playing} onChange={setPlaying} />
+          <Toggle label="Show components" checked={showParts} onChange={setShowParts} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={3}>
         {HARMONICS.map((h, i) => (
           <Slider
@@ -87,10 +93,6 @@ export default function HarmonicBuilder() {
           />
         ))}
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <PlayPause playing={playing} onChange={setPlaying} />
-        <Toggle label="Show components" checked={showParts} onChange={setShowParts} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }
