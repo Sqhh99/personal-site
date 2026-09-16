@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 const G = 6.6743e-11;
@@ -193,11 +193,32 @@ export default function SchwarzschildRadius() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A logarithmic length ruler comparing an object's actual radius with its Schwarzschild radius."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A logarithmic length ruler comparing an object's actual radius with its Schwarzschild radius."
+        />
+        <Metrics>
+          <Readout label="Schwarzschild radius" value={format(rs)} />
+          <Readout
+            label="compression needed"
+            value={collapsed ? 'none' : `10^${Math.log10(compression).toFixed(1)}×`}
+          />
+          <Readout label="state" value={collapsed ? 'black hole' : 'ordinary matter'} />
+        </Metrics>
+        <Toolbar>
+          <SegmentedControl
+            label="preset"
+            value={body}
+            options={Object.entries(BODIES).map(([key, value]) => ({
+              value: key as keyof typeof BODIES,
+              label: value.label,
+            }))}
+            onChange={choose}
+          />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="mass"
@@ -218,25 +239,6 @@ export default function SchwarzschildRadius() {
           onChange={(v) => setLogRadius(v)}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <SegmentedControl
-          label="preset"
-          value={body}
-          options={Object.entries(BODIES).map(([key, value]) => ({
-            value: key as keyof typeof BODIES,
-            label: value.label,
-          }))}
-          onChange={choose}
-        />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="Schwarzschild radius" value={format(rs)} />
-        <Readout
-          label="compression needed"
-          value={collapsed ? 'none' : `10^${Math.log10(compression).toFixed(1)}×`}
-        />
-        <Readout label="state" value={collapsed ? 'black hole' : 'ordinary matter'} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

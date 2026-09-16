@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Toolbar, PlayPause, SegmentedControl, Slider } from '@figures/controls';
 import { TAU, circle, dot, label, polyline } from '@figures/plot';
 
 type Shape = 'square' | 'sawtooth' | 'triangle';
@@ -132,11 +132,25 @@ export default function Epicycles() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A chain of rotating circles whose tip traces a square wave."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A chain of rotating circles whose tip traces a square wave."
+        />
+        <Toolbar>
+          <SegmentedControl
+            value={shape}
+            options={[
+              { value: 'square', label: 'square' },
+              { value: 'sawtooth', label: 'sawtooth' },
+              { value: 'triangle', label: 'triangle' },
+            ]}
+            onChange={setShape}
+          />
+          <PlayPause playing={playing} onChange={setPlaying} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="terms"
@@ -156,18 +170,6 @@ export default function Epicycles() {
           onChange={setSpeed}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <SegmentedControl
-          value={shape}
-          options={[
-            { value: 'square', label: 'square' },
-            { value: 'sawtooth', label: 'sawtooth' },
-            { value: 'triangle', label: 'triangle' },
-          ]}
-          onChange={setShape}
-        />
-        <PlayPause playing={playing} onChange={setPlaying} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

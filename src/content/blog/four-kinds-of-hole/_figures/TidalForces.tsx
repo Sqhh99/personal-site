@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
 import { label, polyline } from '@figures/plot';
 
 const G = 6.6743e-11;
@@ -160,11 +160,25 @@ export default function TidalForces() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A body stretched by tidal forces, with the resulting acceleration marked on a logarithmic scale."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A body stretched by tidal forces, with the resulting acceleration marked on a logarithmic scale."
+        />
+        <Metrics>
+          <Readout label="mass" value={`${(10 ** logMass).toPrecision(3)} M☉`} />
+          <Readout
+            label="tidal stretch"
+            value={stretch < 0.01 ? `${stretch.toExponential(2)} g` : `${stretch.toPrecision(3)} g`}
+          />
+          <Readout
+            label="verdict"
+            value={stretch > 10 ? 'spaghettified' : 'uneventful'}
+            hint={distance <= 1.01 ? 'at the horizon' : `${distance.toFixed(1)} r_s out`}
+          />
+        </Metrics>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="black hole mass"
@@ -185,18 +199,6 @@ export default function TidalForces() {
           onChange={setDistance}
         />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="mass" value={`${(10 ** logMass).toPrecision(3)} M☉`} />
-        <Readout
-          label="tidal stretch"
-          value={stretch < 0.01 ? `${stretch.toExponential(2)} g` : `${stretch.toPrecision(3)} g`}
-        />
-        <Readout
-          label="verdict"
-          value={stretch > 10 ? 'spaghettified' : 'uneventful'}
-          hint={distance <= 1.01 ? 'at the horizon' : `${distance.toFixed(1)} r_s out`}
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

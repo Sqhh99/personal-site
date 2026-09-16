@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, circle, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -332,23 +332,31 @@ export default function AttentionGate() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="An encoder feature map, the attention coefficients a trained gate assigns to it given a draggable decoder context, and the gated result."
-        className="cursor-crosshair"
-        onPointerDown={(e) => {
-          dragging.current = true;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          drag(e.clientX, e.clientY, e.currentTarget);
-        }}
-        onPointerMove={(e) => {
-          if (dragging.current) drag(e.clientX, e.clientY, e.currentTarget);
-        }}
-        onPointerUp={() => {
-          dragging.current = false;
-        }}
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="An encoder feature map, the attention coefficients a trained gate assigns to it given a draggable decoder context, and the gated result."
+          className="cursor-crosshair"
+          onPointerDown={(e) => {
+            dragging.current = true;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            drag(e.clientX, e.clientY, e.currentTarget);
+          }}
+          onPointerMove={(e) => {
+            if (dragging.current) drag(e.clientX, e.clientY, e.currentTarget);
+          }}
+          onPointerUp={() => {
+            dragging.current = false;
+          }}
+        />
+        <Metrics>
+          <Readout label="requested region" value={evaluated.target} hint="nearest object to the context" />
+          <Readout label="mean α" value={evaluated.mean.toFixed(3)} hint={`${(evaluated.passed * 100).toFixed(0)}% of cells above 0.5`} />
+          <Readout label="requested energy kept" value={`${(evaluated.objectRetained * 100).toFixed(0)}%`} />
+          <Readout label="everything else kept" value={`${(evaluated.clutterRetained * 100).toFixed(0)}%`} />
+        </Metrics>
+      </FigureStage>
       <Panel columns={3}>
         {/* Buttons, not a slider: changing this retrains the gate, which costs
             about a tenth of a second and would stutter under a drag. */}
@@ -382,12 +390,6 @@ export default function AttentionGate() {
           onChange={setSeedKey}
         />
       </Panel>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="requested region" value={evaluated.target} hint="nearest object to the context" />
-        <Readout label="mean α" value={evaluated.mean.toFixed(3)} hint={`${(evaluated.passed * 100).toFixed(0)}% of cells above 0.5`} />
-        <Readout label="requested energy kept" value={`${(evaluated.objectRetained * 100).toFixed(0)}%`} />
-        <Readout label="everything else kept" value={`${(evaluated.clutterRetained * 100).toFixed(0)}%`} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, byUp, fillRoundRect, label, polyline } from '@figures/plot';
 
 /**
@@ -169,11 +169,26 @@ export default function PathEnsemble() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Exact binomial distribution of path lengths through a residual stack, overlaid with the share of gradient magnitude each path length carries."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Exact binomial distribution of path lengths through a residual stack, overlaid with the share of gradient magnitude each path length carries."
+        />
+        <Metrics>
+          <Readout label="distinct paths" value={`10^${log10Paths.toFixed(1)}`} hint={`2^${blocks}`} />
+          <Readout label="mean path length" value={(blocks / 2).toFixed(1)} hint="unweighted" />
+          <Readout
+            label="effective depth"
+            value={dist.effectiveDepth.toFixed(2)}
+            hint={`La/(1+a) = ${predictedDepth.toFixed(2)}`}
+          />
+          <Readout label="≤20-block mass" value={`${(shortMass * 100).toFixed(1)}%`} />
+        </Metrics>
+        <Toolbar>
+          <Toggle label="cumulative curve" checked={showCumulative} onChange={setShowCumulative} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={2}>
         <Slider label="blocks (L)" value={blocks} min={8} max={MAX_BLOCKS} step={2} format={(v) => String(v)} onChange={setBlocks} />
         <Slider
@@ -186,19 +201,6 @@ export default function PathEnsemble() {
           onChange={setBranchFactor}
         />
       </Panel>
-      <div className="mt-4">
-        <Toggle label="cumulative curve" checked={showCumulative} onChange={setShowCumulative} />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="distinct paths" value={`10^${log10Paths.toFixed(1)}`} hint={`2^${blocks}`} />
-        <Readout label="mean path length" value={(blocks / 2).toFixed(1)} hint="unweighted" />
-        <Readout
-          label="effective depth"
-          value={dist.effectiveDepth.toFixed(2)}
-          hint={`La/(1+a) = ${predictedDepth.toFixed(2)}`}
-        />
-        <Readout label="gradient from ≤ 20 blocks" value={`${(shortMass * 100).toFixed(1)}%`} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

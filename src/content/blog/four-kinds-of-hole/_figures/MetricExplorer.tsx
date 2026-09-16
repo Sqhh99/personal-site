@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units with M = 1, so a and Q are already in units of M.
@@ -210,11 +210,44 @@ export default function MetricExplorer() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A cross-section of a black hole's horizons and ergosphere, alongside the spin–charge parameter space."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A cross-section of a black hole's horizons and ergosphere, alongside the spin–charge parameter space."
+        />
+        <Metrics>
+          <Readout label="solution" value={metric.name} />
+          <Readout label="outer horizon r₊" value={naked ? '—' : `${rPlus.toFixed(3)} M`} />
+          <Readout label="inner horizon r₋" value={naked || root < 1e-3 ? '—' : `${rMinus.toFixed(3)} M`} />
+          <Readout
+            label="extremality"
+            value={extremality.toFixed(3)}
+            hint={naked ? 'past the limit' : '1.000 is extremal'}
+          />
+        </Metrics>
+        <Toolbar>
+          <div className="inline-flex flex-wrap gap-0.5 rounded-sm border border-line/80 bg-sunk/80 p-0.5 shadow-xs backdrop-blur-sm" role="group" aria-label="metric presets">
+            {PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  setA(p.a);
+                  setQ(p.q);
+                }}
+                className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
+                  metric.name === p.label
+                    ? 'bg-surface text-accent-deep shadow-xs'
+                    : 'text-muted hover:text-ink'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </Toolbar>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="spin a / M"
@@ -235,35 +268,6 @@ export default function MetricExplorer() {
           onChange={setQ}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap gap-1 rounded-lg border border-line bg-sunk p-1">
-        {PRESETS.map((p) => (
-          <button
-            key={p.label}
-            type="button"
-            onClick={() => {
-              setA(p.a);
-              setQ(p.q);
-            }}
-            className={`rounded-md px-2.5 py-1 font-mono text-[0.7rem] tracking-wider transition-colors ${
-              metric.name === p.label
-                ? 'bg-surface text-accent-deep shadow-xs'
-                : 'text-muted hover:text-ink'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="solution" value={metric.name} />
-        <Readout label="outer horizon r₊" value={naked ? '—' : `${rPlus.toFixed(3)} M`} />
-        <Readout label="inner horizon r₋" value={naked || root < 1e-3 ? '—' : `${rMinus.toFixed(3)} M`} />
-        <Readout
-          label="extremality"
-          value={extremality.toFixed(3)}
-          hint={naked ? 'past the limit' : '1.000 is extremal'}
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, PlayPause, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, PlayPause, Readout, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 const M = 1;
@@ -94,11 +94,34 @@ export default function FrameDragging() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="Radial marker lines around a spinning black hole, winding up because spacetime is dragged around it."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="Radial marker lines around a spinning black hole, winding up because spacetime is dragged around it."
+        />
+        <Metrics>
+          <Readout label="outer horizon" value={`${rPlus.toFixed(3)} M`} />
+          <Readout label="static limit" value="2.000 M" hint="equatorial" />
+          <Readout
+            label="dragging at r₊"
+            value={omega(rPlus, a).toFixed(4)}
+            hint="ω in units of 1/M"
+          />
+        </Metrics>
+        <Toolbar>
+          <PlayPause playing={playing} onChange={setPlaying} />
+          <button
+            type="button"
+            onClick={() => {
+              clockRef.current = 0;
+            }}
+            className="inline-flex items-center rounded-sm border border-line/80 bg-surface/85 px-2 py-1 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
+          >
+            Reset
+          </button>
+        </Toolbar>
+      </FigureStage>
       <Panel columns={1}>
         <Slider
           label="spin a / M"
@@ -110,27 +133,6 @@ export default function FrameDragging() {
           onChange={setA}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <PlayPause playing={playing} onChange={setPlaying} />
-        <button
-          type="button"
-          onClick={() => {
-            clockRef.current = 0;
-          }}
-          className="inline-flex items-center rounded-full border border-line bg-surface px-3 py-1.5 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:border-line-strong hover:text-ink"
-        >
-          Reset
-        </button>
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Readout label="outer horizon" value={`${rPlus.toFixed(3)} M`} />
-        <Readout label="static limit" value="2.000 M" hint="equatorial" />
-        <Readout
-          label="dragging at r₊"
-          value={omega(rPlus, a).toFixed(4)}
-          hint="ω in units of 1/M"
-        />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -224,16 +224,35 @@ export default function UNetWalkthrough() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A U-shaped encoder-decoder with lateral skips, above a bar chart of the activation memory each stage holds."
-        className="cursor-pointer"
-        onPointerDown={(e) => choose(e.clientX, e.clientY, e.currentTarget)}
-        onPointerMove={(e) => {
-          if (e.pointerType === 'mouse') choose(e.clientX, e.clientY, e.currentTarget);
-        }}
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A U-shaped encoder-decoder with lateral skips, above a bar chart of the activation memory each stage holds."
+          className="cursor-pointer"
+          onPointerDown={(e) => choose(e.clientX, e.clientY, e.currentTarget)}
+          onPointerMove={(e) => {
+            if (e.pointerType === 'mouse') choose(e.clientX, e.clientY, e.currentTarget);
+          }}
+        />
+        <Metrics>
+          <Readout label="selected stage" value={`${picked.size}² × ${picked.channels}`} hint={picked.detail} />
+          <Readout
+            label="receptive field"
+            value={`${picked.receptive} px`}
+            hint={picked.kind === 'decoder' ? 'inherited through the bottom' : `${((picked.receptive / inputSize) * 100).toFixed(0)}% of the input`}
+          />
+          <Readout label="parameters" value={compact(totalParams)} hint={`this stage ${compact(picked.params)}`} />
+          <Readout
+            label="activations held"
+            value={bytes(totalActivation)}
+            hint={`peak stage ${peakStage.name}, ${((peakStage.activation / totalActivation) * 100).toFixed(0)}%`}
+          />
+        </Metrics>
+        <Toolbar>
+          <Toggle label="lateral skips" checked={showSkips} onChange={setShowSkips} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={3}>
         <Slider
           label="resolution levels"
@@ -258,26 +277,9 @@ export default function UNetWalkthrough() {
           onChange={setInputSize}
         />
       </Panel>
-      <div className="mt-4">
-        <Toggle label="lateral skips" checked={showSkips} onChange={setShowSkips} />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="selected stage" value={`${picked.size}² × ${picked.channels}`} hint={picked.detail} />
-        <Readout
-          label="receptive field"
-          value={`${picked.receptive} px`}
-          hint={picked.kind === 'decoder' ? 'inherited through the bottom' : `${((picked.receptive / inputSize) * 100).toFixed(0)}% of the input`}
-        />
-        <Readout label="parameters" value={compact(totalParams)} hint={`this stage ${compact(picked.params)}`} />
-        <Readout
-          label="activations held"
-          value={bytes(totalActivation)}
-          hint={`peak stage ${peakStage.name}, ${((peakStage.activation / totalActivation) * 100).toFixed(0)}%`}
-        />
-      </div>
-      <p className="mt-3 font-mono text-[0.65rem] leading-relaxed text-faint">
+      <p className="border-t border-line bg-sunk/40 px-2.5 py-1.5 font-mono text-[0.6rem] leading-relaxed text-faint">
         bottom-level receptive field covers {(coverage * 100).toFixed(0)}% of the input edge
       </p>
     </FigureBody>
-  );
+  );  );
 }

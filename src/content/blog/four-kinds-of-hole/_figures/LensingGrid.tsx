@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Toolbar, Slider, Toggle } from '@figures/controls';
 import { circle, label } from '@figures/plot';
 
 const BUF_W = 380;
@@ -151,23 +151,29 @@ export default function LensingGrid() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A ruled background grid distorted by gravitational lensing, with an Einstein ring around the hole."
-        className="cursor-grab"
-        onPointerDown={(e) => {
-          draggingRef.current = true;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          moveLens(e);
-        }}
-        onPointerMove={(e) => {
-          if (draggingRef.current) moveLens(e);
-        }}
-        onPointerUp={() => {
-          draggingRef.current = false;
-        }}
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A ruled background grid distorted by gravitational lensing, with an Einstein ring around the hole."
+          className="cursor-grab"
+          onPointerDown={(e) => {
+            draggingRef.current = true;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            moveLens(e);
+          }}
+          onPointerMove={(e) => {
+            if (draggingRef.current) moveLens(e);
+          }}
+          onPointerUp={() => {
+            draggingRef.current = false;
+          }}
+        />
+        <Toolbar>
+          <Toggle label="Background drift" checked={drifting} onChange={setDrifting} />
+          <Toggle label="Draw shadow" checked={showShadow} onChange={setShowShadow} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={1}>
         <Slider
           label="lens mass (Einstein radius)"
@@ -177,10 +183,6 @@ export default function LensingGrid() {
           onChange={setStrength}
         />
       </Panel>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Toggle label="Background drift" checked={drifting} onChange={setDrifting} />
-        <Toggle label="Draw shadow" checked={showShadow} onChange={setShowShadow} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }

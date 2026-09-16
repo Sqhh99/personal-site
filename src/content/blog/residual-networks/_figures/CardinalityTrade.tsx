@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, Panel, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, byUp, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -144,11 +144,22 @@ export default function CardinalityTrade() {
 
   return (
     <FigureBody>
-      <Canvas
-        canvasRef={canvasRef}
-        aspect={aspect}
-        label="A split-transform-merge residual branch at a chosen cardinality, beside the aggregate branch width the whole family reaches at a fixed parameter budget."
-      />
+      <FigureStage>
+        <Canvas
+          canvasRef={canvasRef}
+          aspect={aspect}
+          label="A split-transform-merge residual branch at a chosen cardinality, beside the aggregate branch width the whole family reaches at a fixed parameter budget."
+        />
+        <Metrics>
+          <Readout label="parallel transforms" value={String(cardinality)} />
+          <Readout label="aggregate width" value={`${aggregate} ch`} hint={`${cardinality} × ${width}`} />
+          <Readout label="block parameters" value={blockParams.toLocaleString()} hint={`${budgetRatio.toFixed(2)}× baseline`} />
+          <Readout label="block MACs" value={compact(macs(cardinality, width))} hint={`at ${RESOLUTION}² resolution`} />
+        </Metrics>
+        <Toolbar>
+          <Toggle label="hold 69,632-param budget" checked={isoBudget} onChange={setIsoBudget} />
+        </Toolbar>
+      </FigureStage>
       <Panel columns={2}>
         <Slider
           label="cardinality"
@@ -172,15 +183,6 @@ export default function CardinalityTrade() {
           }}
         />
       </Panel>
-      <div className="mt-4">
-        <Toggle label="hold the 69,632-parameter budget" checked={isoBudget} onChange={setIsoBudget} />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Readout label="parallel transforms" value={String(cardinality)} />
-        <Readout label="aggregate width" value={`${aggregate} ch`} hint={`${cardinality} × ${width}`} />
-        <Readout label="block parameters" value={blockParams.toLocaleString()} hint={`${budgetRatio.toFixed(2)}× baseline`} />
-        <Readout label="block MACs" value={compact(macs(cardinality, width))} hint={`at ${RESOLUTION}² resolution`} />
-      </div>
     </FigureBody>
-  );
+  );  );
 }
