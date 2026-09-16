@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
 import { box, frame, label } from '@figures/plot';
 
 /**
@@ -268,32 +268,32 @@ export default function SkipAblation() {
           <Readout label="bottleneck carries" value={`${result.bottleneckValues} values`} hint="per channel" />
           <Readout label="lateral routes carry" value={`${result.lateralValues} values`} hint="per channel" />
         </Metrics>
+        <Dock columns={2}>
+          <Slider
+            label="pooling steps"
+            value={depth}
+            min={1}
+            max={4}
+            step={1}
+            format={(v) => `${v} → ${N / 2 ** v}²`}
+            onChange={(v) => {
+              setDepth(v);
+              setRouted((r) => Math.min(r, v));
+            }}
+          />
+          <Slider
+            label="lateral routes enabled"
+            value={routed}
+            min={0}
+            max={depth}
+            step={1}
+            format={(v) => `${v} of ${depth}`}
+            onChange={setRouted}
+          />
+          <Slider label="skip strength" value={strength} min={0} max={1} step={0.05} format={(v) => v.toFixed(2)} onChange={setStrength} />
+          <Slider label="bottleneck noise" value={noise} min={0} max={0.4} step={0.02} format={(v) => v.toFixed(2)} onChange={setNoise} />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="pooling steps"
-          value={depth}
-          min={1}
-          max={4}
-          step={1}
-          format={(v) => `${v} → ${N / 2 ** v}²`}
-          onChange={(v) => {
-            setDepth(v);
-            setRouted((r) => Math.min(r, v));
-          }}
-        />
-        <Slider
-          label="lateral routes enabled"
-          value={routed}
-          min={0}
-          max={depth}
-          step={1}
-          format={(v) => `${v} of ${depth}`}
-          onChange={setRouted}
-        />
-        <Slider label="skip strength" value={strength} min={0} max={1} step={0.05} format={(v) => v.toFixed(2)} onChange={setStrength} />
-        <Slider label="bottleneck noise" value={noise} min={0} max={0.4} step={0.02} format={(v) => v.toFixed(2)} onChange={setNoise} />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

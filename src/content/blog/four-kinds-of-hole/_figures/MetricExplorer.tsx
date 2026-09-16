@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units with M = 1, so a and Q are already in units of M.
@@ -247,27 +247,27 @@ export default function MetricExplorer() {
             ))}
           </div>
         </Toolbar>
+        <Dock columns={2}>
+          <Slider
+            label="spin a / M"
+            value={a}
+            min={0}
+            max={1.2}
+            step={0.005}
+            format={(v) => v.toFixed(3)}
+            onChange={setA}
+          />
+          <Slider
+            label="charge Q / M"
+            value={q}
+            min={0}
+            max={1.2}
+            step={0.005}
+            format={(v) => v.toFixed(3)}
+            onChange={setQ}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="spin a / M"
-          value={a}
-          min={0}
-          max={1.2}
-          step={0.005}
-          format={(v) => v.toFixed(3)}
-          onChange={setA}
-        />
-        <Slider
-          label="charge Q / M"
-          value={q}
-          min={0}
-          max={1.2}
-          step={0.005}
-          format={(v) => v.toFixed(3)}
-          onChange={setQ}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

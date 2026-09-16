@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout } from '@figures/controls';
 import { type Box, box, circle, dot, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -418,32 +418,32 @@ export default function UNetFamilyMap() {
           <Readout label="design axis" value={family.axis} />
           <Readout label="what it costs" value={family.metric} hint={family.metricHint} />
         </Metrics>
+        <Dock columns={1}>
+          <div className="flex flex-wrap gap-1" role="group" aria-label="U-Net family">
+            {FAMILIES.map((entry, i) => {
+              const on = i === selected;
+              return (
+                <button
+                  key={entry.kind}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setSelected(i)}
+                  className={`min-h-11 rounded-sm border px-2.5 py-1.5 text-left transition-colors ${
+                    on
+                      ? 'border-accent/50 bg-accent/10'
+                      : 'border-line/80 bg-surface/80 hover:border-line-strong'
+                  }`}
+                >
+                  <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
+                    {entry.name}
+                  </div>
+                  <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
+                </button>
+              );
+            })}
+          </div>
+        </Dock>
       </FigureStage>
-      <Panel columns={1}>
-        <div className="flex flex-wrap gap-1" role="group" aria-label="U-Net family">
-          {FAMILIES.map((entry, i) => {
-            const on = i === selected;
-            return (
-              <button
-                key={entry.kind}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setSelected(i)}
-                className={`rounded-sm border px-2 py-1 text-left transition-colors ${
-                  on
-                    ? 'border-accent/50 bg-accent/10'
-                    : 'border-line/80 bg-surface/80 hover:border-line-strong'
-                }`}
-              >
-                <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
-                  {entry.name}
-                </div>
-                <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
-              </button>
-            );
-          })}
-        </div>
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -217,20 +217,20 @@ export default function Upsampling() {
             hint={kernel % stride === 0 ? 'even coverage' : 'uneven coverage'}
           />
         </Metrics>
+        <Dock columns={3}>
+          <SegmentedControl
+            label="operator"
+            value={method}
+            options={[
+              { value: 'transposed', label: 'transposed conv' },
+              { value: 'resize', label: 'resize + conv' },
+            ]}
+            onChange={setMethod}
+          />
+          <Slider label="kernel" value={kernel} min={2} max={6} step={1} format={(v) => `${v}×${v}`} onChange={setKernel} />
+          <Slider label="stride" value={stride} min={2} max={4} step={1} format={(v) => String(v)} onChange={setStride} />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <SegmentedControl
-          label="operator"
-          value={method}
-          options={[
-            { value: 'transposed', label: 'transposed conv' },
-            { value: 'resize', label: 'resize + conv' },
-          ]}
-          onChange={setMethod}
-        />
-        <Slider label="kernel" value={kernel} min={2} max={6} step={1} format={(v) => `${v}×${v}`} onChange={setKernel} />
-        <Slider label="stride" value={stride} min={2} max={4} step={1} format={(v) => String(v)} onChange={setStride} />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
 import { label, polyline } from '@figures/plot';
 
 const G = 6.6743e-11;
@@ -178,27 +178,27 @@ export default function TidalForces() {
             hint={distance <= 1.01 ? 'at the horizon' : `${distance.toFixed(1)} r_s out`}
           />
         </Metrics>
+        <Dock columns={2}>
+          <Slider
+            label="black hole mass"
+            value={logMass}
+            min={0}
+            max={10}
+            step={0.05}
+            format={(v) => `10^${v.toFixed(1)} M☉`}
+            onChange={setLogMass}
+          />
+          <Slider
+            label="distance"
+            value={distance}
+            min={1}
+            max={12}
+            step={0.05}
+            format={(v) => `${v.toFixed(2)} × r_s`}
+            onChange={setDistance}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="black hole mass"
-          value={logMass}
-          min={0}
-          max={10}
-          step={0.05}
-          format={(v) => `10^${v.toFixed(1)} M☉`}
-          onChange={setLogMass}
-        />
-        <Slider
-          label="distance"
-          value={distance}
-          min={1}
-          max={12}
-          step={0.05}
-          format={(v) => `${v.toFixed(2)} × r_s`}
-          onChange={setDistance}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

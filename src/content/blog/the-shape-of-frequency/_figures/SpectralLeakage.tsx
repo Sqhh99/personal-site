@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { TAU, box, bx, by, byUp, dft, label, polyline } from '@figures/plot';
 
 const N = 256;
@@ -166,29 +166,29 @@ export default function SpectralLeakage() {
           <Readout label="energy spilled" value={`${(spill * 100).toFixed(1)}%`} hint="outside ±1 bin" />
           <Readout label="window" value={window === 'hann' ? 'Hann' : 'rectangular'} />
         </Metrics>
-      </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="cycles in the record"
-          value={cycles}
-          min={6}
-          max={11}
-          step={0.02}
-          format={(v) => v.toFixed(2)}
-          onChange={setCycles}
-        />
-        <div className="flex items-end">
-          <SegmentedControl
-            label="window"
-            value={window}
-            options={[
-              { value: 'rect', label: 'rectangular' },
-              { value: 'hann', label: 'Hann' },
-            ]}
-            onChange={setWindow}
+        <Dock columns={2}>
+          <Slider
+            label="cycles in the record"
+            value={cycles}
+            min={6}
+            max={11}
+            step={0.02}
+            format={(v) => v.toFixed(2)}
+            onChange={setCycles}
           />
-        </div>
-      </Panel>
+          <div className="flex items-end">
+            <SegmentedControl
+              label="window"
+              value={window}
+              options={[
+                { value: 'rect', label: 'rectangular' },
+                { value: 'hann', label: 'Hann' },
+              ]}
+              onChange={setWindow}
+            />
+          </div>
+        </Dock>
+      </FigureStage>
     </FigureBody>
-  );  );
+  );
 }

@@ -4,15 +4,19 @@ import type { CSSProperties, ReactNode, RefObject } from 'react';
  * Shared figure furniture. Every interactive in the essays is built from these,
  * so the controls read as one instrument panel rather than twelve improvisations.
  *
- * Layout contract:
+ * Layout contract (overlay-only — nothing may sit under the canvas):
  *   <FigureBody>
  *     <FigureStage>
  *       <Canvas … />
- *       <Metrics>…</Metrics>     // optional — compact live values over the canvas
- *       <Toolbar>…</Toolbar>     // optional — play / toggles / segmented over the canvas
+ *       <Metrics>…</Metrics>   // optional — top-left live-value chips
+ *       <Toolbar>…</Toolbar>   // optional — top-right play / toggles / segmented
+ *       <Dock>…</Dock>         // optional — bottom-inside-stage sliders & denser controls
  *     </FigureStage>
- *     <Panel>…</Panel>           // optional — compact edge chrome under the canvas
  *   </FigureBody>
+ *
+ * All operations and value displays render as overlays INSIDE FigureStage
+ * (absolutely positioned over the canvas). A sibling block after </FigureStage>
+ * is forbidden — do not reintroduce an under-canvas Panel.
  */
 
 export function Canvas({
@@ -49,20 +53,20 @@ export function Canvas({
   );
 }
 
-/** Relative canvas host: overlays (Metrics / Toolbar) position against this. */
+/** Relative canvas host: overlays (Metrics / Toolbar / Dock) position against this. */
 export function FigureStage({ children }: { children: ReactNode }) {
   return <div className="relative isolate overflow-hidden bg-surface">{children}</div>;
 }
 
 /**
- * Compact control dock attached under the canvas (edge chrome). Replaces the
- * old below-figure `mt-4` grids that doubled the figure's vertical footprint.
+ * Bottom-inside-stage control dock. Soft translucent backdrop so the plot stays
+ * readable underneath. Replaces the old under-canvas Panel entirely.
  */
-export function Panel({ children, columns = 2 }: { children: ReactNode; columns?: 1 | 2 | 3 }) {
+export function Dock({ children, columns = 2 }: { children: ReactNode; columns?: 1 | 2 | 3 }) {
   const cols = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3' }[columns];
   return (
     <div
-      className={`grid grid-cols-1 gap-x-3 gap-y-1.5 border-t border-line bg-sunk/55 px-2.5 py-2 ${cols}`}
+      className={`absolute inset-x-0 bottom-0 z-10 grid grid-cols-1 gap-x-3 gap-y-2 border-t border-line/50 bg-surface/78 px-2.5 py-2 shadow-[0_-8px_24px_rgba(0,0,0,0.04)] backdrop-blur-md ${cols}`}
     >
       {children}
     </div>
@@ -105,7 +109,7 @@ export function Slider({
   onChange: (v: number) => void;
 }) {
   return (
-    <label className="block min-w-0">
+    <label className="block min-h-11 min-w-0">
       <span className="flex items-baseline justify-between gap-2">
         <span className="label text-[0.6rem] leading-none">{label}</span>
         <span className="font-mono text-[0.65rem] tabular-nums text-accent-deep">
@@ -119,7 +123,7 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1 h-1 w-full cursor-pointer appearance-none rounded-full bg-line"
+        className="mt-1.5 h-2 w-full cursor-pointer appearance-none rounded-full bg-line/80"
         style={{ accentColor: 'var(--accent)' }}
       />
     </label>
@@ -141,7 +145,7 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 font-mono text-[0.65rem] tracking-wider shadow-xs backdrop-blur-sm transition-colors ${
+      className={`inline-flex min-h-11 items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider shadow-xs backdrop-blur-sm transition-colors ${
         checked
           ? 'border-accent/50 bg-accent/15 text-accent-deep'
           : 'border-line/80 bg-surface/85 text-muted hover:border-line-strong hover:text-ink'
@@ -179,7 +183,7 @@ export function SegmentedControl<T extends string>({
               type="button"
               aria-pressed={selected}
               onClick={() => onChange(option.value)}
-              className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
+              className={`min-h-11 rounded-sm px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
                 selected ? 'bg-surface text-accent-deep shadow-xs' : 'text-muted hover:text-ink'
               }`}
             >
@@ -198,7 +202,7 @@ export function PlayPause({ playing, onChange }: { playing: boolean; onChange: (
       type="button"
       onClick={() => onChange(!playing)}
       aria-label={playing ? 'Pause animation' : 'Play animation'}
-      className="inline-flex items-center gap-1.5 rounded-sm border border-line/80 bg-surface/85 px-2 py-1 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-sm border border-line/80 bg-surface/85 px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
     >
       {playing ? (
         <svg viewBox="0 0 24 24" className="size-2.5 fill-current" aria-hidden="true">
@@ -228,7 +232,7 @@ export function Readout({ label, value, hint }: { label: string; value: string; 
   );
 }
 
-/** Wraps a figure's canvas + chrome. Adds the card outline; padding lives in Panel. */
+/** Wraps a figure's canvas + in-stage overlays. Adds the card outline. */
 export function FigureBody({ children }: { children: ReactNode }) {
   return <div className="overflow-hidden rounded-sm border border-line bg-surface">{children}</div>;
 }

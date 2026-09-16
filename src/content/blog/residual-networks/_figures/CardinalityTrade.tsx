@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { box, byUp, fillRoundRect, frame, label, polyline } from '@figures/plot';
 
 /**
@@ -159,30 +159,30 @@ export default function CardinalityTrade() {
         <Toolbar>
           <Toggle label="hold 69,632-param budget" checked={isoBudget} onChange={setIsoBudget} />
         </Toolbar>
+        <Dock columns={2}>
+          <Slider
+            label="cardinality"
+            value={exponent}
+            min={0}
+            max={CARDINALITIES.length - 1}
+            step={1}
+            format={() => String(cardinality)}
+            onChange={setExponent}
+          />
+          <Slider
+            label="width per branch"
+            value={width}
+            min={1}
+            max={64}
+            step={1}
+            format={(v) => `${v} ch${isoBudget ? ' (solved)' : ''}`}
+            onChange={(v) => {
+              setIsoBudget(false);
+              setFreeWidth(v);
+            }}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={2}>
-        <Slider
-          label="cardinality"
-          value={exponent}
-          min={0}
-          max={CARDINALITIES.length - 1}
-          step={1}
-          format={() => String(cardinality)}
-          onChange={setExponent}
-        />
-        <Slider
-          label="width per branch"
-          value={width}
-          min={1}
-          max={64}
-          step={1}
-          format={(v) => `${v} ch${isoBudget ? ' (solved)' : ''}`}
-          onChange={(v) => {
-            setIsoBudget(false);
-            setFreeWidth(v);
-          }}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

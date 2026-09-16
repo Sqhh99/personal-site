@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
 import { box, circle, dot, fillRoundRect, label, polyline } from '@figures/plot';
 
 /**
@@ -208,12 +208,12 @@ export default function MergeCost() {
             hint="activation memory"
           />
         </Metrics>
+        <Dock columns={3}>
+          <SegmentedControl label="merge" value={variant} options={VARIANTS} onChange={setVariant} />
+          <Slider label="resolution levels" value={levels} min={2} max={5} step={1} format={(v) => String(v)} onChange={setLevels} />
+          <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
+        </Dock>
       </FigureStage>
-      <Panel columns={3}>
-        <SegmentedControl label="merge" value={variant} options={VARIANTS} onChange={setVariant} />
-        <Slider label="resolution levels" value={levels} min={2} max={5} step={1} format={(v) => String(v)} onChange={setLevels} />
-        <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }

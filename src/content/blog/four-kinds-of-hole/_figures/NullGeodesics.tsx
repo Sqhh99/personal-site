@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Panel, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
 import { circle, dot, label, polyline } from '@figures/plot';
 
 // Geometric units: G = c = 1, M = 1. The horizon is then at r = 2, the photon
@@ -184,18 +184,18 @@ export default function NullGeodesics() {
         <Toolbar>
           <Toggle label="Show ray fan" checked={fan} onChange={setFan} />
         </Toolbar>
+        <Dock columns={1}>
+          <Slider
+            label="impact parameter b"
+            value={b}
+            min={0.5}
+            max={20}
+            step={0.005}
+            format={(v) => `${v.toFixed(3)} M`}
+            onChange={setB}
+          />
+        </Dock>
       </FigureStage>
-      <Panel columns={1}>
-        <Slider
-          label="impact parameter b"
-          value={b}
-          min={0.5}
-          max={20}
-          step={0.005}
-          format={(v) => `${v.toFixed(3)} M`}
-          onChange={setB}
-        />
-      </Panel>
     </FigureBody>
-  );  );
+  );
 }
