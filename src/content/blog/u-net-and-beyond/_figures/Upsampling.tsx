@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { box, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { box, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * Where checkerboard artefacts come from, computed rather than described.
@@ -195,6 +195,12 @@ export default function Upsampling() {
         kernel % stride === 0 ? colors.muted : colors.kraft,
         { size: 9, align: 'right' },
       );
+
+      hud(ctx, [
+        { text: `out ${output.size}²  ·  gain ${stats.lo.toFixed(2)}–${stats.hi.toFixed(2)}  ·  worst ${stats.ratio.toFixed(2)}×`, color: colors.ink },
+        { text: `k mod s = ${kernel % stride}${kernel % stride === 0 ? ' (even)' : ' (uneven)'}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.55, animate: false },
   );
@@ -207,29 +213,19 @@ export default function Upsampling() {
           aspect={aspect}
           label="A small input map, its upsampled output, and the per-cell gain the upsampling operator applies, with a profile of that gain along one row."
         />
-        <Metrics>
-          <Readout label="output size" value={`${output.size}²`} hint={`from ${N}²`} />
-          <Readout label="interior gain" value={`${stats.lo.toFixed(2)} – ${stats.hi.toFixed(2)}`} />
-          <Readout label="worst ratio" value={`${stats.ratio.toFixed(2)}×`} hint="brightest ÷ dimmest cell" />
-          <Readout
-            label="k mod s"
-            value={String(kernel % stride)}
-            hint={kernel % stride === 0 ? 'even coverage' : 'uneven coverage'}
-          />
-        </Metrics>
-        <Dock columns={3}>
+        <ParamsPopover>
           <SegmentedControl
-            label="operator"
-            value={method}
-            options={[
-              { value: 'transposed', label: 'transposed conv' },
-              { value: 'resize', label: 'resize + conv' },
-            ]}
-            onChange={setMethod}
+          label="operator"
+          value={method}
+          options={[
+          { value: 'transposed', label: 'transposed conv' },
+          { value: 'resize', label: 'resize + conv' },
+          ]}
+          onChange={setMethod}
           />
           <Slider label="kernel" value={kernel} min={2} max={6} step={1} format={(v) => `${v}×${v}`} onChange={setKernel} />
           <Slider label="stride" value={stride} min={2} max={4} step={1} format={(v) => String(v)} onChange={setStride} />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

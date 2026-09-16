@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
-import { box, frame, label } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, ParamsPopover } from '@figures/controls';
+import { box, frame, label, hud } from '@figures/plot';
 
 /**
  * A real encoder–decoder round trip on a real 64×64 map.
@@ -250,6 +250,12 @@ export default function SkipAblation() {
         colors.faint,
         { size: 9 },
       );
+
+      hud(ctx, [
+        { text: `IoU  ${result.iou.toFixed(3)}  ·  boundary F1  ${result.boundaryF1.toFixed(3)}`, color: colors.ink },
+        { text: `bottleneck  ${result.bottleneckValues}  ·  lateral  ${result.lateralValues} values/ch`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.75, animate: false },
   );
@@ -262,37 +268,31 @@ export default function SkipAblation() {
           aspect={aspect}
           label="A 64 by 64 target map, its reconstruction after pooling and upsampling with a chosen number of lateral routes, and the pixels where the thresholded result disagrees with the target."
         />
-        <Metrics>
-          <Readout label="IoU" value={result.iou.toFixed(3)} />
-          <Readout label="boundary F1" value={result.boundaryF1.toFixed(3)} hint="1-pixel tolerance" />
-          <Readout label="bottleneck carries" value={`${result.bottleneckValues} values`} hint="per channel" />
-          <Readout label="lateral routes carry" value={`${result.lateralValues} values`} hint="per channel" />
-        </Metrics>
-        <Dock columns={2}>
+        <ParamsPopover>
           <Slider
-            label="pooling steps"
-            value={depth}
-            min={1}
-            max={4}
-            step={1}
-            format={(v) => `${v} → ${N / 2 ** v}²`}
-            onChange={(v) => {
-              setDepth(v);
-              setRouted((r) => Math.min(r, v));
-            }}
+          label="pooling steps"
+          value={depth}
+          min={1}
+          max={4}
+          step={1}
+          format={(v) => `${v} → ${N / 2 ** v}²`}
+          onChange={(v) => {
+          setDepth(v);
+          setRouted((r) => Math.min(r, v));
+          }}
           />
           <Slider
-            label="lateral routes enabled"
-            value={routed}
-            min={0}
-            max={depth}
-            step={1}
-            format={(v) => `${v} of ${depth}`}
-            onChange={setRouted}
+          label="lateral routes enabled"
+          value={routed}
+          min={0}
+          max={depth}
+          step={1}
+          format={(v) => `${v} of ${depth}`}
+          onChange={setRouted}
           />
           <Slider label="skip strength" value={strength} min={0} max={1} step={0.05} format={(v) => v.toFixed(2)} onChange={setStrength} />
           <Slider label="bottleneck noise" value={noise} min={0} max={0.4} step={0.02} format={(v) => v.toFixed(2)} onChange={setNoise} />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider, Toggle } from '@figures/controls';
-import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, Toggle, ParamsPopover } from '@figures/controls';
+import { box, fillRoundRect, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * The block's cost, counted rather than asserted. Every parameter and multiply
@@ -202,11 +202,16 @@ export default function ResidualBlockExplorer() {
         colors.muted,
         { size: 9, align: 'right' },
       );
+
+      hud(ctx, [
+        { text: `${stages[Math.min(active, stages.length - 1)].name}`, color: colors.ink },
+        { text: `params  ${compact(totalParams)}  ·  MACs  ${compact(totalMacs)}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.95, animate: false },
   );
 
-  const chosen = stages[Math.min(active, stages.length - 1)];
 
   return (
     <FigureBody>
@@ -219,58 +224,46 @@ export default function ResidualBlockExplorer() {
           onPointerMove={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
           onPointerDown={(e) => pick(e.clientX, e.clientY, e.currentTarget)}
         />
-        <Metrics>
-          <Readout label="selected stage" value={chosen.name} hint={chosen.detail} />
-          <Readout label="block parameters" value={compact(totalParams)} />
-          <Readout label="block MACs" value={compact(totalMacs)} />
-          <Readout
-            label={`${other} at same width`}
-            value={`${(otherMacs / totalMacs).toFixed(2)}×`}
-            hint="multiplies, equal output width"
-          />
-        </Metrics>
-        <Toolbar>
-          <Toggle
-            label="stage boundary — stride 2"
-            checked={downsample}
-            onChange={(v) => {
-              setDownsample(v);
-              setActive(0);
-            }}
-          />
-        </Toolbar>
-        <Dock columns={3}>
+        <ParamsPopover>
           <SegmentedControl
-            label="block"
-            value={kind}
-            options={[
-              { value: 'basic', label: 'basic' },
-              { value: 'bottleneck', label: 'bottleneck' },
-            ]}
-            onChange={(value) => {
-              setKind(value);
-              setActive(0);
-            }}
+          label="block"
+          value={kind}
+          options={[
+          { value: 'basic', label: 'basic' },
+          { value: 'bottleneck', label: 'bottleneck' },
+          ]}
+          onChange={(value) => {
+          setKind(value);
+          setActive(0);
+          }}
           />
           <Slider
-            label="output channels"
-            value={channels}
-            min={64}
-            max={512}
-            step={64}
-            format={(v) => String(v)}
-            onChange={setChannels}
+          label="output channels"
+          value={channels}
+          min={64}
+          max={512}
+          step={64}
+          format={(v) => String(v)}
+          onChange={setChannels}
           />
           <Slider
-            label="input resolution"
-            value={size}
-            min={14}
-            max={56}
-            step={14}
-            format={(v) => `${v}²`}
-            onChange={setSize}
+          label="input resolution"
+          value={size}
+          min={14}
+          max={56}
+          step={14}
+          format={(v) => `${v}²`}
+          onChange={setSize}
           />
-        </Dock>
+          <Toggle
+          label="stage boundary — stride 2"
+          checked={downsample}
+          onChange={(v) => {
+          setDownsample(v);
+          setActive(0);
+          }}
+          />
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

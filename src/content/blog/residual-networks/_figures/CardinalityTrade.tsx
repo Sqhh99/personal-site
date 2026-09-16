@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
-import { box, byUp, fillRoundRect, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
+import { box, byUp, fillRoundRect, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * The ResNeXt template: 256 channels in, C groups of width d, 256 out.
@@ -136,11 +136,16 @@ export default function CardinalityTrade() {
       });
       label(ctx, 'cardinality →', plot.x + plot.w, height - 6, colors.faint, { size: 9, align: 'right' });
       label(ctx, 'branch width above each bar', plot.x, height - 6, colors.faint, { size: 9 });
+
+      hud(ctx, [
+        { text: `cardinality  ${cardinality}  ·  width ${width} ch  ·  aggregate ${aggregate} ch`, color: colors.ink },
+        { text: `params  ${blockParams.toLocaleString()}  (${(blockParams / BASELINE_PARAMS).toFixed(2)}× baseline)  ·  MACs  ${compact(macs(cardinality, width))}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.9, animate: false },
   );
 
-  const budgetRatio = blockParams / BASELINE_PARAMS;
 
   return (
     <FigureBody>
@@ -150,38 +155,30 @@ export default function CardinalityTrade() {
           aspect={aspect}
           label="A split-transform-merge residual branch at a chosen cardinality, beside the aggregate branch width the whole family reaches at a fixed parameter budget."
         />
-        <Metrics>
-          <Readout label="parallel transforms" value={String(cardinality)} />
-          <Readout label="aggregate width" value={`${aggregate} ch`} hint={`${cardinality} × ${width}`} />
-          <Readout label="block parameters" value={blockParams.toLocaleString()} hint={`${budgetRatio.toFixed(2)}× baseline`} />
-          <Readout label="block MACs" value={compact(macs(cardinality, width))} hint={`at ${RESOLUTION}² resolution`} />
-        </Metrics>
-        <Toolbar>
+        <ParamsPopover>
+          <Slider
+          label="cardinality"
+          value={exponent}
+          min={0}
+          max={CARDINALITIES.length - 1}
+          step={1}
+          format={() => String(cardinality)}
+          onChange={setExponent}
+          />
+          <Slider
+          label="width per branch"
+          value={width}
+          min={1}
+          max={64}
+          step={1}
+          format={(v) => `${v} ch${isoBudget ? ' (solved)' : ''}`}
+          onChange={(v) => {
+          setIsoBudget(false);
+          setFreeWidth(v);
+          }}
+          />
           <Toggle label="hold 69,632-param budget" checked={isoBudget} onChange={setIsoBudget} />
-        </Toolbar>
-        <Dock columns={2}>
-          <Slider
-            label="cardinality"
-            value={exponent}
-            min={0}
-            max={CARDINALITIES.length - 1}
-            step={1}
-            format={() => String(cardinality)}
-            onChange={setExponent}
-          />
-          <Slider
-            label="width per branch"
-            value={width}
-            min={1}
-            max={64}
-            step={1}
-            format={(v) => `${v} ch${isoBudget ? ' (solved)' : ''}`}
-            onChange={(v) => {
-              setIsoBudget(false);
-              setFreeWidth(v);
-            }}
-          />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { box, circle, dot, fillRoundRect, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { box, circle, dot, fillRoundRect, label, polyline, hud } from '@figures/plot';
 
 /**
  * What a merge operator costs, counted over the actual node graph.
@@ -186,6 +186,12 @@ export default function MergeCost() {
       });
       label(ctx, 'parameters', chart.x, chart.y - 6, colors.kraft, { size: 9 });
       label(ctx, 'activations', chart.x + 66, chart.y - 6, colors.accent, { size: 9 });
+
+      hud(ctx, [
+        { text: `fusion nodes  ${current.count}  ·  params  ${compact(current.params)}`, color: colors.ink },
+        { text: `activations  ${bytes(current.activation)}  ·  vs concat  ${(current.activation / baselineActivation).toFixed(2)}×`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.85, animate: false },
   );
@@ -198,21 +204,11 @@ export default function MergeCost() {
           aspect={aspect}
           label="The fusion-node graph of a U-Net decoder with node area proportional to activation memory, beside a comparison of parameters and activation memory for concatenation, addition and nested skips."
         />
-        <Metrics>
-          <Readout label="fusion nodes" value={String(current.count)} />
-          <Readout label="fusion parameters" value={compact(current.params)} />
-          <Readout label="fusion activations" value={bytes(current.activation)} hint={`at ${INPUT}² input`} />
-          <Readout
-            label="vs concatenation"
-            value={`${(current.activation / baselineActivation).toFixed(2)}×`}
-            hint="activation memory"
-          />
-        </Metrics>
-        <Dock columns={3}>
+        <ParamsPopover>
           <SegmentedControl label="merge" value={variant} options={VARIANTS} onChange={setVariant} />
           <Slider label="resolution levels" value={levels} min={2} max={5} step={1} format={(v) => String(v)} onChange={setLevels} />
           <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

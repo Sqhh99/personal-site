@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
-import { box, fillRoundRect, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
+import { box, fillRoundRect, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * The U, costed. Receptive field, parameters and activation memory are all
@@ -218,6 +218,12 @@ export default function UNetWalkthrough() {
         colors.muted,
         { size: 9, align: 'right' },
       );
+
+      hud(ctx, [
+        { text: `${picked.size}² × ${picked.channels}  ·  RF ${picked.receptive} px`, color: colors.ink },
+        { text: `params  ${compact(totalParams)}  ·  activations  ${bytes(totalActivation)}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.9, animate: false },
   );
@@ -235,50 +241,34 @@ export default function UNetWalkthrough() {
             if (e.pointerType === 'mouse') choose(e.clientX, e.clientY, e.currentTarget);
           }}
         />
-        <Metrics>
-          <Readout label="selected stage" value={`${picked.size}² × ${picked.channels}`} hint={picked.detail} />
-          <Readout
-            label="receptive field"
-            value={`${picked.receptive} px`}
-            hint={picked.kind === 'decoder' ? 'inherited through the bottom' : `${((picked.receptive / inputSize) * 100).toFixed(0)}% of the input`}
-          />
-          <Readout label="parameters" value={compact(totalParams)} hint={`this stage ${compact(picked.params)}`} />
-          <Readout
-            label="activations held"
-            value={bytes(totalActivation)}
-            hint={`peak stage ${peakStage.name}, ${((peakStage.activation / totalActivation) * 100).toFixed(0)}%`}
-          />
-        </Metrics>
-        <Toolbar>
-          <Toggle label="lateral skips" checked={showSkips} onChange={setShowSkips} />
-        </Toolbar>
-        <Dock columns={3}>
+        <ParamsPopover>
           <Slider
-            label="resolution levels"
-            value={levels}
-            min={2}
-            max={5}
-            step={1}
-            format={(v) => String(v)}
-            onChange={(v) => {
-              setLevels(v);
-              setSelected(0);
-            }}
+          label="resolution levels"
+          value={levels}
+          min={2}
+          max={5}
+          step={1}
+          format={(v) => String(v)}
+          onChange={(v) => {
+          setLevels(v);
+          setSelected(0);
+          }}
           />
           <Slider label="base channels" value={base} min={16} max={64} step={16} format={(v) => String(v)} onChange={setBase} />
           <Slider
-            label="input size"
-            value={inputSize}
-            min={128}
-            max={512}
-            step={128}
-            format={(v) => `${v}²`}
-            onChange={setInputSize}
+          label="input size"
+          value={inputSize}
+          min={128}
+          max={512}
+          step={128}
+          format={(v) => `${v}²`}
+          onChange={setInputSize}
           />
           <p className="col-span-full border-t border-line/40 pt-1.5 font-mono text-[0.6rem] leading-relaxed text-faint">
-            bottom-level receptive field covers {(coverage * 100).toFixed(0)}% of the input edge
+          bottom-level receptive field covers {(coverage * 100).toFixed(0)}% of the input edge
           </p>
-        </Dock>
+          <Toggle label="lateral skips" checked={showSkips} onChange={setShowSkips} />
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

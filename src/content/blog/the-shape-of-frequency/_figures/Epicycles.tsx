@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Toolbar, PlayPause, SegmentedControl, Slider } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover, PlayCorner } from '@figures/controls';
 import { TAU, circle, dot, label, polyline } from '@figures/plot';
 
 type Shape = 'square' | 'sawtooth' | 'triangle';
@@ -137,38 +137,38 @@ export default function Epicycles() {
           canvasRef={canvasRef}
           aspect={aspect}
           label="A chain of rotating circles whose tip traces a square wave."
+          className="cursor-pointer"
+          onClick={() => setPlaying((p) => !p)}
         />
-        <Toolbar>
+        <PlayCorner playing={playing} onChange={setPlaying} />
+        <ParamsPopover>
+          <Slider
+          label="terms"
+          value={terms}
+          min={1}
+          max={24}
+          step={1}
+          format={(v) => String(v)}
+          onChange={setTerms}
+          />
+          <Slider
+          label="speed"
+          value={speed}
+          min={0.05}
+          max={1}
+          format={(v) => `${v.toFixed(2)}×`}
+          onChange={setSpeed}
+          />
           <SegmentedControl
-            value={shape}
-            options={[
-              { value: 'square', label: 'square' },
-              { value: 'sawtooth', label: 'sawtooth' },
-              { value: 'triangle', label: 'triangle' },
-            ]}
-            onChange={setShape}
+          value={shape}
+          options={[
+          { value: 'square', label: 'square' },
+          { value: 'sawtooth', label: 'sawtooth' },
+          { value: 'triangle', label: 'triangle' },
+          ]}
+          onChange={setShape}
           />
-          <PlayPause playing={playing} onChange={setPlaying} />
-        </Toolbar>
-        <Dock columns={2}>
-          <Slider
-            label="terms"
-            value={terms}
-            min={1}
-            max={24}
-            step={1}
-            format={(v) => String(v)}
-            onChange={setTerms}
-          />
-          <Slider
-            label="speed"
-            value={speed}
-            min={0.05}
-            max={1}
-            format={(v) => `${v.toFixed(2)}×`}
-            onChange={setSpeed}
-          />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

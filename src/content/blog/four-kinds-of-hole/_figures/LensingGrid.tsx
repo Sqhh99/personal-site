@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Toolbar, Slider, Toggle } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
 import { circle, label } from '@figures/plot';
 
 const BUF_W = 380;
@@ -169,19 +169,17 @@ export default function LensingGrid() {
             draggingRef.current = false;
           }}
         />
-        <Toolbar>
+        <ParamsPopover>
+          <Slider
+          label="lens mass (Einstein radius)"
+          value={strength}
+          min={0.05}
+          max={0.75}
+          onChange={setStrength}
+          />
           <Toggle label="Background drift" checked={drifting} onChange={setDrifting} />
           <Toggle label="Draw shadow" checked={showShadow} onChange={setShowShadow} />
-        </Toolbar>
-        <Dock columns={1}>
-          <Slider
-            label="lens mass (Einstein radius)"
-            value={strength}
-            min={0.05}
-            max={0.75}
-            onChange={setStrength}
-          />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

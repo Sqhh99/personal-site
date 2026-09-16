@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, PlayPause, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { box, bx, by, byUp, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover, PlayCorner } from '@figures/controls';
+import { box, bx, by, byUp, label, polyline, hud } from '@figures/plot';
 
 /**
  * Two networks of identical shape — one plain, one residual — trained live by
@@ -332,15 +332,22 @@ export default function DepthTrainer() {
       if (nets.residual.diverged) {
         label(ctx, 'residual stack diverged', fitBox.x, fitBox.y + fitBox.h + 25, colors.accent, { size: 9 });
       }
+
+      {
+        const pLoss = nets.plain.diverged ? NaN : nets.plain.loss;
+        const rLoss = nets.residual.diverged ? NaN : nets.residual.loss;
+        const ratio = pLoss / rLoss;
+        const fmt = (v: number) => (Number.isFinite(v) ? v.toExponential(2) : 'diverged');
+        hud(ctx, [
+          { text: `plain MSE  ${fmt(pLoss)}`, color: colors.kraft },
+          { text: `residual MSE  ${fmt(rLoss)}`, color: colors.accent },
+          { text: `plain ÷ residual  ${Number.isFinite(ratio) ? `${ratio.toFixed(1)}×` : '—'}  ·  β=${beta.toFixed(3)}`, color: colors.muted },
+        ], 10, 6);
+      }
+
     },
     { aspect: 2.3, animate: playing },
   );
-
-  const nets = netsRef.current;
-  const plainLoss = nets?.plain.diverged ? NaN : (nets?.plain.loss ?? NaN);
-  const residualLoss = nets?.residual.diverged ? NaN : (nets?.residual.loss ?? NaN);
-  const ratio = plainLoss / residualLoss;
-  const show = (v: number) => (Number.isFinite(v) ? v.toExponential(2) : 'diverged');
 
   return (
     <FigureBody>
@@ -349,43 +356,34 @@ export default function DepthTrainer() {
           canvasRef={canvasRef}
           aspect={aspect}
           label="Two networks of matching shape, one plain and one residual, trained live: their training-loss curves and their current fits to the target function."
+          className="cursor-pointer"
+          onClick={() => setPlaying((p) => !p)}
         />
-        <Metrics>
-          <Readout label="plain MSE" value={show(plainLoss)} />
-          <Readout label="residual MSE" value={show(residualLoss)} />
-          <Readout
-            label="plain ÷ residual"
-            value={Number.isFinite(ratio) ? `${ratio.toFixed(1)}×` : '—'}
-            hint={`β = ${beta.toFixed(3)}`}
-          />
-        </Metrics>
-        <Toolbar>
-          <PlayPause playing={playing} onChange={setPlaying} />
-        </Toolbar>
-        <Dock columns={3}>
+        <PlayCorner playing={playing} onChange={setPlaying} />
+        <ParamsPopover>
           <Slider label="blocks" value={blocks} min={2} max={28} step={1} format={(v) => String(v)} onChange={setBlocks} />
           <Slider label="learning rate" value={lr} min={0.005} max={0.08} step={0.005} format={(v) => v.toFixed(3)} onChange={setLr} />
           <Slider label="init gain" value={gain} min={0.6} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
           <SegmentedControl
-            label="residual branch scale"
-            value={betaMode}
-            options={[
-              { value: 'depth', label: 'β=1/√L' },
-              { value: 'one', label: 'β=1' },
-            ]}
-            onChange={setBetaMode}
+          label="residual branch scale"
+          value={betaMode}
+          options={[
+          { value: 'depth', label: 'β=1/√L' },
+          { value: 'one', label: 'β=1' },
+          ]}
+          onChange={setBetaMode}
           />
           <SegmentedControl
-            label="initial draw"
-            value={seedKey}
-            options={[
-              { value: 'a', label: 'A' },
-              { value: 'b', label: 'B' },
-              { value: 'c', label: 'C' },
-            ]}
-            onChange={setSeedKey}
+          label="initial draw"
+          value={seedKey}
+          options={[
+          { value: 'a', label: 'A' },
+          { value: 'b', label: 'B' },
+          { value: 'c', label: 'C' },
+          ]}
+          onChange={setSeedKey}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

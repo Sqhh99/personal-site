@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
-import { TAU, box, bx, byUp, circle, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, ParamsPopover } from '@figures/controls';
+import { TAU, box, bx, byUp, circle, dot, label, polyline, hud } from '@figures/plot';
 
 const SAMPLES = 900;
 const F_MIN = 0;
@@ -150,6 +150,12 @@ export default function WindingPlane() {
           baseline: 'top',
         });
       }
+
+      hud(ctx, [
+        { text: `magnitude  ${magnitude.toFixed(3)}  ·  phase  ${(phase / Math.PI).toFixed(2)}π`, color: colors.ink },
+        { text: shift === 0 ? 'aligned in time' : 'rotated by time shift', color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.1 },
   );
@@ -162,44 +168,35 @@ export default function WindingPlane() {
           aspect={aspect}
           label="A signal wound around the complex plane, its centre of mass, and the magnitude spectrum."
         />
-        <Metrics>
-          <Readout label="magnitude" value={magnitude.toFixed(3)} hint="arrow length" />
-          <Readout label="phase" value={`${(phase / Math.PI).toFixed(2)}π`} hint="arrow angle" />
-          <Readout
-            label="on shifting time"
-            value={shift === 0 ? 'aligned' : 'rotated'}
-            hint="length is unchanged"
-          />
-        </Metrics>
-        <Dock columns={3}>
+        <ParamsPopover>
           <Slider
-            label="winding frequency"
-            value={windF}
-            min={F_MIN}
-            max={F_MAX}
-            step={0.01}
-            format={(v) => `${v.toFixed(2)} Hz`}
-            onChange={setWindF}
+          label="winding frequency"
+          value={windF}
+          min={F_MIN}
+          max={F_MAX}
+          step={0.01}
+          format={(v) => `${v.toFixed(2)} Hz`}
+          onChange={setWindF}
           />
           <Slider
-            label="signal frequency"
-            value={signalF}
-            min={1}
-            max={7}
-            step={1}
-            format={(v) => `${v} Hz`}
-            onChange={setSignalF}
+          label="signal frequency"
+          value={signalF}
+          min={1}
+          max={7}
+          step={1}
+          format={(v) => `${v} Hz`}
+          onChange={setSignalF}
           />
           <Slider
-            label="time shift"
-            value={shift}
-            min={0}
-            max={1}
-            step={0.005}
-            format={(v) => `${v.toFixed(3)} s`}
-            onChange={setShift}
+          label="time shift"
+          value={shift}
+          min={0}
+          max={1}
+          step={0.005}
+          format={(v) => `${v.toFixed(3)} s`}
+          onChange={setShift}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

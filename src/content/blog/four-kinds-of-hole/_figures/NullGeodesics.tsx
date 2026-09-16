@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
-import { circle, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
+import { circle, dot, label, polyline, hud } from '@figures/plot';
 
 // Geometric units: G = c = 1, M = 1. The horizon is then at r = 2, the photon
 // sphere at r = 3, and the critical impact parameter is 3√3 ≈ 5.196.
@@ -154,6 +154,12 @@ export default function NullGeodesics() {
         { size: 11 },
       );
       label(ctx, `b = ${b.toFixed(2)} M   ·   b_crit = 5.196 M`, 16, 38, colors.faint, { size: 10 });
+
+      hud(ctx, [
+        { text: `b  ${b.toFixed(3)} M  ·  ${highlighted.captured ? 'captured' : 'escapes'}`, color: colors.ink },
+        { text: highlighted.captured ? 'deflection  —' : `deflection  ${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.2 },
   );
@@ -166,35 +172,18 @@ export default function NullGeodesics() {
           aspect={aspect}
           label="Light rays bending around a Schwarzschild black hole, some escaping and some captured."
         />
-        <Metrics>
-          <Readout label="impact parameter" value={`${b.toFixed(3)} M`} />
-          <Readout
-            label="outcome"
-            value={highlighted.captured ? 'captured' : 'escapes'}
-            hint={b < B_CRIT ? 'below b_crit' : 'above b_crit'}
-          />
-          <Readout
-            label="deflection"
-            value={
-              highlighted.captured ? '—' : `${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`
-            }
-            hint={highlighted.deflection > Math.PI ? 'more than a full loop' : undefined}
-          />
-        </Metrics>
-        <Toolbar>
-          <Toggle label="Show ray fan" checked={fan} onChange={setFan} />
-        </Toolbar>
-        <Dock columns={1}>
+        <ParamsPopover>
           <Slider
-            label="impact parameter b"
-            value={b}
-            min={0.5}
-            max={20}
-            step={0.005}
-            format={(v) => `${v.toFixed(3)} M`}
-            onChange={setB}
+          label="impact parameter b"
+          value={b}
+          min={0.5}
+          max={20}
+          step={0.005}
+          format={(v) => `${v.toFixed(3)} M`}
+          onChange={setB}
           />
-        </Dock>
+          <Toggle label="Show ray fan" checked={fan} onChange={setFan} />
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

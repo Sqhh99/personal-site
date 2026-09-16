@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Toolbar, SegmentedControl } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, ParamsPopover } from '@figures/controls';
 import { TAU, box, bx, by, dft, label, polyline } from '@figures/plot';
 
 const N = 256;
@@ -164,20 +164,20 @@ export default function DrawYourOwn() {
             lastIndexRef.current = null;
           }}
         />
-        <Toolbar>
+        <ParamsPopover>
           <SegmentedControl
-            label="start from"
-            value={kind}
-            options={[
-              { value: 'sine', label: 'sine' },
-              { value: 'square', label: 'square' },
-              { value: 'pulse', label: 'pulse' },
-              { value: 'chirp', label: 'chirp' },
-              { value: 'clear', label: 'clear' },
-            ]}
-            onChange={applyPreset}
+          label="start from"
+          value={kind}
+          options={[
+          { value: 'sine', label: 'sine' },
+          { value: 'square', label: 'square' },
+          { value: 'pulse', label: 'pulse' },
+          { value: 'chirp', label: 'chirp' },
+          { value: 'clear', label: 'clear' },
+          ]}
+          onChange={applyPreset}
           />
-        </Toolbar>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

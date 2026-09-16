@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { box, bx, byUp, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { box, bx, byUp, label, polyline, hud } from '@figures/plot';
 
 /**
  * Actual matrix products, not a metaphor for them. Each block gets a fresh
@@ -216,16 +216,24 @@ export default function SignalPropagation() {
         size: 9,
         align: 'right',
       });
+
+      {
+        const fmtGain = (v: number) => {
+          if (!Number.isFinite(v)) return '—';
+          if (v === 0) return '0';
+          const exp = Math.log10(v);
+          return exp > 4 || exp < -4 ? v.toExponential(1) : v.toPrecision(3);
+        };
+        hud(ctx, [
+          { text: `plain gain  ${fmtGain(plainTotal)}  ·  residual  ${fmtGain(residualTotal)}`, color: colors.ink },
+          { text: `per-block  ${Math.sqrt(plainPerBlock).toFixed(3)} → ${Math.sqrt(residualPerBlock).toFixed(3)}  ·  ${BETA_LABEL[betaMode]}`, color: colors.muted },
+        ], 10, 6);
+      }
+
     },
     { aspect: 2.35, animate: false },
   );
 
-  const fmt = (v: number) => {
-    if (!Number.isFinite(v)) return '—';
-    if (v === 0) return '0';
-    const exp = Math.log10(v);
-    return exp > 4 || exp < -4 ? v.toExponential(1) : v.toPrecision(3);
-  };
 
   return (
     <FigureBody>
@@ -235,38 +243,30 @@ export default function SignalPropagation() {
           aspect={aspect}
           label="Measured forward activation norms and backward gradient norms through a stack of random Jacobians, for plain and residual layers, against their closed-form predictions."
         />
-        <Metrics>
-          <Readout label="plain gain over L" value={fmt(plainTotal)} hint={`g^L = ${gain.toFixed(2)}^${blocks}`} />
-          <Readout label="residual gain over L" value={fmt(residualTotal)} hint={`(1+β²g²)^{L/2}`} />
-          <Readout label="per-block factor" value={`${Math.sqrt(plainPerBlock).toFixed(3)} → ${Math.sqrt(residualPerBlock).toFixed(3)}`} />
-          <Readout label="branch scale" value={BETA_LABEL[betaMode]} hint={beta === 0 ? 'exact identity' : `β = ${beta.toFixed(3)}`} />
-        </Metrics>
-        <Toolbar>
-          <SegmentedControl
-            label="random draw"
-            value={seedKey}
-            options={[
-              { value: 'a', label: 'A' },
-              { value: 'b', label: 'B' },
-              { value: 'c', label: 'C' },
-            ]}
-            onChange={setSeedKey}
-          />
-        </Toolbar>
-        <Dock columns={3}>
+        <ParamsPopover>
           <Slider label="blocks (L)" value={blocks} min={4} max={64} step={2} format={(v) => String(v)} onChange={setBlocks} />
           <Slider label="branch gain (g)" value={gain} min={0.2} max={1.6} step={0.05} format={(v) => v.toFixed(2)} onChange={setGain} />
           <SegmentedControl
-            label="branch scale"
-            value={betaMode}
-            options={[
-              { value: 'one', label: 'β=1' },
-              { value: 'depth', label: 'β=1/√L' },
-              { value: 'zero', label: 'β=0' },
-            ]}
-            onChange={setBetaMode}
+          label="branch scale"
+          value={betaMode}
+          options={[
+          { value: 'one', label: 'β=1' },
+          { value: 'depth', label: 'β=1/√L' },
+          { value: 'zero', label: 'β=0' },
+          ]}
+          onChange={setBetaMode}
           />
-        </Dock>
+          <SegmentedControl
+          label="random draw"
+          value={seedKey}
+          options={[
+          { value: 'a', label: 'A' },
+          { value: 'b', label: 'B' },
+          { value: 'c', label: 'C' },
+          ]}
+          onChange={setSeedKey}
+          />
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );
