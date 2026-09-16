@@ -1,22 +1,20 @@
-import type { CSSProperties, ReactNode, RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 
 /**
- * Shared figure furniture. Every interactive in the essays is built from these,
- * so the controls read as one instrument panel rather than twelve improvisations.
+ * Shared figure furniture.
  *
- * Layout contract (overlay-only — nothing may sit under the canvas):
+ * Layout contract (canvas-first — the plot must never be covered):
  *   <FigureBody>
  *     <FigureStage>
- *       <Canvas … />
- *       <Metrics>…</Metrics>   // optional — top-left live-value chips
- *       <Toolbar>…</Toolbar>   // optional — top-right play / toggles / segmented
- *       <Dock>…</Dock>         // optional — bottom-inside-stage sliders & denser controls
+ *       <Canvas … />                 // sizes via aspect ratio; fully visible
+ *       <PlayCorner … />             // optional — tiny 36px corner control
+ *       <ParamsPopover>…</ParamsPopover>  // optional — ⋯ opens lightweight params
+ *       <ChipBar>…</ChipBar>         // optional — compact family/preset chips
  *     </FigureStage>
  *   </FigureBody>
  *
- * All operations and value displays render as overlays INSIDE FigureStage
- * (absolutely positioned over the canvas). A sibling block after </FigureStage>
- * is forbidden — do not reintroduce an under-canvas Panel.
+ * Live values belong in the canvas draw loop (HUD text), not HTML overlays.
+ * Do not reintroduce Dock (covers the plot) or Panel (replaces the plot below).
  */
 
 export function Canvas({
@@ -27,6 +25,7 @@ export function Canvas({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onClick,
   style,
 }: {
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -36,6 +35,7 @@ export function Canvas({
   onPointerDown?: (e: React.PointerEvent<HTMLCanvasElement>) => void;
   onPointerMove?: (e: React.PointerEvent<HTMLCanvasElement>) => void;
   onPointerUp?: (e: React.PointerEvent<HTMLCanvasElement>) => void;
+  onClick?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   style?: CSSProperties;
 }) {
   return (
@@ -49,45 +49,165 @@ export function Canvas({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
+      onClick={onClick}
     />
   );
 }
 
-/** Relative canvas host: overlays (Metrics / Toolbar / Dock) position against this. */
+/** Relative canvas host. Overlays must be tiny corner affordances — never a strip that eats the plot. */
 export function FigureStage({ children }: { children: ReactNode }) {
   return <div className="relative isolate overflow-hidden bg-surface">{children}</div>;
 }
 
+/** Wraps a figure's canvas + optional corner affordances. Adds the card outline. */
+export function FigureBody({ children }: { children: ReactNode }) {
+  return <div className="overflow-hidden rounded-sm border border-line bg-surface">{children}</div>;
+}
+
+/** Compact 36px icon button used for play / params. */
+export function IconButton({
+  label,
+  onClick,
+  pressed,
+  children,
+  className = '',
+}: {
+  label: string;
+  onClick: () => void;
+  pressed?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={`inline-flex size-9 items-center justify-center rounded-full border border-line/80 bg-surface/90 text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink ${
+        pressed ? 'border-accent/50 text-accent-deep' : ''
+      } ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Tiny bottom-left play/pause that does not obscure the plot. */
+export function PlayCorner({ playing, onChange }: { playing: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="absolute bottom-2 left-2 z-10">
+      <IconButton label={playing ? 'Pause animation' : 'Play animation'} onClick={() => onChange(!playing)} pressed={playing}>
+        {playing ? (
+          <svg viewBox="0 0 24 24" className="size-3.5 fill-current" aria-hidden="true">
+            <rect x="6" y="5" width="4" height="14" rx="1" />
+            <rect x="14" y="5" width="4" height="14" rx="1" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="size-3.5 fill-current" aria-hidden="true">
+            <path d="M7 4.5v15l13-7.5z" />
+          </svg>
+        )}
+      </IconButton>
+    </div>
+  );
+}
+
 /**
- * Bottom-inside-stage control dock. Soft translucent backdrop so the plot stays
- * readable underneath. Replaces the old under-canvas Panel entirely.
+ * Bottom-right ⋯ that opens a lightweight popover for rare parameters.
+ * Anchored to the corner so the main plot stays visible underneath the closed button;
+ * when open the panel floats above empty margin rather than a permanent dock.
  */
-export function Dock({ children, columns = 2 }: { children: ReactNode; columns?: 1 | 2 | 3 }) {
-  const cols = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3' }[columns];
+export function ParamsPopover({
+  children,
+  label = 'Figure parameters',
+  title = 'Parameters',
+}: {
+  children: ReactNode;
+  label?: string;
+  title?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    const onPointer = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onPointer);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onPointer);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="absolute bottom-2 right-2 z-10 flex flex-col items-end gap-1.5">
+      {open && (
+        <div
+          id={panelId}
+          role="dialog"
+          aria-label={title}
+          className="max-h-[min(52vh,22rem)] w-[min(18rem,calc(100vw-2.5rem))] overflow-y-auto rounded-sm border border-line/80 bg-surface/95 p-2.5 shadow-md backdrop-blur-md"
+        >
+          <div className="mb-2 font-mono text-[0.6rem] tracking-wider text-faint">{title}</div>
+          <div className="grid grid-cols-1 gap-2.5">{children}</div>
+        </div>
+      )}
+      <IconButton
+        label={label}
+        pressed={open}
+        onClick={() => setOpen((v) => !v)}
+        className="font-mono text-[0.85rem] leading-none"
+      >
+        <span aria-hidden="true">⋯</span>
+      </IconButton>
+    </div>
+  );
+}
+
+/** Compact chip strip for family/preset pickers — sits in a corner, never replaces the diagram. */
+export function ChipBar({ children, label }: { children: ReactNode; label?: string }) {
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 z-10 grid grid-cols-1 gap-x-3 gap-y-2 border-t border-line/50 bg-surface/78 px-2.5 py-2 shadow-[0_-8px_24px_rgba(0,0,0,0.04)] backdrop-blur-md ${cols}`}
+      role="group"
+      aria-label={label}
+      className="absolute left-2 right-12 top-2 z-10 flex max-w-[calc(100%-3.5rem)] flex-wrap gap-1"
     >
       {children}
     </div>
   );
 }
 
-/** Live values floated onto the canvas — top-left chips. */
-export function Metrics({ children }: { children: ReactNode }) {
+export function Chip({
+  label,
+  detail,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  detail?: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
   return (
-    <div className="pointer-events-none absolute left-1.5 top-1.5 z-10 flex max-w-[min(100%-0.75rem,72%)] flex-wrap gap-1 sm:left-2 sm:top-2 sm:gap-1.5">
-      {children}
-    </div>
-  );
-}
-
-/** Play / toggles / segmented controls floated onto the canvas — top-right. */
-export function Toolbar({ children }: { children: ReactNode }) {
-  return (
-    <div className="absolute right-1.5 top-1.5 z-10 flex max-w-[min(100%-0.75rem,78%)] flex-wrap items-center justify-end gap-1 sm:right-2 sm:top-2 sm:gap-1.5">
-      {children}
-    </div>
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={`rounded-sm border px-2 py-1 text-left transition-colors ${
+        selected ? 'border-accent/50 bg-accent/10' : 'border-line/80 bg-surface/85 hover:border-line-strong'
+      }`}
+    >
+      <div className={`font-mono text-[0.65rem] tracking-wider ${selected ? 'text-accent-deep' : 'text-ink'}`}>{label}</div>
+      {detail && <div className="font-mono text-[0.55rem] text-faint">{detail}</div>}
+    </button>
   );
 }
 
@@ -109,7 +229,7 @@ export function Slider({
   onChange: (v: number) => void;
 }) {
   return (
-    <label className="block min-h-11 min-w-0">
+    <label className="block min-w-0">
       <span className="flex items-baseline justify-between gap-2">
         <span className="label text-[0.6rem] leading-none">{label}</span>
         <span className="font-mono text-[0.65rem] tabular-nums text-accent-deep">
@@ -123,7 +243,7 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1.5 h-2 w-full cursor-pointer appearance-none rounded-full bg-line/80"
+        className="mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line/80"
         style={{ accentColor: 'var(--accent)' }}
       />
     </label>
@@ -145,7 +265,7 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`inline-flex min-h-11 items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider shadow-xs backdrop-blur-sm transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 font-mono text-[0.65rem] tracking-wider transition-colors ${
         checked
           ? 'border-accent/50 bg-accent/15 text-accent-deep'
           : 'border-line/80 bg-surface/85 text-muted hover:border-line-strong hover:text-ink'
@@ -174,7 +294,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div role="group" aria-label={label} className="min-w-0">
       {label && <span className="label mb-1 block text-[0.6rem] leading-none">{label}</span>}
-      <div className="inline-flex max-w-full flex-wrap gap-0.5 rounded-sm border border-line/80 bg-sunk/80 p-0.5 shadow-xs backdrop-blur-sm">
+      <div className="inline-flex max-w-full flex-wrap gap-0.5 rounded-sm border border-line/80 bg-sunk/80 p-0.5">
         {options.map((option) => {
           const selected = option.value === value;
           return (
@@ -183,7 +303,7 @@ export function SegmentedControl<T extends string>({
               type="button"
               aria-pressed={selected}
               onClick={() => onChange(option.value)}
-              className={`min-h-11 rounded-sm px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
+              className={`rounded-sm px-2 py-1 font-mono text-[0.65rem] tracking-wider transition-colors ${
                 selected ? 'bg-surface text-accent-deep shadow-xs' : 'text-muted hover:text-ink'
               }`}
             >
@@ -194,45 +314,4 @@ export function SegmentedControl<T extends string>({
       </div>
     </div>
   );
-}
-
-export function PlayPause({ playing, onChange }: { playing: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!playing)}
-      aria-label={playing ? 'Pause animation' : 'Play animation'}
-      className="inline-flex min-h-11 items-center gap-1.5 rounded-sm border border-line/80 bg-surface/85 px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
-    >
-      {playing ? (
-        <svg viewBox="0 0 24 24" className="size-2.5 fill-current" aria-hidden="true">
-          <rect x="6" y="5" width="4" height="14" rx="1" />
-          <rect x="14" y="5" width="4" height="14" rx="1" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" className="size-2.5 fill-current" aria-hidden="true">
-          <path d="M7 4.5v15l13-7.5z" />
-        </svg>
-      )}
-      <span>{playing ? 'Pause' : 'Play'}</span>
-    </button>
-  );
-}
-
-/** Compact on-canvas key/value chip. */
-export function Readout({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="pointer-events-auto rounded-sm border border-line/80 bg-surface/88 px-1.5 py-1 shadow-xs backdrop-blur-sm sm:px-2">
-      <div className="label text-[0.55rem] leading-none">{label}</div>
-      <div className="mt-0.5 font-mono text-[0.7rem] leading-tight tabular-nums text-ink">{value}</div>
-      {hint && (
-        <div className="mt-0.5 hidden font-mono text-[0.55rem] leading-none text-faint sm:block">{hint}</div>
-      )}
-    </div>
-  );
-}
-
-/** Wraps a figure's canvas + in-stage overlays. Adds the card outline. */
-export function FigureBody({ children }: { children: ReactNode }) {
-  return <div className="overflow-hidden rounded-sm border border-line bg-surface">{children}</div>;
 }

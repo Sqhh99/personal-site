@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider } from '@figures/controls';
-import { circle, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, ChipBar, ParamsPopover } from '@figures/controls';
+import { circle, dot, label, polyline, hud } from '@figures/plot';
 
 // Geometric units with M = 1, so a and Q are already in units of M.
 const M = 1;
@@ -204,6 +204,12 @@ export default function MetricExplorer() {
       label(ctx, '↑ charge Q', px0, py0 - 6, colors.faint, { size: 9 });
       label(ctx, 'extremal', toPx(0.72), toPy(0.78), colors.accent, { size: 9 });
       label(ctx, 'Schw.', toPx(0.02), toPy(0.03), colors.faint, { size: 8, baseline: 'bottom' });
+
+      hud(ctx, [
+        { text: `${metric.name}  ·  extremality ${extremality.toFixed(3)}${naked ? ' (naked)' : ''}`, color: colors.ink },
+        { text: `r₊  ${naked ? '—' : rPlus.toFixed(3) + ' M'}  ·  r₋  ${naked || root < 1e-3 ? '—' : rMinus.toFixed(3) + ' M'}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.25 },
   );
@@ -216,57 +222,47 @@ export default function MetricExplorer() {
           aspect={aspect}
           label="A cross-section of a black hole's horizons and ergosphere, alongside the spin–charge parameter space."
         />
-        <Metrics>
-          <Readout label="solution" value={metric.name} />
-          <Readout label="outer horizon r₊" value={naked ? '—' : `${rPlus.toFixed(3)} M`} />
-          <Readout label="inner horizon r₋" value={naked || root < 1e-3 ? '—' : `${rMinus.toFixed(3)} M`} />
-          <Readout
-            label="extremality"
-            value={extremality.toFixed(3)}
-            hint={naked ? 'past the limit' : '1.000 is extremal'}
-          />
-        </Metrics>
-        <Toolbar>
+        <ChipBar>
           <div className="inline-flex flex-wrap gap-0.5 rounded-sm border border-line/80 bg-sunk/80 p-0.5 shadow-xs backdrop-blur-sm" role="group" aria-label="metric presets">
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => {
-                  setA(p.a);
-                  setQ(p.q);
-                }}
-                className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
-                  metric.name === p.label
-                    ? 'bg-surface text-accent-deep shadow-xs'
-                    : 'text-muted hover:text-ink'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </Toolbar>
-        <Dock columns={2}>
+                      {PRESETS.map((p) => (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => {
+                            setA(p.a);
+                            setQ(p.q);
+                          }}
+                          className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
+                            metric.name === p.label
+                              ? 'bg-surface text-accent-deep shadow-xs'
+                              : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+        </ChipBar>
+        <ParamsPopover>
           <Slider
-            label="spin a / M"
-            value={a}
-            min={0}
-            max={1.2}
-            step={0.005}
-            format={(v) => v.toFixed(3)}
-            onChange={setA}
+          label="spin a / M"
+          value={a}
+          min={0}
+          max={1.2}
+          step={0.005}
+          format={(v) => v.toFixed(3)}
+          onChange={setA}
           />
           <Slider
-            label="charge Q / M"
-            value={q}
-            min={0}
-            max={1.2}
-            step={0.005}
-            format={(v) => v.toFixed(3)}
-            onChange={setQ}
+          label="charge Q / M"
+          value={q}
+          min={0}
+          max={1.2}
+          step={0.005}
+          format={(v) => v.toFixed(3)}
+          onChange={setQ}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

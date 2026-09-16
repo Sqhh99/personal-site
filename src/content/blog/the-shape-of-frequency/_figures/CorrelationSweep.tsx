@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
-import { TAU, baseline, box, bx, by, curve, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, ParamsPopover } from '@figures/controls';
+import { TAU, baseline, box, bx, by, curve, dot, label, polyline, hud } from '@figures/plot';
 
 const SAMPLES = 600;
 const F_MIN = 0.4;
@@ -158,6 +158,12 @@ export default function CorrelationSweep() {
         });
       }
       label(ctx, 'correlation vs frequency', bot.x + 4, bot.y + 12, colors.muted, { size: 10 });
+
+      hud(ctx, [
+        { text: `test f  ${testF.toFixed(2)} Hz  ·  correlation  ${current.toFixed(3)}`, color: colors.ink },
+        { text: Math.abs(current) > 0.15 ? 'present — lobes reinforce' : 'absent — lobes cancel', color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.55, animate: false },
   );
@@ -170,51 +176,42 @@ export default function CorrelationSweep() {
           aspect={aspect}
           label="A signal multiplied by a test sinusoid, the shaded product area, and the resulting spectrum."
         />
-        <Metrics>
-          <Readout label="test f" value={`${testF.toFixed(2)} Hz`} />
-          <Readout label="correlation" value={current.toFixed(3)} hint="the shaded area" />
-          <Readout
-            label="verdict"
-            value={Math.abs(current) > 0.15 ? 'present' : 'absent'}
-            hint={Math.abs(current) > 0.15 ? 'lobes reinforce' : 'lobes cancel'}
-          />
-        </Metrics>
-        <Dock columns={2}>
+        <ParamsPopover>
           <Slider
-            label="test frequency f"
-            value={testF}
-            min={F_MIN}
-            max={F_MAX}
-            step={0.02}
-            format={(v) => `${v.toFixed(2)} Hz`}
-            onChange={setTestF}
+          label="test frequency f"
+          value={testF}
+          min={F_MIN}
+          max={F_MAX}
+          step={0.02}
+          format={(v) => `${v.toFixed(2)} Hz`}
+          onChange={setTestF}
           />
           <Slider
-            label="component A"
-            value={fA}
-            min={1}
-            max={11}
-            step={1}
-            format={(v) => `${v} Hz`}
-            onChange={setFA}
+          label="component A"
+          value={fA}
+          min={1}
+          max={11}
+          step={1}
+          format={(v) => `${v} Hz`}
+          onChange={setFA}
           />
           <Slider
-            label="component B"
-            value={fB}
-            min={1}
-            max={11}
-            step={1}
-            format={(v) => `${v} Hz`}
-            onChange={setFB}
+          label="component B"
+          value={fB}
+          min={1}
+          max={11}
+          step={1}
+          format={(v) => `${v} Hz`}
+          onChange={setFB}
           />
           <Slider
-            label="amplitude of B"
-            value={ampB}
-            min={0}
-            max={1}
-            onChange={setAmpB}
+          label="amplitude of B"
+          value={ampB}
+          min={0}
+          max={1}
+          onChange={setAmpB}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

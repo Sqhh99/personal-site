@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { box, circle, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { box, circle, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * The additive attention gate of Attention U-Net, trained rather than asserted.
@@ -326,6 +326,12 @@ export default function AttentionGate() {
         size: 9,
         align: 'right',
       });
+
+      hud(ctx, [
+        { text: `region  ${evaluated.target}  ·  mean α  ${evaluated.mean.toFixed(3)}`, color: colors.ink },
+        { text: `kept object ${(evaluated.objectRetained * 100).toFixed(0)}%  ·  clutter ${(evaluated.clutterRetained * 100).toFixed(0)}%`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.75, animate: false },
   );
@@ -350,45 +356,39 @@ export default function AttentionGate() {
             dragging.current = false;
           }}
         />
-        <Metrics>
-          <Readout label="requested region" value={evaluated.target} hint="nearest object to the context" />
-          <Readout label="mean α" value={evaluated.mean.toFixed(3)} hint={`${(evaluated.passed * 100).toFixed(0)}% of cells above 0.5`} />
-          <Readout label="requested energy kept" value={`${(evaluated.objectRetained * 100).toFixed(0)}%`} />
-          <Readout label="everything else kept" value={`${(evaluated.clutterRetained * 100).toFixed(0)}%`} />
-        </Metrics>
-        <Dock columns={3}>
+        <ParamsPopover>
           {/* Buttons, not a slider: changing this retrains the gate, which costs
-              about a tenth of a second and would stutter under a drag. */}
+          about a tenth of a second and would stutter under a drag. */}
           <SegmentedControl
-            label="intermediate channels"
-            value={String(inner)}
-            options={[
-              { value: '4', label: '4' },
-              { value: '8', label: '8' },
-              { value: '16', label: '16' },
-            ]}
-            onChange={(v) => setInner(Number(v))}
+          label="intermediate channels"
+          value={String(inner)}
+          options={[
+          { value: '4', label: '4' },
+          { value: '8', label: '8' },
+          { value: '16', label: '16' },
+          ]}
+          onChange={(v) => setInner(Number(v))}
           />
           <Slider
-            label="gate sharpness"
-            value={sharpness}
-            min={0.25}
-            max={4}
-            step={0.25}
-            format={(v) => `${v.toFixed(2)}×`}
-            onChange={setSharpness}
+          label="gate sharpness"
+          value={sharpness}
+          min={0.25}
+          max={4}
+          step={0.25}
+          format={(v) => `${v.toFixed(2)}×`}
+          onChange={setSharpness}
           />
           <SegmentedControl
-            label="weight draw"
-            value={seedKey}
-            options={[
-              { value: 'a', label: 'A' },
-              { value: 'b', label: 'B' },
-              { value: 'c', label: 'C' },
-            ]}
-            onChange={setSeedKey}
+          label="weight draw"
+          value={seedKey}
+          options={[
+          { value: 'a', label: 'A' },
+          { value: 'b', label: 'B' },
+          { value: 'c', label: 'C' },
+          ]}
+          onChange={setSeedKey}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

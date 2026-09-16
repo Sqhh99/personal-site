@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, Slider } from '@figures/controls';
-import { label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, ParamsPopover } from '@figures/controls';
+import { label, polyline, hud } from '@figures/plot';
 
 const G = 6.6743e-11;
 const C = 2.99792458e8;
@@ -154,6 +154,12 @@ export default function TidalForces() {
         size: 10,
         baseline: 'top',
       });
+
+      hud(ctx, [
+        { text: `mass  ${(10 ** logMass).toPrecision(3)} M☉  ·  stretch  ${stretch < 0.01 ? stretch.toExponential(2) : stretch.toPrecision(3)} g`, color: colors.ink },
+        { text: `${stretch > 10 ? 'spaghettified' : 'uneventful'}  ·  ${distance <= 1.01 ? 'at the horizon' : distance.toFixed(1) + ' r_s out'}`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.5 },
   );
@@ -166,38 +172,26 @@ export default function TidalForces() {
           aspect={aspect}
           label="A body stretched by tidal forces, with the resulting acceleration marked on a logarithmic scale."
         />
-        <Metrics>
-          <Readout label="mass" value={`${(10 ** logMass).toPrecision(3)} M☉`} />
-          <Readout
-            label="tidal stretch"
-            value={stretch < 0.01 ? `${stretch.toExponential(2)} g` : `${stretch.toPrecision(3)} g`}
-          />
-          <Readout
-            label="verdict"
-            value={stretch > 10 ? 'spaghettified' : 'uneventful'}
-            hint={distance <= 1.01 ? 'at the horizon' : `${distance.toFixed(1)} r_s out`}
-          />
-        </Metrics>
-        <Dock columns={2}>
+        <ParamsPopover>
           <Slider
-            label="black hole mass"
-            value={logMass}
-            min={0}
-            max={10}
-            step={0.05}
-            format={(v) => `10^${v.toFixed(1)} M☉`}
-            onChange={setLogMass}
+          label="black hole mass"
+          value={logMass}
+          min={0}
+          max={10}
+          step={0.05}
+          format={(v) => `10^${v.toFixed(1)} M☉`}
+          onChange={setLogMass}
           />
           <Slider
-            label="distance"
-            value={distance}
-            min={1}
-            max={12}
-            step={0.05}
-            format={(v) => `${v.toFixed(2)} × r_s`}
-            onChange={setDistance}
+          label="distance"
+          value={distance}
+          min={1}
+          max={12}
+          step={0.05}
+          format={(v) => `${v.toFixed(2)} × r_s`}
+          onChange={setDistance}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

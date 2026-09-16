@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, Slider, Toggle } from '@figures/controls';
-import { box, byUp, fillRoundRect, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
+import { box, byUp, fillRoundRect, label, polyline, hud } from '@figures/plot';
 
 /**
  * Expanding ∏(I + F_l) over L blocks gives 2^L terms, one per subset of blocks
@@ -159,13 +159,21 @@ export default function PathEnsemble() {
       });
       label(ctx, 'paths', plot.x + plot.w - 62, plot.y - 5, colors.kraft, { size: 10, align: 'right' });
       label(ctx, 'gradient', plot.x + plot.w, plot.y - 5, colors.accent, { size: 10, align: 'right' });
+
+      {
+        let mass20 = 0;
+        const cut = Math.min(blocks, 20);
+        for (let k = 0; k <= cut; k += 1) mass20 += dist.mass[k];
+        hud(ctx, [
+          { text: `paths  10^${log10Paths.toFixed(1)}  (2^${blocks})  ·  mean length ${(blocks / 2).toFixed(1)}`, color: colors.ink },
+          { text: `effective depth  ${dist.effectiveDepth.toFixed(2)}  ·  ≤20-block mass  ${(mass20 * 100).toFixed(1)}%`, color: colors.muted },
+        ], 10, 6);
+      }
+
     },
     { aspect: 2.2, animate: false },
   );
 
-  let shortMass = 0;
-  const cutoff = Math.min(blocks, 20);
-  for (let k = 0; k <= cutoff; k += 1) shortMass += dist.mass[k];
 
   return (
     <FigureBody>
@@ -175,31 +183,19 @@ export default function PathEnsemble() {
           aspect={aspect}
           label="Exact binomial distribution of path lengths through a residual stack, overlaid with the share of gradient magnitude each path length carries."
         />
-        <Metrics>
-          <Readout label="distinct paths" value={`10^${log10Paths.toFixed(1)}`} hint={`2^${blocks}`} />
-          <Readout label="mean path length" value={(blocks / 2).toFixed(1)} hint="unweighted" />
-          <Readout
-            label="effective depth"
-            value={dist.effectiveDepth.toFixed(2)}
-            hint={`La/(1+a) = ${predictedDepth.toFixed(2)}`}
-          />
-          <Readout label="≤20-block mass" value={`${(shortMass * 100).toFixed(1)}%`} />
-        </Metrics>
-        <Toolbar>
-          <Toggle label="cumulative curve" checked={showCumulative} onChange={setShowCumulative} />
-        </Toolbar>
-        <Dock columns={2}>
+        <ParamsPopover>
           <Slider label="blocks (L)" value={blocks} min={8} max={MAX_BLOCKS} step={2} format={(v) => String(v)} onChange={setBlocks} />
           <Slider
-            label="per-branch gradient factor"
-            value={branchFactor}
-            min={0.05}
-            max={1}
-            step={0.05}
-            format={(v) => v.toFixed(2)}
-            onChange={setBranchFactor}
+          label="per-branch gradient factor"
+          value={branchFactor}
+          min={0.05}
+          max={1}
+          step={0.05}
+          format={(v) => v.toFixed(2)}
+          onChange={setBranchFactor}
           />
-        </Dock>
+          <Toggle label="cumulative curve" checked={showCumulative} onChange={setShowCumulative} />
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

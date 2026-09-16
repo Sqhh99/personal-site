@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { TAU, box, bx, by, byUp, dft, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { TAU, box, bx, by, byUp, dft, label, polyline, hud } from '@figures/plot';
 
 const N = 256;
 const FLOOR_DB = -75;
@@ -146,6 +146,12 @@ export default function SpectralLeakage() {
           baseline: 'top',
         });
       }
+
+      hud(ctx, [
+        { text: `alignment  ${Math.abs(cycles - Math.round(cycles)) < 0.02 ? 'on a bin' : 'between bins'}  ·  window  ${window === 'hann' ? 'Hann' : 'rectangular'}`, color: colors.ink },
+        { text: `energy spilled  ${(spill * 100).toFixed(1)}%`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.75, animate: false },
   );
@@ -158,36 +164,28 @@ export default function SpectralLeakage() {
           aspect={aspect}
           label="A windowed pure tone and its spectrum in decibels, showing spectral leakage."
         />
-        <Metrics>
-          <Readout
-            label="alignment"
-            value={Math.abs(cycles - Math.round(cycles)) < 0.02 ? 'on a bin' : 'between bins'}
-          />
-          <Readout label="energy spilled" value={`${(spill * 100).toFixed(1)}%`} hint="outside ±1 bin" />
-          <Readout label="window" value={window === 'hann' ? 'Hann' : 'rectangular'} />
-        </Metrics>
-        <Dock columns={2}>
+        <ParamsPopover>
           <Slider
-            label="cycles in the record"
-            value={cycles}
-            min={6}
-            max={11}
-            step={0.02}
-            format={(v) => v.toFixed(2)}
-            onChange={setCycles}
+          label="cycles in the record"
+          value={cycles}
+          min={6}
+          max={11}
+          step={0.02}
+          format={(v) => v.toFixed(2)}
+          onChange={setCycles}
           />
           <div className="flex items-end">
-            <SegmentedControl
-              label="window"
-              value={window}
-              options={[
-                { value: 'rect', label: 'rectangular' },
-                { value: 'hann', label: 'Hann' },
-              ]}
-              onChange={setWindow}
-            />
+          <SegmentedControl
+          label="window"
+          value={window}
+          options={[
+          { value: 'rect', label: 'rectangular' },
+          { value: 'hann', label: 'Hann' },
+          ]}
+          onChange={setWindow}
+          />
           </div>
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

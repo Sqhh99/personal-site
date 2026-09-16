@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, PlayPause, Readout, Slider } from '@figures/controls';
-import { circle, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, Slider, IconButton, PlayCorner, ParamsPopover } from '@figures/controls';
+import { circle, dot, label, polyline, hud } from '@figures/plot';
 
 const M = 1;
 const SPOKES = 16;
@@ -88,6 +88,12 @@ export default function FrameDragging() {
         colors.faint,
         { size: 10 },
       );
+
+      hud(ctx, [
+        { text: `outer horizon  ${rPlus.toFixed(3)} M  ·  static limit  2.000 M`, color: colors.ink },
+        { text: `dragging at r₊  ${omega(rPlus, a).toFixed(4)} / M`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 1.9 },
   );
@@ -99,39 +105,26 @@ export default function FrameDragging() {
           canvasRef={canvasRef}
           aspect={aspect}
           label="Radial marker lines around a spinning black hole, winding up because spacetime is dragged around it."
+          className="cursor-pointer"
+          onClick={() => setPlaying((p) => !p)}
         />
-        <Metrics>
-          <Readout label="outer horizon" value={`${rPlus.toFixed(3)} M`} />
-          <Readout label="static limit" value="2.000 M" hint="equatorial" />
-          <Readout
-            label="dragging at r₊"
-            value={omega(rPlus, a).toFixed(4)}
-            hint="ω in units of 1/M"
-          />
-        </Metrics>
-        <Toolbar>
-          <PlayPause playing={playing} onChange={setPlaying} />
-          <button
-            type="button"
-            onClick={() => {
-              clockRef.current = 0;
-            }}
-            className="inline-flex min-h-11 items-center rounded-sm border border-line/80 bg-surface/85 px-2.5 py-1.5 font-mono text-[0.65rem] tracking-wider text-muted shadow-xs backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
-          >
-            Reset
-          </button>
-        </Toolbar>
-        <Dock columns={1}>
+        <PlayCorner playing={playing} onChange={setPlaying} />
+        <div className="absolute bottom-2 left-12 z-10">
+          <IconButton label="Reset animation" onClick={() => { clockRef.current = 0; }}>
+            <span className="font-mono text-[0.55rem] tracking-wider">RST</span>
+          </IconButton>
+        </div>
+        <ParamsPopover>
           <Slider
-            label="spin a / M"
-            value={a}
-            min={0}
-            max={0.999}
-            step={0.001}
-            format={(v) => v.toFixed(3)}
-            onChange={setA}
+          label="spin a / M"
+          value={a}
+          min={0}
+          max={0.999}
+          step={0.001}
+          format={(v) => v.toFixed(3)}
+          onChange={setA}
           />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );

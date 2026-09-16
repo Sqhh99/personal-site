@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Readout } from '@figures/controls';
-import { type Box, box, circle, dot, fillRoundRect, frame, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, ChipBar } from '@figures/controls';
+import { type Box, box, circle, dot, fillRoundRect, frame, label, polyline, hud } from '@figures/plot';
 
 /**
  * The U-Net family as one scaffold, mutated along a single axis at a time.
@@ -401,6 +401,13 @@ export default function UNetFamilyMap() {
       if (footnote) {
         label(ctx, footnote, well.x + 14, well.y + well.h - 12, colors.faint, { size: 9 });
       }
+
+      hud(ctx, [
+        { text: `${family.name}  ·  ${family.axis}`, color: colors.ink },
+        { text: `${family.idea}`, color: colors.muted },
+        { text: `${family.metric}  ·  ${family.metricHint}`, color: colors.faint },
+      ], 10, 6);
+
     },
     { aspect: 1.78, animate: false },
   );
@@ -413,36 +420,31 @@ export default function UNetFamilyMap() {
           aspect={aspect}
           label={`A U-Net family specimen. ${family.name} changes ${family.axis}: ${family.idea}.`}
         />
-        <Metrics>
-          <Readout label={family.name} value={family.idea} />
-          <Readout label="design axis" value={family.axis} />
-          <Readout label="what it costs" value={family.metric} hint={family.metricHint} />
-        </Metrics>
-        <Dock columns={1}>
+        <ChipBar>
           <div className="flex flex-wrap gap-1" role="group" aria-label="U-Net family">
-            {FAMILIES.map((entry, i) => {
-              const on = i === selected;
-              return (
-                <button
-                  key={entry.kind}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setSelected(i)}
-                  className={`min-h-11 rounded-sm border px-2.5 py-1.5 text-left transition-colors ${
-                    on
-                      ? 'border-accent/50 bg-accent/10'
-                      : 'border-line/80 bg-surface/80 hover:border-line-strong'
-                  }`}
-                >
-                  <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
-                    {entry.name}
-                  </div>
-                  <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
-                </button>
-              );
-            })}
-          </div>
-        </Dock>
+                      {FAMILIES.map((entry, i) => {
+                        const on = i === selected;
+                        return (
+                          <button
+                            key={entry.kind}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => setSelected(i)}
+                            className={`rounded-sm border px-2.5 py-1.5 text-left transition-colors ${
+                              on
+                                ? 'border-accent/50 bg-accent/10'
+                                : 'border-line/80 bg-surface/80 hover:border-line-strong'
+                            }`}
+                          >
+                            <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
+                              {entry.name}
+                            </div>
+                            <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+        </ChipBar>
       </FigureStage>
     </FigureBody>
   );

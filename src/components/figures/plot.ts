@@ -171,3 +171,18 @@ export function dft(samples: number[]): { mag: number[]; phase: number[] } {
   }
   return { mag, phase };
 }
+
+/** Compact on-canvas HUD: stacked "label  value" lines in a corner of the plot. */
+export function hud(
+  ctx: CanvasRenderingContext2D,
+  lines: ReadonlyArray<{ text: string; color: string }>,
+  x = 10,
+  y = 14,
+  lineHeight = 13,
+) {
+  let yy = y;
+  for (const line of lines) {
+    label(ctx, line.text, x, yy, line.color, { size: 10, baseline: 'top' });
+    yy += lineHeight;
+  }
+}

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Dock, Metrics, Toolbar, Readout, SegmentedControl, Slider } from '@figures/controls';
-import { circle, dot, label, polyline } from '@figures/plot';
+import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover } from '@figures/controls';
+import { circle, dot, label, polyline, hud } from '@figures/plot';
 
 const G = 6.6743e-11;
 const C = 2.99792458e8;
@@ -187,6 +187,12 @@ export default function SchwarzschildRadius() {
         collapsed ? colors.accent : colors.muted,
         { size: 11 },
       );
+
+      hud(ctx, [
+        { text: `r_s  ${format(rs)}  ·  ${collapsed ? 'black hole' : 'ordinary matter'}`, color: colors.ink },
+        { text: collapsed ? 'compression  none' : `compression needed  10^${Math.log10(compression).toFixed(1)}×`, color: colors.muted },
+      ], 10, 6);
+
     },
     { aspect: 2.4, animate: collapsed && compression < 400 },
   );
@@ -199,45 +205,35 @@ export default function SchwarzschildRadius() {
           aspect={aspect}
           label="A logarithmic length ruler comparing an object's actual radius with its Schwarzschild radius."
         />
-        <Metrics>
-          <Readout label="Schwarzschild radius" value={format(rs)} />
-          <Readout
-            label="compression needed"
-            value={collapsed ? 'none' : `10^${Math.log10(compression).toFixed(1)}×`}
+        <ParamsPopover>
+          <Slider
+          label="mass"
+          value={logMass}
+          min={22}
+          max={40}
+          step={0.05}
+          format={(v) => `${(10 ** v / M_SUN).toPrecision(3)} M☉`}
+          onChange={(v) => setLogMass(v)}
           />
-          <Readout label="state" value={collapsed ? 'black hole' : 'ordinary matter'} />
-        </Metrics>
-        <Toolbar>
+          <Slider
+          label="radius"
+          value={logRadius}
+          min={AXIS_MIN}
+          max={AXIS_MAX}
+          step={0.05}
+          format={(v) => format(10 ** v)}
+          onChange={(v) => setLogRadius(v)}
+          />
           <SegmentedControl
-            label="preset"
-            value={body}
-            options={Object.entries(BODIES).map(([key, value]) => ({
-              value: key as keyof typeof BODIES,
-              label: value.label,
-            }))}
-            onChange={choose}
+          label="preset"
+          value={body}
+          options={Object.entries(BODIES).map(([key, value]) => ({
+          value: key as keyof typeof BODIES,
+          label: value.label,
+          }))}
+          onChange={choose}
           />
-        </Toolbar>
-        <Dock columns={2}>
-          <Slider
-            label="mass"
-            value={logMass}
-            min={22}
-            max={40}
-            step={0.05}
-            format={(v) => `${(10 ** v / M_SUN).toPrecision(3)} M☉`}
-            onChange={(v) => setLogMass(v)}
-          />
-          <Slider
-            label="radius"
-            value={logRadius}
-            min={AXIS_MIN}
-            max={AXIS_MAX}
-            step={0.05}
-            format={(v) => format(10 ** v)}
-            onChange={(v) => setLogRadius(v)}
-          />
-        </Dock>
+        </ParamsPopover>
       </FigureStage>
     </FigureBody>
   );
