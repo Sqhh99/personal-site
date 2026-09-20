@@ -168,7 +168,8 @@ Frontmatter：
 ```bash
 cd /home/sqhh99/workspace/personal-site
 git pull --ff-only origin main
-# 写好文件后：
+# 写好文件后，先过质量门：
+npm run check:brief -- YYYY-MM-DD
 git add src/content/brief/YYYY-MM-DD.md
 git status   # 确认只有这一个文件 staged
 git commit -m "brief: AI news YYYY-MM-DD"
@@ -176,6 +177,11 @@ git push origin main
 git log -1 --oneline
 git status -sb
 ```
+
+`check:brief` 的规则就是本文档第 3 节：代码查 frontmatter / 来源深链 / 日期窗口 / 条数，TypeSafe（Jev）查营销腔、未加「据报道 / 待核实」的传闻、标题超出正文、与近三日简报重复。
+- 输出 `RESULT: FAIL` → 按 `FAIL` 行修正简报后重跑；修不了就 `FAIL: <原因>` 退出非 0，**不要带病提交**。
+- `RESULT: WARN` → 逐条看一眼，合理则可提交（常见是「正文点名了某媒体但来源没链它」）。
+- 无 `TYPESAFE_API_KEY` 或 API 不可用时自动降级为只跑代码检查并给 WARN，不阻塞发布。脚本只依赖 `@typesafe-ai/sdk`（已在 devDependencies），不需要 build。
 
 冲突或 push 失败 → **不要 force push**；stdout 说明错误并 exit 非 0。
 
@@ -203,5 +209,6 @@ OK brief YYYY-MM-DD pushed: https://github.com/Sqhh99/personal-site/blob/main/sr
 - [ ] 不提交 `agents/`、`dist/`、`node_modules/`、本地密钥  
 - [ ] 单次只处理 **今天** 这一天  
 - [ ] 纯 `.md` brief，无 MDX/组件  
+- [ ] `npm run check:brief -- <今天>` 不是 FAIL  
 
-开始执行：pull → 取日期 → 查重 → 检索 → 只写当天 md → commit/push → 打印 OK 行。
+开始执行：pull → 取日期 → 查重 → 检索 → 只写当天 md → `check:brief` → commit/push → 打印 OK 行。

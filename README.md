@@ -26,6 +26,7 @@ src/
 │   └── react/           # ThemeToggle, PostFilter
 └── pages/               # routes (EN unprefixed, ZH under /zh), rss.xml.ts
 scripts/new-article.mjs  # npm run new:article
+scripts/check-brief.mjs  # npm run check:brief — daily brief QA gate
 public/                  # favicon, robots.txt — copied verbatim
 ```
 
@@ -42,6 +43,7 @@ language and appears in both listings.
 | `npm run preview` | Serve the built output |
 | `npm run check` | Type-check `.astro`, `.ts` and `.tsx` |
 | `npm run new:article -- <slug>` | Scaffold a new article directory |
+| `npm run check:brief [-- YYYY-MM-DD]` | QA gate for a daily brief: shape/links/dates in code, tone/hedging/dedup via TypeSafe (needs `TYPESAFE_API_KEY`; add `--no-ai` for code checks only) |
 | `npm run deploy` | Build, then `wrangler deploy` |
 
 ## Adding a post
