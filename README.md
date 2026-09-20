@@ -1,7 +1,7 @@
 # personal-site
 
 Personal site and engineering blog — long-form explanatory essays with interactive
-figures, plus a daily AI news brief. Built with Astro, deployed as static files to
+figures, plus a daily AI news brief, behind a landing page drawn as a wood-engraving. Built with Astro, deployed as static files to
 Cloudflare.
 
 **Stack:** Astro · TypeScript · Tailwind CSS v4 · MDX content collections ·
@@ -23,7 +23,7 @@ src/
 ├── components/
 │   ├── *.astro          # static markup — ships no JavaScript
 │   ├── figures/         # shared figure library (canvas hooks, controls, plot)
-│   └── react/           # ThemeToggle, PostFilter
+│   └── react/           # PostFilter
 └── pages/               # routes (EN unprefixed, ZH under /zh), rss.xml.ts
 scripts/new-article.mjs  # npm run new:article
 public/                  # favicon, robots.txt — copied verbatim
@@ -75,15 +75,16 @@ loads automatically as a skill in Claude Code.
 
 Everything ships as its own island; the page is server-rendered otherwise.
 
-- `ThemeToggle` (`client:load`) — the initial theme is resolved by a blocking inline script
-  in `BaseLayout.astro` so the palette never flashes.
+- **Landing engraving** (`InkHero.astro` + `src/lib/ink-scene.ts`) — a procedurally drawn
+  wood-engraving that inks itself in on the first viewport, then idles with parallax and a
+  slow dolly. No image assets; it regenerates for the viewport size.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on
   `src/components/figures/`. `useFigureCanvas` handles devicePixelRatio, resize, and
   suspends the frame loop when a figure is offscreen or the tab is hidden;
-  `useThemeColors` re-reads the palette when the theme changes, so canvases follow the
-  toggle. Both honour `prefers-reduced-motion` by rendering a static frame.
+  `useThemeColors` resolves the palette tokens for canvas drawing. Both honour
+  `prefers-reduced-motion` by rendering a static frame.
 
 ## Configuration
 
@@ -92,7 +93,7 @@ Everything ships as its own island; the page is server-rendered otherwise.
 - **Content** — name, links, nav and the tag vocabulary live in `src/consts.ts`.
   UI strings for both locales live in `src/i18n/ui.ts`.
 - **Palette** — CSS custom properties at the top of `src/styles/global.css`, exposed to
-  Tailwind via `@theme inline` so light and dark swap at runtime.
+  Tailwind via `@theme inline`. One theme: white ink on black paper.
 
 ## Deploying to Cloudflare
 

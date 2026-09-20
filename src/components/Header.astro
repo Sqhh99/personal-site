@@ -1,138 +1,136 @@
 ---
-import ThemeToggle from './react/ThemeToggle';
-import LanguageSwitch from './LanguageSwitch.astro';
-import { getLangFromUrl, getLocalizedPath, useTranslations } from '../i18n/utils';
-import type { Language } from '../i18n/ui';
+/**
+ * The header is a wordmark and one word, "Menu". Everything a visitor might
+ * want — writing, briefs, GitHub, RSS, the language — waits behind that word
+ * so the pages, and above all the landing engraving, are not crowded by chrome.
+ */
+import { getLangFromUrl, getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
+import { LANGUAGES, type Language } from '../i18n/ui';
 import { SITE } from '../consts';
 
 interface Props {
   lang?: Language;
+  /** On the landing page the header floats over the engraving. */
+  overlay?: boolean;
 }
 
 const path = Astro.url.pathname;
 const lang = Astro.props.lang ?? getLangFromUrl(Astro.url);
+const overlay = Astro.props.overlay ?? false;
 const t = useTranslations(lang);
 
 const homeHref = getLocalizedPath('/', lang);
-const navItems = [
-  { href: getLocalizedPath('/', lang), label: t('nav.home') },
-  { href: getLocalizedPath('/blog/', lang), label: t('nav.writing') },
-  { href: getLocalizedPath('/brief/', lang), label: t('nav.briefs') },
+const links = [
+  { href: getLocalizedPath('/blog/', lang), label: t('nav.writing'), current: path.startsWith(getLocalizedPath('/blog/', lang)) },
+  { href: getLocalizedPath('/brief/', lang), label: t('nav.briefs'), current: path.startsWith(getLocalizedPath('/brief/', lang)) },
 ];
-
-const isActive = (href: string) => {
-  if (href === homeHref) return path === href || path === href.replace(/\/$/, '');
-  return path.startsWith(href);
-};
+const external = [
+  { href: SITE.github, label: t('nav.github') },
+  { href: '/rss.xml', label: t('footer.rss') },
+];
+const languages = listLanguages().map((code) => ({
+  code,
+  label: LANGUAGES[code],
+  href: getLocalizedPath(path, code),
+  current: code === lang,
+}));
 ---
 
-<header
-  id="site-header"
-  class="site-header"
-  data-scrolled="false"
->
-  <div class="shell flex h-16 items-center justify-between gap-6">
-    <a
-      href={homeHref}
-      class="wordmark text-[1.3rem] text-ink transition-colors hover:text-accent"
-      aria-label={`${t('site.name')} — home`}
-    >
+<header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false">
+  <div class="shell flex h-14 items-center justify-between">
+    <a href={homeHref} class="wordmark text-[1.15rem] text-ink" aria-label={`${t('site.name')} — home`}>
       {t('site.name')}
     </a>
 
-    <nav class="hidden items-center gap-7 sm:flex" aria-label="Primary">
-      {
-        navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <a
-              href={item.href}
-              aria-current={active ? 'page' : undefined}
-              class:list={[
-                'font-mono text-[0.7rem] tracking-[0.16em] uppercase transition-colors',
-                active
-                  ? 'text-ink border-b border-accent pb-0.5'
-                  : 'text-muted hover:text-ink',
-              ]}
-            >
-              {item.label}
-            </a>
-          );
-        })
-      }
-    </nav>
-
-    <div class="flex items-center gap-2.5">
-      <LanguageSwitch lang={lang} />
-
-      <ThemeToggle client:load />
-
-      <a
-        href={SITE.github}
-        target="_blank"
-        rel="noreferrer"
-        class="hidden items-center gap-1.5 font-mono text-[0.7rem] tracking-wider text-muted transition-colors hover:text-ink sm:inline-flex"
-      >
-        GitHub
-      </a>
-
-      <button
-        id="menu-toggle"
-        type="button"
-        aria-expanded="false"
-        aria-controls="mobile-nav"
-        aria-label="Open menu"
-        class="sketch-control grid size-8 place-items-center text-ink sm:hidden"
-      >
-        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-          <path d="M4 8h16M4 16h16"></path>
-        </svg>
-      </button>
-    </div>
+    <button
+      id="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-menu"
+      class="label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink"
+    >
+      <span data-label-open>{t('nav.menu')}</span>
+      <span data-label-close hidden>{t('nav.close')}</span>
+    </button>
   </div>
 
-  <nav
-    id="mobile-nav"
-    class="grid grid-rows-[0fr] overflow-hidden border-t-0 border-line bg-bg/95 transition-[grid-template-rows] duration-300 sm:hidden"
-    aria-label="Primary (mobile)"
-  >
-    <div class="min-h-0 overflow-hidden">
-      <div class="shell flex flex-col py-3">
+  <nav id="site-menu" class="site-menu" hidden aria-label="Site">
+    <div class="shell grid gap-10 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
+      <ul class="flex flex-col gap-3">
         {
-          navItems.map((item) => (
-            <a href={item.href} class="border-b border-line/60 py-3 font-display text-base text-ink hover:text-accent transition-colors last:border-b-0">
-              {item.label}
-            </a>
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                aria-current={link.current ? 'page' : undefined}
+                class:list={['font-display text-3xl leading-none transition-colors sm:text-4xl', link.current ? 'text-ink' : 'text-muted hover:text-ink']}
+              >
+                {link.label}
+              </a>
+            </li>
           ))
         }
-        <a href={SITE.github} target="_blank" rel="noreferrer" class="py-3 font-display text-base text-ink hover:text-accent transition-colors">
-          GitHub
-        </a>
+      </ul>
+      <div class="flex flex-col gap-3 sm:items-end">
+        <ul class="flex gap-5">
+          {
+            external.map((link) => (
+              <li>
+                <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" class="label transition-colors hover:text-ink">
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <ul class="flex gap-4" aria-label={t('nav.language')}>
+          {
+            languages.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  data-lang-btn={l.code}
+                  aria-current={l.current ? 'true' : undefined}
+                  class:list={['label transition-colors', l.current ? 'text-ink underline underline-offset-4' : 'hover:text-ink']}
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </div>
   </nav>
 </header>
 
 <script>
+  const header = document.getElementById('site-header')!;
   const button = document.getElementById('menu-toggle')!;
-  const nav = document.getElementById('mobile-nav')!;
+  const menu = document.getElementById('site-menu')!;
+  const labelOpen = button.querySelector<HTMLElement>('[data-label-open]')!;
+  const labelClose = button.querySelector<HTMLElement>('[data-label-close]')!;
 
   const setOpen = (open: boolean) => {
-    nav.classList.toggle('grid-rows-[1fr]', open);
-    nav.classList.toggle('grid-rows-[0fr]', !open);
-    nav.style.borderTopWidth = open ? '1px' : '0';
+    menu.hidden = !open;
+    header.dataset.open = String(open);
     button.setAttribute('aria-expanded', String(open));
-    button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    labelOpen.hidden = open;
+    labelClose.hidden = !open;
   };
 
-  button?.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
-  nav?.addEventListener('click', (event) => {
-    if ((event.target as HTMLElement).closest('a')) setOpen(false);
+  button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+  document.addEventListener('click', (e) => {
+    if (!header.contains(e.target as Node)) setOpen(false);
+  });
+  menu.querySelectorAll<HTMLAnchorElement>('[data-lang-btn]').forEach((link) => {
+    link.addEventListener('click', () => localStorage.setItem('preferred-lang', link.dataset.langBtn ?? ''));
   });
 
-  const header = document.getElementById('site-header');
   const syncScroll = () => {
-    if (!header) return;
     header.dataset.scrolled = window.scrollY > 8 ? 'true' : 'false';
   };
   syncScroll();
