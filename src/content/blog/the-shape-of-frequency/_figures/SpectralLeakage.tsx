@@ -150,7 +150,7 @@ export default function SpectralLeakage() {
       hud(ctx, [
         { text: `alignment  ${Math.abs(cycles - Math.round(cycles)) < 0.02 ? 'on a bin' : 'between bins'}  ·  window  ${window === 'hann' ? 'Hann' : 'rectangular'}`, color: colors.ink },
         { text: `energy spilled  ${(spill * 100).toFixed(1)}%`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.75, animate: false },

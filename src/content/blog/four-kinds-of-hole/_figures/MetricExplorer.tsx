@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, Slider, ChipBar, ParamsPopover } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, Slider, ChipBar, Chip, CHIP_BAND, CHIP_HUD_Y, ParamsPopover } from '@figures/controls';
 import { circle, dot, label, polyline, hud } from '@figures/plot';
 
 // Geometric units with M = 1, so a and Q are already in units of M.
@@ -208,10 +208,10 @@ export default function MetricExplorer() {
       hud(ctx, [
         { text: `${metric.name}  ·  extremality ${extremality.toFixed(3)}${naked ? ' (naked)' : ''}`, color: colors.ink },
         { text: `r₊  ${naked ? '—' : rPlus.toFixed(3) + ' M'}  ·  r₋  ${naked || root < 1e-3 ? '—' : rMinus.toFixed(3) + ' M'}`, color: colors.muted },
-      ], 10, 6);
+      ], 10, CHIP_HUD_Y);
 
     },
-    { aspect: 2.25 },
+    { hudBand: CHIP_BAND, aspect: 2.25 },
   );
 
   return (
@@ -220,28 +220,21 @@ export default function MetricExplorer() {
         <Canvas
           canvasRef={canvasRef}
           aspect={aspect}
+          hudBand={CHIP_BAND}
           label="A cross-section of a black hole's horizons and ergosphere, alongside the spin–charge parameter space."
         />
-        <ChipBar>
-          <div className="inline-flex flex-wrap gap-0.5 rounded-sm border border-line/80 bg-sunk/80 p-0.5 shadow-xs backdrop-blur-sm" role="group" aria-label="metric presets">
-                      {PRESETS.map((p) => (
-                        <button
-                          key={p.label}
-                          type="button"
-                          onClick={() => {
-                            setA(p.a);
-                            setQ(p.q);
-                          }}
-                          className={`rounded-sm px-2 py-0.5 font-mono text-[0.65rem] tracking-wider transition-colors ${
-                            metric.name === p.label
-                              ? 'bg-surface text-accent-deep shadow-xs'
-                              : 'text-muted hover:text-ink'
-                          }`}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
+        <ChipBar label="metric presets">
+          {PRESETS.map((p) => (
+            <Chip
+              key={p.label}
+              label={p.label}
+              selected={metric.name === p.label}
+              onSelect={() => {
+                setA(p.a);
+                setQ(p.q);
+              }}
+            />
+          ))}
         </ChipBar>
         <ParamsPopover>
           <Slider

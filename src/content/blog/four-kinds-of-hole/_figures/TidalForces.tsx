@@ -158,7 +158,7 @@ export default function TidalForces() {
       hud(ctx, [
         { text: `mass  ${(10 ** logMass).toPrecision(3)} M☉  ·  stretch  ${stretch < 0.01 ? stretch.toExponential(2) : stretch.toPrecision(3)} g`, color: colors.ink },
         { text: `${stretch > 10 ? 'spaghettified' : 'uneventful'}  ·  ${distance <= 1.01 ? 'at the horizon' : distance.toFixed(1) + ' r_s out'}`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.5 },

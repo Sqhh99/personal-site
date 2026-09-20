@@ -156,14 +156,14 @@ import { fade, useThemeColors } from '@figures/useThemeColors';
 import {
   Canvas,
   FigureBody,
-  Panel,
+  FigureStage,
+  ParamsPopover,
+  PlayCorner,
   Slider,
   Toggle,
   SegmentedControl,
-  PlayPause,
-  Readout,
 } from '@figures/controls';
-import { TAU, box, curve, baseline, polyline, dot, label, dft } from '@figures/plot';
+import { TAU, box, curve, baseline, polyline, dot, label, hud, dft } from '@figures/plot';
 ```
 
 ### The two hooks are not optional
@@ -172,7 +172,12 @@ import { TAU, box, curve, baseline, polyline, dot, label, dft } from '@figures/p
   scaling, resize, and — the part that matters on a page carrying a dozen
   canvases — suspending the frame loop when the figure scrolls offscreen or the
   tab is hidden, and rendering a single static frame under
-  `prefers-reduced-motion` while staying interactive.
+  `prefers-reduced-motion` while staying interactive. It also reserves a
+  **HUD band** (`HUD_BAND`, 40 px) above the plot: `draw` gets the plot's own
+  `width`/`height` with its origin below the band, `hud()` writes the live
+  readout into the band, and the corner controls live there too — so nothing
+  the figure draws can ever be covered. Pointer maths must subtract the
+  `hudBand` the hook returns (`clientY - rect.top - hudBand`).
 - **`useThemeColors()`** resolves the palette custom properties and re-resolves
   them when the theme toggle flips `data-theme`. **Never hard-code a colour in a
   figure.** Canvas pixels are not styled by CSS, so this hook is the only reason
@@ -181,18 +186,23 @@ import { TAU, box, curve, baseline, polyline, dot, label, dft } from '@figures/p
 
 ### Control kit (stay inside it)
 
-Build the panel from `@figures/controls` only unless you are extending the
-shared library on purpose:
+Figures are canvas-first: the plot is never covered by a control strip. Build
+from `@figures/controls` only unless you are extending the shared library on
+purpose:
 
 | Piece | Role |
 | --- | --- |
-| `FigureBody` | Card chrome around canvas + controls |
-| `Canvas` | Requires `aria-label` via `label=` |
-| `Panel` | `columns={1\|2\|3}` control grid |
-| `Slider` | Continuous parameters |
-| `Toggle` / `SegmentedControl` | Binary / enum modes |
-| `PlayPause` | Animation run state |
-| `Readout` | Derived numbers the reader should watch |
+| `FigureBody` › `FigureStage` | Card chrome, then the relative host for canvas + band overlays |
+| `Canvas` | Requires `aria-label` via `label=`; pass the same `hudBand` as the hook if not default |
+| `hud(ctx, lines)` (plot.ts) | Live readout, up to two lines, drawn into the band — the only place derived numbers go |
+| `ParamsPopover` | `⋯` in the band's top-right; sliders/toggles live inside, closed by default |
+| `PlayCorner` | Play/pause next to `⋯`, for `animate: playing` figures |
+| `ChipBar` + `Chip` | Family/preset pickers on the band's first row; pair with `hudBand: CHIP_BAND` and `hud(…, 10, CHIP_HUD_Y)` |
+| `Slider` / `Toggle` / `SegmentedControl` | Parameters, inside `ParamsPopover` |
+
+Do not reintroduce a dock under or over the plot, and do not draw labels in
+the plot's top-left corner expecting them to double as a readout — that is what
+the band is for.
 
 Prefer **Canvas 2D + these hooks**. `three` / `@react-three/fiber` are in the
 repo for legacy/other islands; new essay figures should not introduce a 3D stack

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
+import { HUD_BAND } from '@figures/useFigureCanvas';
 
 /**
  * Shared figure furniture.
@@ -6,20 +7,30 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode,
  * Layout contract (canvas-first — the plot must never be covered):
  *   <FigureBody>
  *     <FigureStage>
- *       <Canvas … />                 // sizes via aspect ratio; fully visible
- *       <PlayCorner … />             // optional — tiny 36px corner control
- *       <ParamsPopover>…</ParamsPopover>  // optional — ⋯ opens lightweight params
- *       <ChipBar>…</ChipBar>         // optional — compact family/preset chips
+ *       <Canvas … />                 // plot sized by aspect ratio, under a HUD band
+ *       <PlayCorner … />             // optional — 36px control in the band, top-right
+ *       <ParamsPopover>…</ParamsPopover>  // optional — ⋯ in the band, opens params
+ *       <ChipBar>…</ChipBar>         // optional — family/preset chips, band row one
  *     </FigureStage>
  *   </FigureBody>
  *
- * Live values belong in the canvas draw loop (HUD text), not HTML overlays.
+ * Every canvas starts with a HUD band (useFigureCanvas reserves HUD_BAND px):
+ * live values written with plot.ts `hud()` sit on its left, the corner
+ * controls on its right, and nothing in the band can collide with the plot
+ * below. A figure with a ChipBar passes a taller `hudBand` so the chips take
+ * row one and the readout row two (see CHIP_BAND).
  * Do not reintroduce Dock (covers the plot) or Panel (replaces the plot below).
  */
+
+/** Where `hud()` starts its first line under a ChipBar: the 38px two-line chip row plus a gap. */
+export const CHIP_HUD_Y = 44;
+/** Band height for figures with a ChipBar: the chip row, then up to three HUD lines. */
+export const CHIP_BAND = CHIP_HUD_Y + 40;
 
 export function Canvas({
   canvasRef,
   aspect,
+  hudBand = HUD_BAND,
   label,
   className = '',
   onPointerDown,
@@ -30,6 +41,8 @@ export function Canvas({
 }: {
   canvasRef: RefObject<HTMLCanvasElement | null>;
   aspect: number;
+  /** Must match what the figure passed to useFigureCanvas; the hook sets the same height once mounted. */
+  hudBand?: number;
   label: string;
   className?: string;
   onPointerDown?: (e: React.PointerEvent<HTMLCanvasElement>) => void;
@@ -44,7 +57,9 @@ export function Canvas({
       role="img"
       aria-label={label}
       className={`block w-full touch-none select-none bg-surface ${className}`}
-      style={{ aspectRatio: String(aspect), ...style }}
+      // Server-rendered height, so the page does not shift when the hook
+      // measures and applies the same value on hydration.
+      style={{ height: `calc(${(100 / aspect).toFixed(4)}cqw + ${hudBand}px)`, ...style }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -54,9 +69,9 @@ export function Canvas({
   );
 }
 
-/** Relative canvas host. Overlays must be tiny corner affordances — never a strip that eats the plot. */
+/** Relative canvas host. Overlays live in the HUD band — never a strip that eats the plot. */
 export function FigureStage({ children }: { children: ReactNode }) {
-  return <div className="relative isolate overflow-hidden bg-surface">{children}</div>;
+  return <div className="relative isolate overflow-hidden bg-surface @container">{children}</div>;
 }
 
 /** Wraps a figure's canvas + optional corner affordances. Adds the card outline. */
@@ -93,10 +108,10 @@ export function IconButton({
   );
 }
 
-/** Tiny bottom-left play/pause that does not obscure the plot. */
+/** Play/pause in the HUD band, to the left of the ⋯ button. */
 export function PlayCorner({ playing, onChange }: { playing: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="absolute bottom-2 left-2 z-10">
+    <div className="absolute right-10.5 top-0.5 z-10">
       <IconButton label={playing ? 'Pause animation' : 'Play animation'} onClick={() => onChange(!playing)} pressed={playing}>
         {playing ? (
           <svg viewBox="0 0 24 24" className="size-3.5 fill-current" aria-hidden="true">
@@ -114,9 +129,9 @@ export function PlayCorner({ playing, onChange }: { playing: boolean; onChange: 
 }
 
 /**
- * Bottom-right ⋯ that opens a lightweight popover for rare parameters.
- * Anchored to the corner so the main plot stays visible underneath the closed button;
- * when open the panel floats above empty margin rather than a permanent dock.
+ * ⋯ in the HUD band's top-right corner that opens a lightweight popover for rare
+ * parameters. Closed, it occupies only the band; open, the panel floats over
+ * the plot rather than being a permanent dock.
  */
 export function ParamsPopover({
   children,
@@ -148,7 +163,7 @@ export function ParamsPopover({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="absolute bottom-2 right-2 z-10 flex flex-col items-end gap-1.5">
+    <div ref={rootRef} className="absolute right-0.5 top-0.5 z-10 flex flex-col-reverse items-end gap-1.5">
       {open && (
         <div
           id={panelId}
@@ -172,13 +187,17 @@ export function ParamsPopover({
   );
 }
 
-/** Compact chip strip for family/preset pickers — sits in a corner, never replaces the diagram. */
+/**
+ * Compact chip strip for family/preset pickers — the first row of the HUD band
+ * (pair with `hudBand: CHIP_BAND`). One row that scrolls sideways on narrow
+ * screens, so it never wraps down over the readout.
+ */
 export function ChipBar({ children, label }: { children: ReactNode; label?: string }) {
   return (
     <div
       role="group"
       aria-label={label}
-      className="absolute left-2 right-12 top-2 z-10 flex max-w-[calc(100%-3.5rem)] flex-wrap gap-1"
+      className="absolute left-1 right-11 top-1 z-10 flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {children}
     </div>
@@ -201,12 +220,12 @@ export function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className={`rounded-sm border px-2 py-1 text-left transition-colors ${
+      className={`shrink-0 rounded-sm border px-2 py-1 text-left transition-colors ${
         selected ? 'border-accent/50 bg-accent/10' : 'border-line/80 bg-surface/85 hover:border-line-strong'
       }`}
     >
-      <div className={`font-mono text-[0.65rem] tracking-wider ${selected ? 'text-accent-deep' : 'text-ink'}`}>{label}</div>
-      {detail && <div className="font-mono text-[0.55rem] text-faint">{detail}</div>}
+      <div className={`font-mono text-[0.65rem] leading-tight tracking-wider ${selected ? 'text-accent-deep' : 'text-ink'}`}>{label}</div>
+      {detail && <div className="font-mono text-[0.55rem] leading-tight text-faint">{detail}</div>}
     </button>
   );
 }

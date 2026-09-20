@@ -339,10 +339,9 @@ export default function DepthTrainer() {
         const ratio = pLoss / rLoss;
         const fmt = (v: number) => (Number.isFinite(v) ? v.toExponential(2) : 'diverged');
         hud(ctx, [
-          { text: `plain MSE  ${fmt(pLoss)}`, color: colors.kraft },
-          { text: `residual MSE  ${fmt(rLoss)}`, color: colors.accent },
+          { text: `plain MSE  ${fmt(pLoss)}  ·  residual MSE  ${fmt(rLoss)}`, color: colors.ink },
           { text: `plain ÷ residual  ${Number.isFinite(ratio) ? `${ratio.toFixed(1)}×` : '—'}  ·  β=${beta.toFixed(3)}`, color: colors.muted },
-        ], 10, 6);
+        ]);
       }
 
     },

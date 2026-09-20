@@ -92,7 +92,7 @@ export default function FrameDragging() {
       hud(ctx, [
         { text: `outer horizon  ${rPlus.toFixed(3)} M  ·  static limit  2.000 M`, color: colors.ink },
         { text: `dragging at r₊  ${omega(rPlus, a).toFixed(4)} / M`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.9 },
@@ -109,7 +109,7 @@ export default function FrameDragging() {
           onClick={() => setPlaying((p) => !p)}
         />
         <PlayCorner playing={playing} onChange={setPlaying} />
-        <div className="absolute bottom-2 left-12 z-10">
+        <div className="absolute right-20.5 top-0.5 z-10">
           <IconButton label="Reset animation" onClick={() => { clockRef.current = 0; }}>
             <span className="font-mono text-[0.55rem] tracking-wider">RST</span>
           </IconButton>

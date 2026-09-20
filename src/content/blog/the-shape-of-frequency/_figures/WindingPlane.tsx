@@ -154,7 +154,7 @@ export default function WindingPlane() {
       hud(ctx, [
         { text: `magnitude  ${magnitude.toFixed(3)}  ·  phase  ${(phase / Math.PI).toFixed(2)}π`, color: colors.ink },
         { text: shift === 0 ? 'aligned in time' : 'rotated by time shift', color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.1 },

@@ -172,17 +172,27 @@ export function dft(samples: number[]): { mag: number[]; phase: number[] } {
   return { mag, phase };
 }
 
-/** Compact on-canvas HUD: stacked "label  value" lines in a corner of the plot. */
+/**
+ * Live readout for a figure. Lines are written into the HUD band that
+ * useFigureCanvas reserves above the plot, so they can never land on top of a
+ * label the figure draws: the band lies above the draw callback's origin, and
+ * this resets that translation (keeping the devicePixelRatio scale) to reach it.
+ * `y` is measured from the top of the canvas, not the top of the plot.
+ */
 export function hud(
   ctx: CanvasRenderingContext2D,
   lines: ReadonlyArray<{ text: string; color: string }>,
   x = 10,
-  y = 14,
+  y = 8,
   lineHeight = 13,
 ) {
+  const t = ctx.getTransform();
+  ctx.save();
+  ctx.setTransform(t.a, t.b, t.c, t.d, 0, 0);
   let yy = y;
   for (const line of lines) {
     label(ctx, line.text, x, yy, line.color, { size: 10, baseline: 'top' });
     yy += lineHeight;
   }
+  ctx.restore();
 }

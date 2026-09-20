@@ -136,12 +136,12 @@ export default function UNetWalkthrough() {
   const choose = (clientX: number, clientY: number, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const y = clientY - rect.top - hudBand;
     const index = hitRef.current.findIndex((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
     if (index >= 0) setSelected(index);
   };
 
-  const { canvasRef, aspect } = useFigureCanvas(
+  const { canvasRef, aspect, hudBand } = useFigureCanvas(
     (ctx, { width, height }) => {
       const pad = 16;
       const n = stages.length;
@@ -222,7 +222,7 @@ export default function UNetWalkthrough() {
       hud(ctx, [
         { text: `${picked.size}² × ${picked.channels}  ·  RF ${picked.receptive} px`, color: colors.ink },
         { text: `params  ${compact(totalParams)}  ·  activations  ${bytes(totalActivation)}`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.9, animate: false },

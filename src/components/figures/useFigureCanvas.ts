@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Height of the strip reserved at the top of every canvas for the HUD readout
+ * and the corner controls. The draw callback never sees it: its origin sits
+ * just below the band, so figure coordinates start at the plot, and `hud()`
+ * from plot.ts writes into the band by resetting that translation.
+ */
+export const HUD_BAND = 40;
+
 export interface Frame {
   /** CSS pixels — the context is already scaled for devicePixelRatio. */
   width: number;
+  /** Height of the drawable plot, i.e. the canvas minus the HUD band above it. */
   height: number;
   /** Seconds of *running* time. Frozen while the figure is paused or offscreen. */
   time: number;
@@ -13,10 +22,12 @@ export interface Frame {
 export type DrawFn = (ctx: CanvasRenderingContext2D, frame: Frame) => void;
 
 interface Options {
-  /** width / height. The canvas fills its container and derives height from this. */
+  /** width / height of the plot. The canvas fills its container and derives its height from this, plus the HUD band. */
   aspect?: number;
   /** false renders a single frame per state change instead of running a loop. */
   animate?: boolean;
+  /** Height of the HUD band in CSS px. Figures with a chip row on top use a taller band so the readout sits below it. */
+  hudBand?: number;
 }
 
 function prefersReducedMotion(): boolean {
@@ -33,7 +44,7 @@ function prefersReducedMotion(): boolean {
  * is hidden, and honouring `prefers-reduced-motion` by rendering a still frame
  * that stays fully interactive.
  */
-export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true }: Options = {}) {
+export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true, hudBand = HUD_BAND }: Options = {}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawRef = useRef(draw);
   drawRef.current = draw;
@@ -53,8 +64,11 @@ export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true 
       if (rect.width === 0) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const height = rect.width / aspect;
+      // The band is added on top of the aspect-derived plot height, so a
+      // figure's proportions are exactly what its `aspect` says.
+      canvas.style.height = `${height + hudBand}px`;
       canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(height * dpr);
+      canvas.height = Math.round((height + hudBand) * dpr);
       sizeRef.current = { width: rect.width, height };
       const ctx = canvas.getContext('2d');
       ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -64,7 +78,7 @@ export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true 
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [aspect]);
+  }, [aspect, hudBand]);
 
   // Visibility --------------------------------------------------------------
   useEffect(() => {
@@ -96,8 +110,11 @@ export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true 
     const ctx = canvas?.getContext('2d');
     const { width, height } = sizeRef.current;
     if (!ctx || width === 0) return;
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height + hudBand);
+    ctx.save();
+    ctx.translate(0, hudBand);
     drawRef.current(ctx, { width, height, time: timeRef.current, dt });
+    ctx.restore();
   };
 
   useEffect(() => {
@@ -144,7 +161,7 @@ export function useFigureCanvas(draw: DrawFn, { aspect = 16 / 9, animate = true 
     return () => window.removeEventListener('resize', onResize);
   }, [running]);
 
-  return { canvasRef, aspect, reduced };
+  return { canvasRef, aspect, reduced, hudBand };
 }
 
 export { prefersReducedMotion };

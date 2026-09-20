@@ -167,7 +167,7 @@ export default function PathEnsemble() {
         hud(ctx, [
           { text: `paths  10^${log10Paths.toFixed(1)}  (2^${blocks})  ·  mean length ${(blocks / 2).toFixed(1)}`, color: colors.ink },
           { text: `effective depth  ${dist.effectiveDepth.toFixed(2)}  ·  ≤20-block mass  ${(mass20 * 100).toFixed(1)}%`, color: colors.muted },
-        ], 10, 6);
+        ]);
       }
 
     },

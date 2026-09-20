@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
 import { Canvas, FigureBody, FigureStage, SegmentedControl, Slider, ParamsPopover, PlayCorner } from '@figures/controls';
-import { TAU, circle, dot, label, polyline } from '@figures/plot';
+import { TAU, circle, dot, label, polyline, hud } from '@figures/plot';
 
 type Shape = 'square' | 'sawtooth' | 'triangle';
 
@@ -119,9 +119,7 @@ export default function Epicycles() {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      label(ctx, `${coeffs.length} term${coeffs.length === 1 ? '' : 's'}`, pad + 2, pad + 10, colors.faint, {
-        size: 10,
-      });
+      hud(ctx, [{ text: `${coeffs.length} term${coeffs.length === 1 ? '' : 's'}`, color: colors.faint }]);
       label(ctx, 'time →', traceX + traceW, height - pad + 2, colors.faint, {
         size: 10,
         align: 'right',

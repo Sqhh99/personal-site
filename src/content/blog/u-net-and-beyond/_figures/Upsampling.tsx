@@ -186,12 +186,13 @@ export default function Upsampling() {
 
       const titles = ['input', method === 'transposed' ? 'transposed convolution' : 'bilinear resize, then convolve', 'per-cell gain'];
       titles.forEach((text, i) => label(ctx, text, panels[i].x, top - 5, i === 0 ? colors.muted : colors.accent, { size: 10 }));
-      label(ctx, 'gain along one row', profile.x, profile.y + 9, colors.faint, { size: 9 });
+      // Captions go in the margin under the strip, where the trace cannot cross them.
+      label(ctx, 'gain along one row', profile.x, profile.y + profile.h + 11, colors.faint, { size: 9 });
       label(
         ctx,
         kernel % stride === 0 ? 'stride divides kernel — gain is flat' : 'stride does not divide kernel — gain alternates',
         profile.x + profile.w,
-        profile.y + 9,
+        profile.y + profile.h + 11,
         kernel % stride === 0 ? colors.muted : colors.kraft,
         { size: 9, align: 'right' },
       );
@@ -199,7 +200,7 @@ export default function Upsampling() {
       hud(ctx, [
         { text: `out ${output.size}²  ·  gain ${stats.lo.toFixed(2)}–${stats.hi.toFixed(2)}  ·  worst ${stats.ratio.toFixed(2)}×`, color: colors.ink },
         { text: `k mod s = ${kernel % stride}${kernel % stride === 0 ? ' (even)' : ' (uneven)'}`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.55, animate: false },

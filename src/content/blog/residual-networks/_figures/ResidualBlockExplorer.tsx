@@ -96,12 +96,12 @@ export default function ResidualBlockExplorer() {
   const pick = (clientX: number, clientY: number, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const y = clientY - rect.top - hudBand;
     const index = hitRef.current.findIndex((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
     if (index >= 0) setActive(index);
   };
 
-  const { canvasRef, aspect } = useFigureCanvas(
+  const { canvasRef, aspect, hudBand } = useFigureCanvas(
     (ctx, { width, height }) => {
       const pad = 18;
       const gap = 13;
@@ -206,7 +206,7 @@ export default function ResidualBlockExplorer() {
       hud(ctx, [
         { text: `${stages[Math.min(active, stages.length - 1)].name}`, color: colors.ink },
         { text: `params  ${compact(totalParams)}  ·  MACs  ${compact(totalMacs)}`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.95, animate: false },

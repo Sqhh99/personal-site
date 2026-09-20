@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
 import { Canvas, FigureBody, FigureStage, SegmentedControl, ParamsPopover } from '@figures/controls';
-import { TAU, box, bx, by, dft, label, polyline } from '@figures/plot';
+import { TAU, box, bx, by, dft, hud, label, polyline } from '@figures/plot';
 
 const N = 256;
 
@@ -46,7 +46,7 @@ export default function DrawYourOwn() {
     const rect = canvas.getBoundingClientRect();
     const b = boundsRef.current;
     const u = (clientX - rect.left - b.x) / b.w;
-    const v = -((clientY - rect.top - b.y) / b.h - 0.5) * 2;
+    const v = -((clientY - rect.top - hudBand - b.y) / b.h - 0.5) * 2;
     const index = Math.round(u * (N - 1));
     if (index < 0 || index >= N) return;
 
@@ -66,7 +66,7 @@ export default function DrawYourOwn() {
     repaint();
   };
 
-  const { canvasRef, aspect } = useFigureCanvas(
+  const { canvasRef, aspect, hudBand } = useFigureCanvas(
     (ctx, { width, height }) => {
       const pad = 16;
       const gap = 16;
@@ -102,7 +102,7 @@ export default function DrawYourOwn() {
         colors.ink,
         2,
       );
-      label(ctx, 'drag to draw', wave.x + 8, wave.y + 14, colors.faint, { size: 10 });
+      hud(ctx, [{ text: 'drag to draw', color: colors.faint }]);
 
       // --- its spectrum -------------------------------------------------------
       const { mag } = dft(samples);

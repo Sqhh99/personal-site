@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { useThemeColors } from '@figures/useThemeColors';
 import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover } from '@figures/controls';
-import { circle, label } from '@figures/plot';
+import { circle, hud, label } from '@figures/plot';
 
 const BUF_W = 380;
 const BUF_H = 170;
@@ -32,7 +32,7 @@ export default function LensingGrid() {
   const lensRef = useRef({ x: 0.5, y: 0.5 });
   const draggingRef = useRef(false);
 
-  const { canvasRef, aspect } = useFigureCanvas(
+  const { canvasRef, aspect, hudBand } = useFigureCanvas(
     (ctx, { width, height, time }) => {
       if (!imageRef.current || imageRef.current.width !== BUF_W) {
         imageRef.current = ctx.createImageData(BUF_W, BUF_H);
@@ -136,7 +136,7 @@ export default function LensingGrid() {
         size: 10,
         align: 'center',
       });
-      label(ctx, 'drag the hole', 12, height - 10, colors.faint, { size: 10 });
+      hud(ctx, [{ text: 'drag the hole', color: colors.faint }]);
     },
     { aspect: BUF_W / BUF_H },
   );
@@ -145,7 +145,7 @@ export default function LensingGrid() {
     const rect = e.currentTarget.getBoundingClientRect();
     lensRef.current = {
       x: Math.max(0.05, Math.min(0.95, (e.clientX - rect.left) / rect.width)),
-      y: Math.max(0.1, Math.min(0.9, (e.clientY - rect.top) / rect.height)),
+      y: Math.max(0.1, Math.min(0.9, (e.clientY - rect.top - hudBand) / (rect.height - hudBand))),
     };
   };
 

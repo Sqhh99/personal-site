@@ -254,7 +254,7 @@ export default function SkipAblation() {
       hud(ctx, [
         { text: `IoU  ${result.iou.toFixed(3)}  ·  boundary F1  ${result.boundaryF1.toFixed(3)}`, color: colors.ink },
         { text: `bottleneck  ${result.bottleneckValues}  ·  lateral  ${result.lateralValues} values/ch`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.75, animate: false },

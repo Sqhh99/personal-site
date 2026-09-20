@@ -162,7 +162,7 @@ export default function CorrelationSweep() {
       hud(ctx, [
         { text: `test f  ${testF.toFixed(2)} Hz  ·  correlation  ${current.toFixed(3)}`, color: colors.ink },
         { text: Math.abs(current) > 0.15 ? 'present — lobes reinforce' : 'absent — lobes cancel', color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.55, animate: false },

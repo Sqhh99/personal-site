@@ -140,7 +140,7 @@ export default function CardinalityTrade() {
       hud(ctx, [
         { text: `cardinality  ${cardinality}  ·  width ${width} ch  ·  aggregate ${aggregate} ch`, color: colors.ink },
         { text: `params  ${blockParams.toLocaleString()}  (${(blockParams / BASELINE_PARAMS).toFixed(2)}× baseline)  ·  MACs  ${compact(macs(cardinality, width))}`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.9, animate: false },

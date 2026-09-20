@@ -145,20 +145,10 @@ export default function NullGeodesics() {
         { size: 10, align: 'center' },
       );
 
-      label(
-        ctx,
-        highlighted.captured ? 'CAPTURED' : `deflected ${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`,
-        16,
-        22,
-        highlighted.captured ? colors.accent : colors.muted,
-        { size: 11 },
-      );
-      label(ctx, `b = ${b.toFixed(2)} M   ·   b_crit = 5.196 M`, 16, 38, colors.faint, { size: 10 });
-
       hud(ctx, [
-        { text: `b  ${b.toFixed(3)} M  ·  ${highlighted.captured ? 'captured' : 'escapes'}`, color: colors.ink },
+        { text: `b  ${b.toFixed(3)} M  ·  b_crit  5.196 M  ·  ${highlighted.captured ? 'captured' : 'escapes'}`, color: highlighted.captured ? colors.accent : colors.ink },
         { text: highlighted.captured ? 'deflection  —' : `deflection  ${((highlighted.deflection * 180) / Math.PI).toFixed(1)}°`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.2 },

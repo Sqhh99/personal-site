@@ -190,7 +190,7 @@ export default function MergeCost() {
       hud(ctx, [
         { text: `fusion nodes  ${current.count}  ·  params  ${compact(current.params)}`, color: colors.ink },
         { text: `activations  ${bytes(current.activation)}  ·  vs concat  ${(current.activation / baselineActivation).toFixed(2)}×`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 1.85, animate: false },

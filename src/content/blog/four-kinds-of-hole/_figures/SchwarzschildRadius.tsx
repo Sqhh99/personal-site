@@ -191,7 +191,7 @@ export default function SchwarzschildRadius() {
       hud(ctx, [
         { text: `r_s  ${format(rs)}  ·  ${collapsed ? 'black hole' : 'ordinary matter'}`, color: colors.ink },
         { text: collapsed ? 'compression  none' : `compression needed  10^${Math.log10(compression).toFixed(1)}×`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.4, animate: collapsed && compression < 400 },

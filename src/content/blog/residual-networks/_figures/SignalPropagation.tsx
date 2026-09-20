@@ -227,7 +227,7 @@ export default function SignalPropagation() {
         hud(ctx, [
           { text: `plain gain  ${fmtGain(plainTotal)}  ·  residual  ${fmtGain(residualTotal)}`, color: colors.ink },
           { text: `per-block  ${Math.sqrt(plainPerBlock).toFixed(3)} → ${Math.sqrt(residualPerBlock).toFixed(3)}  ·  ${BETA_LABEL[betaMode]}`, color: colors.muted },
-        ], 10, 6);
+        ]);
       }
 
     },

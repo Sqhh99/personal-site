@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors } from '@figures/useThemeColors';
 import { Canvas, FigureBody, FigureStage, Slider, Toggle, ParamsPopover, PlayCorner } from '@figures/controls';
-import { TAU, baseline, box, curve, label } from '@figures/plot';
+import { TAU, baseline, box, curve, hud } from '@figures/plot';
 
 const HARMONICS = [1, 2, 3];
 
@@ -49,10 +49,10 @@ export default function HarmonicBuilder() {
         { range, width: 2.75 },
       );
 
-      label(ctx, 'sum', plot.x + 6, plot.y + 14, colors.accent, { size: 10 });
-      if (showParts) {
-        label(ctx, 'components', plot.x + 44, plot.y + 14, colors.faint, { size: 10 });
-      }
+      hud(ctx, [
+        { text: `sum${showParts ? '  ·  components' : ''}`, color: colors.accent },
+        { text: `amplitudes  ${amps.map((a) => a.toFixed(2)).join('  ')}`, color: colors.muted },
+      ]);
     },
     { aspect: 21 / 9, animate: playing },
   );

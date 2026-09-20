@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFigureCanvas } from '@figures/useFigureCanvas';
 import { fade, useThemeColors, type ThemeColors } from '@figures/useThemeColors';
-import { Canvas, FigureBody, FigureStage, ChipBar } from '@figures/controls';
+import { Canvas, FigureBody, FigureStage, ChipBar, Chip, CHIP_BAND, CHIP_HUD_Y } from '@figures/controls';
 import { type Box, box, circle, fillRoundRect, frame, label, polyline, hud } from '@figures/plot';
 
 /**
@@ -297,10 +297,10 @@ export default function ResidualFamilyMap() {
         { text: `${family.name}  ·  ${family.axis}`, color: colors.ink },
         { text: `${family.idea}`, color: colors.muted },
         { text: `${family.metric}  ·  ${family.metricHint}`, color: colors.faint },
-      ], 10, 6);
+      ], 10, CHIP_HUD_Y);
 
     },
-    { aspect: 1.88, animate: false },
+    { hudBand: CHIP_BAND, aspect: 1.88, animate: false },
   );
 
   return (
@@ -309,30 +309,13 @@ export default function ResidualFamilyMap() {
         <Canvas
           canvasRef={canvasRef}
           aspect={aspect}
+          hudBand={CHIP_BAND}
           label={`A residual block specimen. ${family.name} changes ${family.axis}: ${family.idea}.`}
         />
-        <ChipBar>
-          <div className="flex flex-wrap gap-1" role="group" aria-label="Residual family">
-                      {FAMILIES.map((entry, i) => {
-                        const on = i === selected;
-                        return (
-                          <button
-                            key={entry.kind}
-                            type="button"
-                            aria-pressed={on}
-                            onClick={() => setSelected(i)}
-                            className={`rounded-sm border px-2.5 py-1.5 text-left transition-colors ${
-                              on ? 'border-accent/50 bg-accent/10' : 'border-line/80 bg-surface/80 hover:border-line-strong'
-                            }`}
-                          >
-                            <div className={`font-mono text-[0.65rem] tracking-wider ${on ? 'text-accent-deep' : 'text-ink'}`}>
-                              {entry.name}
-                            </div>
-                            <div className="font-mono text-[0.55rem] text-faint">{entry.axis}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
+        <ChipBar label="Residual family">
+          {FAMILIES.map((entry, i) => (
+            <Chip key={entry.kind} label={entry.name} detail={entry.axis} selected={i === selected} onSelect={() => setSelected(i)} />
+          ))}
         </ChipBar>
       </FigureStage>
     </FigureBody>

@@ -267,7 +267,7 @@ export default function AttentionGate() {
   const drag = (clientX: number, clientY: number, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
     const px = clientX - rect.left;
-    const py = clientY - rect.top;
+    const py = clientY - rect.top - hudBand;
     for (const panel of layoutRef.current.panels) {
       if (px >= panel.x && px <= panel.x + panel.w && py >= panel.y && py <= panel.y + panel.h) {
         setCentre({
@@ -279,7 +279,7 @@ export default function AttentionGate() {
     }
   };
 
-  const { canvasRef, aspect } = useFigureCanvas(
+  const { canvasRef, aspect, hudBand } = useFigureCanvas(
     (ctx, { width, height }) => {
       const pad = 14;
       const gap = 16;
@@ -330,7 +330,7 @@ export default function AttentionGate() {
       hud(ctx, [
         { text: `region  ${evaluated.target}  ·  mean α  ${evaluated.mean.toFixed(3)}`, color: colors.ink },
         { text: `kept object ${(evaluated.objectRetained * 100).toFixed(0)}%  ·  clutter ${(evaluated.clutterRetained * 100).toFixed(0)}%`, color: colors.muted },
-      ], 10, 6);
+      ]);
 
     },
     { aspect: 2.75, animate: false },
