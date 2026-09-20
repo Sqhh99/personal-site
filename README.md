@@ -95,7 +95,7 @@ Everything ships as its own island; the page is server-rendered otherwise.
 - **Content** — name, links, nav and the tag vocabulary live in `src/consts.ts`.
   UI strings for both locales live in `src/i18n/ui.ts`.
 - **Palette** — CSS custom properties at the top of `src/styles/global.css`, exposed to
-  Tailwind via `@theme inline`. One theme: white ink on black paper.
+  Tailwind via `@theme inline`. One theme: black ink on paper.
 
 ## Deploying to Cloudflare
 

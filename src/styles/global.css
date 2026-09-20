@@ -1,33 +1,33 @@
 @import 'tailwindcss';
 
 /* ---------------------------------------------------------------------------
-   Palette — an engraving. White ink on black paper, and nothing else: the only
+   Palette — an engraving. Black ink on paper, and nothing else: the only
    "colour" is how much ink is on the page. Token names stay stable so essay
    canvases keep resolving the same properties; series that used to be gold
-   against blue-grey are now bright against mid ink.
+   against blue-grey are now full ink against mid ink.
    --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #050505;
-  --surface: #0b0b0b;
-  --surface-sunk: #000000;
-  --surface-glass: rgba(5, 5, 5, 0.8);
-  --ink: #ece9e2;
-  --muted: #a9a59d;
-  --faint: #6f6c66;
-  --border: #242424;
-  --border-strong: #3c3c3c;
-  --accent: #f3f0e9;
-  --accent-deep: #ffffff;
-  --accent-glow: rgba(236, 233, 226, 0.14);
-  --on-accent: #050505;
-  --kraft: #8d8a84;
-  --manilla: #c4c0b7;
-  --code-bg: #000000;
-  --shadow: 0 1px 0 rgb(255 255 255 / 0.03);
-  --shadow-lg: 0 24px 56px -32px rgb(0 0 0 / 0.8);
+  --bg: #f1eee6;
+  --surface: #f6f4ee;
+  --surface-sunk: #e7e3d9;
+  --surface-glass: rgba(241, 238, 230, 0.86);
+  --ink: #161513;
+  --muted: #4d4a45;
+  --faint: #807c74;
+  --border: #d3cec2;
+  --border-strong: #b3ada0;
+  --accent: #161513;
+  --accent-deep: #000000;
+  --accent-glow: rgba(22, 21, 19, 0.1);
+  --on-accent: #f1eee6;
+  --kraft: #6f6b64;
+  --manilla: #9c978d;
+  --code-bg: #e7e3d9;
+  --shadow: 0 1px 0 rgb(22 21 19 / 0.05);
+  --shadow-lg: 0 18px 40px -28px rgb(22 21 19 / 0.3);
   --paper-hatch: transparent;
-  --tick: rgb(236 233 226 / 0.35);
+  --tick: rgb(22 21 19 / 0.35);
   --tick-size: 11px;
 }
 
@@ -214,7 +214,7 @@ html[data-reveal] .reveal:not(.is-visible) {
     linear-gradient(to bottom, transparent 82%, var(--bg)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
   background-size: auto, 180px 180px;
-  mix-blend-mode: normal;
+  mix-blend-mode: multiply;
 }
 
 .ink-hero-foot {
@@ -233,11 +233,13 @@ html[data-reveal] .reveal:not(.is-visible) {
 
 .ink-hero-line {
   max-width: 28ch;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  background-color: var(--bg);
   font-size: clamp(1.05rem, 1.6vw, 1.35rem);
   font-style: italic;
   line-height: 1.35;
-  color: var(--muted);
-  text-shadow: 0 1px 12px rgb(0 0 0 / 0.8);
+  color: var(--ink);
   animation: ink-fade 1.2s var(--ease-spring) 2.4s both;
 }
 
@@ -245,7 +247,9 @@ html[data-reveal] .reveal:not(.is-visible) {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--faint);
+  padding: 0.35rem 0.5rem;
+  background-color: var(--bg);
+  color: var(--muted);
   transition: color 200ms ease;
   animation: ink-fade 1.2s var(--ease-spring) 3s both;
 }
@@ -822,8 +826,8 @@ html[data-reveal] .reveal:not(.is-visible) {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.06;
-  mix-blend-mode: overlay;
+  opacity: 0.07;
+  mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 180px 180px;
 }
@@ -842,11 +846,21 @@ html[data-reveal] .reveal:not(.is-visible) {
   transition: border-color 200ms ease, background-color 200ms ease;
 }
 
-/* On the landing page the header floats over the engraving until you scroll. */
+/* On the landing page the header floats over the engraving until you scroll;
+   its two words sit on small paper plates so the picture never runs through them. */
 body[data-landing] .site-header {
   position: fixed;
   inset-inline: 0;
   background-color: transparent;
+}
+
+body[data-landing] .site-header[data-scrolled='false'][data-open='false'] .wordmark,
+body[data-landing] .site-header[data-scrolled='false'][data-open='false'] #menu-toggle,
+body[data-landing] .site-header:not([data-open]) .wordmark,
+body[data-landing] .site-header:not([data-open]) #menu-toggle {
+  padding-inline: 0.5rem;
+  background-color: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 body[data-landing] .site-header[data-scrolled='true'],

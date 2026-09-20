@@ -180,9 +180,8 @@ import { TAU, box, curve, baseline, polyline, dot, label, hud, dft } from '@figu
   `hudBand` the hook returns (`clientY - rect.top - hudBand`).
 - **`useThemeColors()`** resolves the palette custom properties for canvas
   drawing. **Never hard-code a colour in a figure.** The site is a monochrome
-  engraving — white ink on black paper — so series are told apart by how much
-  ink they carry: `accent` (brightest), `ink`, `manilla`, `kraft` (mid), `muted`,
-  `faint`. Use `fade(color, alpha)` for transparency; it hand-parses hex rather
+  engraving — black ink on paper — so series are told apart by how much ink
+  they carry: `accent`/`ink` (full), `muted`, `kraft` (mid), `manilla`, `faint`. Use `fade(color, alpha)` for transparency; it hand-parses hex rather
   than emitting `color-mix()`.
 
 ### Control kit (stay inside it)
