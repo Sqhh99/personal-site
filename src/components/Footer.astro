@@ -1,5 +1,4 @@
 ---
-import { SITE } from '../consts';
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
@@ -12,20 +11,9 @@ const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-24 border-t border-line/60">
-  <div
-    class="shell flex flex-col gap-4 py-9 font-mono text-[0.68rem] tracking-wide text-faint sm:flex-row sm:items-center sm:justify-between"
-  >
-    <p>© {year} {t('site.name')} · {t('footer.builtWith')}</p>
-    <div class="flex items-center gap-6">
-      <a href="/rss.xml" class="transition-colors hover:text-accent">{t('footer.rss')}</a>
-      <a href={SITE.repository} target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">
-        {t('footer.source')}
-      </a>
-      <a href="#main" class="group inline-flex items-center gap-1 transition-colors hover:text-accent">
-        {t('footer.backToTop')}
-        <span class="transition-transform duration-300 group-hover:-translate-y-0.5" aria-hidden="true">↑</span>
-      </a>
-    </div>
+<footer class="mt-24 border-t border-line">
+  <div class="shell flex items-center justify-between py-8 font-mono text-[0.65rem] tracking-wide text-faint">
+    <p>© {year} {t('site.name')}</p>
+    <a href="#main" class="transition-colors hover:text-ink">{t('footer.backToTop')} ↑</a>
   </div>
 </footer>

@@ -1,6 +1,10 @@
 ---
+import InkHero from './InkHero.astro';
 import PostCard from './PostCard.astro';
 import { getPosts, leadPostId } from '../lib/posts';
+import { getBriefs, getBriefUrl } from '../lib/briefs';
+import { formatDate, isoDate } from '../lib/posts';
+import { getLocalizedPath, useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
 interface Props {
@@ -8,24 +12,38 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const posts = await getPosts();
+const t = useTranslations(lang);
+const posts = (await getPosts()).slice(0, 4);
 const lead = leadPostId(posts);
+const [brief] = await getBriefs();
 ---
 
-<div id="home-page">
-  <section class="shell pb-16 pt-12 sm:pb-20 sm:pt-16">
-    <div class="grid gap-7 sm:grid-cols-2">
-      {
-        posts.map((post) => (
-          <PostCard post={post} feature={post.id === lead} lang={lang} reveal={false} enter="card" />
-        ))
-      }
-    </div>
-  </section>
-</div>
+<InkHero lang={lang} />
 
-<script>
-  import { initHomeMotion } from '../lib/home-motion';
+<section id="latest" class="shell scroll-mt-24 pb-20 pt-20 sm:pt-28">
+  <div class="mb-10 flex items-baseline justify-between gap-6">
+    <h2 class="label text-ink">{t('home.latest')}</h2>
+    <a href={getLocalizedPath('/blog/', lang)} class="label transition-colors hover:text-ink">
+      {t('home.allWriting')} →
+    </a>
+  </div>
 
-  initHomeMotion(document.getElementById('home-page'));
-</script>
+  <div class="grid gap-7 sm:grid-cols-2">
+    {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} lang={lang} delay={i * 60} />)}
+  </div>
+
+  {
+    brief && (
+      <a
+        href={getBriefUrl(brief, lang)}
+        class="reveal group mt-7 flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:items-baseline sm:justify-between"
+        style="--reveal-delay:240ms"
+      >
+        <span class="label">{t('home.briefs')} · <time datetime={isoDate(brief.data.date)}>{formatDate(brief.data.date, lang)}</time></span>
+        <span class="max-w-[60ch] font-display text-lg leading-snug text-muted transition-colors group-hover:text-ink">
+          {brief.data.description}
+        </span>
+      </a>
+    )
+  }
+</section>

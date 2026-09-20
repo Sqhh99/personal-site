@@ -1,0 +1,36 @@
+---
+/**
+ * The first thing a visitor sees: the engraving drawing itself across the
+ * whole viewport. Type is kept to one line and a scroll cue so the picture is
+ * the page; everything else lives in the header's menu.
+ */
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="ink-hero" aria-label={t('hero.line')}>
+  <canvas id="ink-scene" class="ink-hero-canvas" aria-hidden="true"></canvas>
+  <div class="ink-hero-grain" aria-hidden="true"></div>
+
+  <div class="ink-hero-foot">
+    <p class="ink-hero-line font-display">{t('hero.line')}</p>
+    <a href="#latest" class="ink-hero-scroll label" aria-label={t('hero.scroll')}>
+      <span>{t('hero.scroll')}</span>
+      <span class="ink-hero-scroll-rule" aria-hidden="true"></span>
+    </a>
+  </div>
+</section>
+
+<script>
+  import { initInkScene } from '../lib/ink-scene';
+
+  const canvas = document.getElementById('ink-scene');
+  if (canvas instanceof HTMLCanvasElement) initInkScene(canvas);
+</script>

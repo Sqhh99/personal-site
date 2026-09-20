@@ -21,17 +21,17 @@ const TOKENS = [
 export type ThemeColors = Record<(typeof TOKENS)[number], string>;
 
 const FALLBACK: ThemeColors = {
-  ink: '#eee8dc',
-  muted: '#a8a297',
-  faint: '#6e6a64',
-  accent: '#d4b483',
-  'accent-deep': '#e4c89a',
-  kraft: '#8aa0b5',
-  manilla: '#cfc6b4',
-  surface: '#10141a',
-  'surface-sunk': '#06080c',
-  border: '#1c222c',
-  'border-strong': '#323a46',
+  ink: '#ece9e2',
+  muted: '#a9a59d',
+  faint: '#6f6c66',
+  accent: '#f3f0e9',
+  'accent-deep': '#ffffff',
+  kraft: '#8d8a84',
+  manilla: '#c4c0b7',
+  surface: '#0b0b0b',
+  'surface-sunk': '#000000',
+  border: '#242424',
+  'border-strong': '#3c3c3c',
 };
 
 function read(): ThemeColors {
@@ -45,22 +45,15 @@ function read(): ThemeColors {
 }
 
 /**
- * Resolves the CSS custom properties a canvas needs, and re-resolves them when
- * the theme toggle flips `data-theme`. Canvas pixels are not styled by CSS, so
- * without this every figure would keep its light-mode colours in dark mode.
+ * Resolves the CSS custom properties a canvas draws with. Canvas pixels are
+ * not styled by CSS, so this is how a figure stays inside the site's palette.
+ * Resolved once after mount; the site has a single theme.
  */
 export function useThemeColors(): ThemeColors {
   const [colors, setColors] = useState<ThemeColors>(FALLBACK);
 
   useEffect(() => {
     setColors(read());
-
-    const observer = new MutationObserver(() => setColors(read()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    });
-    return () => observer.disconnect();
   }, []);
 
   return colors;

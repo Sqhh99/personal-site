@@ -178,11 +178,12 @@ import { TAU, box, curve, baseline, polyline, dot, label, hud, dft } from '@figu
   readout into the band, and the corner controls live there too — so nothing
   the figure draws can ever be covered. Pointer maths must subtract the
   `hudBand` the hook returns (`clientY - rect.top - hudBand`).
-- **`useThemeColors()`** resolves the palette custom properties and re-resolves
-  them when the theme toggle flips `data-theme`. **Never hard-code a colour in a
-  figure.** Canvas pixels are not styled by CSS, so this hook is the only reason
-  a figure survives the light/dark switch. Use `fade(color, alpha)` for
-  transparency; it hand-parses hex rather than emitting `color-mix()`.
+- **`useThemeColors()`** resolves the palette custom properties for canvas
+  drawing. **Never hard-code a colour in a figure.** The site is a monochrome
+  engraving — white ink on black paper — so series are told apart by how much
+  ink they carry: `accent` (brightest), `ink`, `manilla`, `kraft` (mid), `muted`,
+  `faint`. Use `fade(color, alpha)` for transparency; it hand-parses hex rather
+  than emitting `color-mix()`.
 
 ### Control kit (stay inside it)
 
@@ -204,9 +205,8 @@ Do not reintroduce a dock under or over the plot, and do not draw labels in
 the plot's top-left corner expecting them to double as a readout — that is what
 the band is for.
 
-Prefer **Canvas 2D + these hooks**. `three` / `@react-three/fiber` are in the
-repo for legacy/other islands; new essay figures should not introduce a 3D stack
-unless the subject truly requires it and you accept the weight.
+Prefer **Canvas 2D + these hooks**. There is no 3D stack in the repo; do not
+introduce one for an essay figure unless the subject truly requires it.
 
 ### What makes a good figure here
 
@@ -248,8 +248,8 @@ Each figure should:
 
 - **Colour** comes only from the tokens in `src/styles/global.css` (`--ink`,
   `--muted`, `--faint`, `--accent`, `--kraft`, `--surface`, `--surface-sunk`,
-  `--border`, `--accent-deep`, …). Light and dark are both defined there. Do not
-  introduce a hex literal in a component or a figure.
+  `--border`, `--accent-deep`, …), all shades of one ink. Do not introduce a hex
+  literal in a component or a figure.
 - **Typography** is `.prose` / `.essay` in `global.css`. Do not restyle headings,
   code or tables inside an article.
 - **Measure** is `--measure: 58rem` in `global.css`. Figures fill it flush by
@@ -268,8 +268,7 @@ Each figure should:
   In MDX, backslashes in LaTeX often need escaping (`\\frac`, `\\sin`). Prefer
   matching the existing essays' escaping style; if a formula breaks the MDX
   parse, fix escaping rather than dropping to Unicode fakes.
-- **Code blocks** use Shiki dual themes (github-light / github-dark); no extra
-  setup in the article.
+- **Code blocks** use Shiki (github-dark); no extra setup in the article.
 
 ## The heading tree
 
@@ -348,8 +347,6 @@ npm run dev       # then walk the article
 In the browser:
 
 - every figure animates, responds to its controls, and stops when scrolled away;
-- **toggle the theme mid-animation** — every canvas must repaint in the new
-  palette without a reload. This is the most likely thing to have broken;
 - narrow to mobile: no horizontal page scroll, KaTeX display blocks scroll
   inside their own box, the contents pill collapses to its icon;
 - open the contents panel: the outline is a tree, no level is skipped, and the
