@@ -26,8 +26,13 @@ export interface Mark {
   alpha: number;
   width: number;
   closed: boolean;
-  /** Flat x,y pairs in device-independent pixels. */
+  /** Flat x,y pairs in device-independent pixels. A text mark has one pair. */
   pts: number[];
+  /** Lettering, set in place of a path — the chart's labels. */
+  text?: string;
+  font?: string;
+  align?: CanvasTextAlign;
+  rot?: number;
 }
 
 export interface StrokeOpts {
@@ -220,6 +225,8 @@ export class Pen {
   layer: Layer = 0;
   /** Scales wobble/overshoot with the drawing, so a small hero is not shaggy. */
   scale = 1;
+  /** Family for `text()`; the page's display face, so labels match the copy. */
+  fontFamily = 'serif';
 
   constructor(readonly rng: Rng) {}
 
@@ -368,6 +375,24 @@ export class Pen {
     }
   }
 
+  /** A hand-lettered label: italic, a touch off the horizontal. */
+  text(str: string, x: number, y: number, o: { size?: number; a?: number; align?: CanvasTextAlign; rot?: number; italic?: boolean } = {}) {
+    const size = (o.size ?? 12) * this.scale;
+    this.marks.push({
+      layer: this.layer,
+      fill: true,
+      ink: true,
+      alpha: o.a ?? 0.8,
+      width: 0,
+      closed: false,
+      pts: [x, y],
+      text: str,
+      font: `${o.italic === false ? '' : 'italic '}400 ${size.toFixed(1)}px ${this.fontFamily}`,
+      align: o.align ?? 'center',
+      rot: o.rot ?? 0,
+    });
+  }
+
   /** A single dot, where the position matters. */
   dot(x: number, y: number, r: number, a = 1) {
     this.push(circlePoly(x, y, r * this.scale, 8), true, true, a, 0, true);
@@ -388,13 +413,27 @@ export function renderMarks(
   palette: Palette,
   from: number,
   to: number,
+  /** Multiplies every mark's alpha — for fading live pen-work in. */
+  fade = 1,
 ) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (let i = from; i < to; i += 1) {
     const m = marks[i];
     const pts = m.pts;
-    ctx.globalAlpha = m.alpha;
+    ctx.globalAlpha = m.alpha * fade;
+    if (m.text) {
+      ctx.save();
+      ctx.fillStyle = palette.ink;
+      ctx.font = m.font ?? '12px serif';
+      ctx.textAlign = m.align ?? 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.translate(pts[0], pts[1]);
+      if (m.rot) ctx.rotate(m.rot);
+      ctx.fillText(m.text, 0, 0);
+      ctx.restore();
+      continue;
+    }
     ctx.beginPath();
     ctx.moveTo(pts[0], pts[1]);
     for (let j = 2; j < pts.length; j += 2) ctx.lineTo(pts[j], pts[j + 1]);
@@ -413,5 +452,6 @@ export function renderMarks(
 
 /** Rough cost of a mark, so the sketch-in paces by ink laid rather than count. */
 export function markWeight(m: Mark): number {
+  if (m.text) return 4 + m.text.length * 1.5;
   return m.fill ? 6 + m.pts.length * 0.15 : 2 + m.pts.length * 0.25;
 }

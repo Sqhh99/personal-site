@@ -77,16 +77,21 @@ loads automatically as a skill in Claude Code.
 
 Everything ships as its own island; the page is server-rendered otherwise.
 
-- **Landing sketch** (`SketchHero.astro` + `src/lib/sketch/`) — a pen drawing of an
-  astronaut on a small planet, sketched in mark by mark on the first viewport. No image
-  assets; the geometry is generated for the viewport size. `pen.ts` is the drawing
-  vocabulary (hand strokes, scanline hatching, stippling) and emits marks as plain data;
-  `astronaut.ts` is the figure; `scene.ts` composes them and drives the reveal. Once the
-  last mark lands, the sky and ground are baked into one bitmap and the figure into
-  another, so the idle loop is two `drawImage` calls at 30fps and nothing is re-drawn.
-  Over that, a little live pen-work that never touches the baked picture: the brightest
-  stars breathe, the figure leans toward the cursor, the cursor joins up whatever stars
-  it is near, and a tap puts a new star in the sky.
+- **Landing sketch** (`SketchHero.astro` + `src/lib/sketch/`) — the first screen is a
+  hand-drawn chart of "the edge of the map": a neatline with a graduated border and
+  degree marks, an astronaut planting a flag on a small planet, a compass, a dashed route
+  in from a ringed world, and a sea-serpent where the chart runs out. It is sketched in
+  mark by mark on arrival. No image assets; the geometry is generated for the viewport and
+  laid out round the tagline, whose box is measured from the page. `pen.ts` is the drawing
+  vocabulary (hand strokes, scanline hatching, stippling, lettering) and emits marks as
+  plain data; `astronaut.ts` is the figure; `chart.ts` is the map furniture; `scene.ts`
+  composes them and drives the reveal. Once drawn, sky and ground are baked to one bitmap
+  and the figure to three small ones traced from different seeds, which the idle loop
+  cycles for a hand-drawn "boil". A live layer, rebuilt each frame and never baked, adds
+  the flag, a compass needle that swings to find the cursor, the swimming serpent, a
+  paper plane, tumbling rocks, shooting stars, twinkling, a constellation drawn to the
+  stars near the cursor, and a star wherever you tap. Scrolling away, the drawing lags
+  and dissolves into the paper. All motion is off under `prefers-reduced-motion`.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on
