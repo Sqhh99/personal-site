@@ -1,0 +1,50 @@
+---
+/**
+ * The landing drawing. The picture holds the right of the page (the bottom, on
+ * a phone) and the words hold the other half, so nothing is set over the top of
+ * anything else and the tagline never needs a scrim to stay readable.
+ */
+import { getLocalizedPath, useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+import { SITE } from '../consts';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="sketch-hero">
+  <canvas id="sketch-scene" class="sketch-hero-canvas" aria-hidden="true"></canvas>
+
+  <div class="sketch-hero-copy">
+    <p class="sketch-hero-eyebrow">{SITE.role} · {SITE.location}</p>
+    <h1 class="sketch-hero-line">{t('hero.line')}</h1>
+    <svg class="sketch-hero-rule" viewBox="0 0 240 10" fill="none" aria-hidden="true">
+      <path d="M2 6.2C34 3.1 78 2.4 121 3.6c42 1.2 82 3.4 117 1.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M9 8.4c38-2 84-2.6 128-1.6 30 .7 60 2 95 1" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5" />
+    </svg>
+
+    <div class="sketch-hero-actions">
+      <a href={getLocalizedPath('/blog/', lang)} class="sketch-link">{t('home.allWriting')}</a>
+      <a href={getLocalizedPath('/brief/', lang)} class="sketch-link">{t('home.briefs')}</a>
+    </div>
+  </div>
+
+  <a href="#latest" class="sketch-hero-scroll">
+    <span class="sketch-hero-scroll-label">{t('hero.scroll')}</span>
+    <svg viewBox="0 0 12 34" fill="none" aria-hidden="true">
+      <path d="M6.2 1.5C5.4 9 6.6 18 5.9 28" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+      <path d="M1.8 23.5C3.4 26.6 5 29.2 5.9 31.8 7 29 8.6 26.4 10.2 23.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </a>
+</section>
+
+<script>
+  import { initSketchScene } from '../lib/sketch/scene';
+
+  const canvas = document.getElementById('sketch-scene');
+  if (canvas instanceof HTMLCanvasElement) initSketchScene(canvas);
+</script>

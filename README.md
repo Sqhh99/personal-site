@@ -1,7 +1,7 @@
 # personal-site
 
 Personal site and engineering blog — long-form explanatory essays with interactive
-figures, plus a daily AI news brief, behind a landing page drawn as a wood-engraving. Built with Astro, deployed as static files to
+figures, plus a daily AI news brief, behind a landing page drawn by hand in pen. Built with Astro, deployed as static files to
 Cloudflare.
 
 **Stack:** Astro · TypeScript · Tailwind CSS v4 · MDX content collections ·
@@ -77,9 +77,13 @@ loads automatically as a skill in Claude Code.
 
 Everything ships as its own island; the page is server-rendered otherwise.
 
-- **Landing engraving** (`InkHero.astro` + `src/lib/ink-scene.ts`) — a procedurally drawn
-  wood-engraving that inks itself in on the first viewport, then idles with parallax and a
-  slow dolly. No image assets; it regenerates for the viewport size.
+- **Landing sketch** (`SketchHero.astro` + `src/lib/sketch/`) — a pen drawing of an
+  astronaut on a small planet, sketched in mark by mark on the first viewport. No image
+  assets; the geometry is generated for the viewport size. `pen.ts` is the drawing
+  vocabulary (hand strokes, scanline hatching, stippling) and emits marks as plain data;
+  `astronaut.ts` is the figure; `scene.ts` composes them and drives the reveal. Once the
+  last mark lands, the sky and ground are baked into one bitmap and the figure into
+  another, so the idle loop is two `drawImage` calls at 30fps and nothing is re-drawn.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on
@@ -95,7 +99,7 @@ Everything ships as its own island; the page is server-rendered otherwise.
 - **Content** — name, links, nav and the tag vocabulary live in `src/consts.ts`.
   UI strings for both locales live in `src/i18n/ui.ts`.
 - **Palette** — CSS custom properties at the top of `src/styles/global.css`, exposed to
-  Tailwind via `@theme inline`. One theme: black ink on paper.
+  Tailwind via `@theme inline`. One theme: black pen on paper.
 
 ## Deploying to Cloudflare
 

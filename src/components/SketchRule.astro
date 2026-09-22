@@ -1,0 +1,22 @@
+---
+/**
+ * A drawn rule — two passes of the same wobbly line, the way the landing
+ * canvas draws everything. Scales to whatever width it is given.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  class:list={['sketch-rule', className]}
+  viewBox="0 0 240 10"
+  preserveAspectRatio="none"
+  fill="none"
+  aria-hidden="true"
+>
+  <path d="M2 6.2C34 3.1 78 2.4 121 3.6c42 1.2 82 3.4 117 1.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+  <path d="M9 8.4c38-2 84-2.6 128-1.6 30 .7 60 2 95 1" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
+</svg>
