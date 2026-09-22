@@ -16,7 +16,7 @@ interface Props {
   ogType?: 'website' | 'article';
   publishedAt?: Date;
   lang?: Language;
-  /** The landing page: the header floats over the engraving instead of sitting above content. */
+  /** The landing page: the header floats over the drawing instead of sitting above content. */
   landing?: boolean;
 }
 
@@ -67,7 +67,7 @@ const alternates = listLanguages().map((code) => ({
   </head>
 
   <body class="min-h-screen bg-bg text-ink antialiased" data-landing={landing ? 'true' : undefined}>
-    <div class="ink-grain" aria-hidden="true"></div>
+    <div class="paper-grain" aria-hidden="true"></div>
 
     <div class="site-stack">
       <a

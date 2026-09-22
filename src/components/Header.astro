@@ -2,7 +2,8 @@
 /**
  * The header is a wordmark and one word, "Menu". Everything a visitor might
  * want — writing, briefs, GitHub, RSS, the language — waits behind that word
- * so the pages, and above all the landing engraving, are not crowded by chrome.
+ * so the pages, and above all the landing drawing, are not crowded by chrome.
+ * Opening it drops a panel from the bar; it never takes over the viewport.
  */
 import { getLangFromUrl, getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
 import { LANGUAGES, type Language } from '../i18n/ui';
@@ -10,7 +11,7 @@ import { SITE } from '../consts';
 
 interface Props {
   lang?: Language;
-  /** On the landing page the header floats over the engraving. */
+  /** On the landing page the header floats over the drawing. */
   overlay?: boolean;
 }
 
@@ -38,7 +39,7 @@ const languages = listLanguages().map((code) => ({
 
 <header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false" data-open="false">
   <div class="shell flex h-14 items-center justify-between">
-    <a href={homeHref} class:list={["wordmark text-ink", overlay ? "wordmark-landing" : "text-[1.15rem]"]} aria-label={`${t('site.name')} — home`}>
+    <a href={homeHref} class:list={['wordmark text-ink', !overlay && 'text-[1.15rem]']} aria-label={`${t('site.name')} — home`}>
       {t('site.name')}
     </a>
 
@@ -47,7 +48,7 @@ const languages = listLanguages().map((code) => ({
       type="button"
       aria-expanded="false"
       aria-controls="site-menu"
-      class:list={[overlay ? 'menu-toggle-plain' : 'label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink']}
+      class:list={[!overlay && 'label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink']}
     >
       <span data-label-open>{t('nav.menu')}</span>
       <span data-label-close hidden>{t('nav.close')}</span>
@@ -114,11 +115,9 @@ const languages = listLanguages().map((code) => ({
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
     header.dataset.open = String(open);
-    document.body.dataset.menuOpen = open ? 'true' : 'false';
     button.setAttribute('aria-expanded', String(open));
     labelOpen.hidden = open;
     labelClose.hidden = !open;
-    document.dispatchEvent(new CustomEvent('landing-menu', { detail: { open } }));
   };
 
   button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
