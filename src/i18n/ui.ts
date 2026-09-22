@@ -38,6 +38,8 @@ export const UI_STRINGS = {
 
     'hero.line': 'Notes from the edge of the map — signals, deep learning, systems.',
     'hero.scroll': 'Scroll',
+    'hero.here': 'you are here',
+    'hero.dragons': 'here be dragons',
     'home.latest': 'Latest writing',
     'home.allWriting': 'All writing',
     'home.briefs': 'Daily AI brief',
@@ -112,6 +114,8 @@ export const UI_STRINGS = {
 
     'hero.line': '来自地图边缘的笔记——信号、深度学习、系统。',
     'hero.scroll': '向下',
+    'hero.here': '你在这里',
+    'hero.dragons': '此处有龙',
     'home.latest': '最新文章',
     'home.allWriting': '全部文章',
     'home.briefs': '每日 AI 简报',
@@ -185,6 +189,8 @@ export const UI_STRINGS = {
 
     'hero.line': '地図の端からのノート——信号、深層学習、システム。',
     'hero.scroll': 'スクロール',
+    'hero.here': '現在地',
+    'hero.dragons': 'ここに竜あり',
     'home.latest': '最新の記事',
     'home.allWriting': 'すべての記事',
     'home.briefs': 'AI デイリーブリーフ',

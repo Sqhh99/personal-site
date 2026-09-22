@@ -397,11 +397,27 @@ export function star(pen: Pen, x: number, y: number, r: number, w: number, ink =
 }
 
 /** The flag the raised hand is holding, planted into the ground beside it. */
-export function drawFlag(pen: Pen, cx: number, footY: number, h: number) {
+export function drawFlag(pen: Pen, cx: number, footY: number, h: number, cloth = true) {
   const P = (x: number, y: number): Pt => [cx + x * h, footY - y * h];
   const L = (u: number) => u * h;
   const nib = h * 0.0042;
   pen.line(P(0.4, -0.005), P(0.3, 1.16), { w: nib * 1.5, a: 1, passes: 2, wobble: 0.003, overshoot: 0 });
+  if (cloth) drawPennant(pen, cx, footY, h, 0);
+  // A little heap of regolith where the pole went in.
+  pen.dots(ellipsePoly(cx + L(0.4), footY + L(0.004), L(0.05), L(0.018)), 26, nib * 0.5, 0.55);
+}
+
+/**
+ * The pennant on its own, so it can be redrawn every frame. `t` is seconds;
+ * a wave runs out from the pole and grows toward the free corner.
+ */
+export function drawPennant(pen: Pen, cx: number, footY: number, h: number, t: number) {
+  const nib = h * 0.0042;
+  const P = (x: number, y: number): Pt => {
+    const d = Math.max(0, (0.302 - x) / 0.16);
+    const wave = Math.sin(t * 2.6 - d * 2.4);
+    return [cx + (x + Math.cos(t * 2.6 - d * 2.4) * 0.004 * d) * h, footY - (y + wave * 0.014 * d) * h];
+  };
   const cloth = catmull(
     [P(0.302, 1.14), P(0.21, 1.125), P(0.14, 1.07), P(0.148, 1.02), P(0.235, 1.035), P(0.303, 1.015)],
     12,
@@ -410,6 +426,4 @@ export function drawFlag(pen: Pen, cx: number, footY: number, h: number) {
   pen.shape(cloth, { fill: 'paper', w: nib * 1.1, wobble: 0.006 });
   pen.hatch(cloth, { angle: 0.55, gap: nib * 2.4, w: nib * 0.6, a: 0.45, skip: 0.2 });
   pen.curve([P(0.29, 1.104), P(0.22, 1.086), P(0.16, 1.052)], { w: nib * 0.7, a: 0.6, passes: 1, overshoot: 0 });
-  // A little heap of regolith where the pole went in.
-  pen.dots(ellipsePoly(cx + L(0.4), footY + L(0.004), L(0.05), L(0.018)), 26, nib * 0.5, 0.55);
 }

@@ -1,8 +1,8 @@
 ---
 /**
- * The landing drawing. The picture holds the right of the page (the bottom, on
- * a phone) and the words hold the other half, so nothing is set over the top of
- * anything else and the tagline never needs a scrim to stay readable.
+ * The landing drawing: a hand-drawn chart that fills the first screen. The
+ * picture works round the words rather than under them, so the tagline sits on
+ * clean paper and never needs a scrim; the writing waits below the fold.
  */
 import { getLocalizedPath, useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
@@ -17,7 +17,7 @@ const t = useTranslations(lang);
 ---
 
 <section class="sketch-hero">
-  <canvas id="sketch-scene" class="sketch-hero-canvas" aria-hidden="true"></canvas>
+  <canvas id="sketch-scene" class="sketch-hero-canvas" aria-hidden="true" data-here={t('hero.here')} data-dragons={t('hero.dragons')}></canvas>
 
   <div class="sketch-hero-copy">
     <p class="sketch-hero-eyebrow">{SITE.role} · {SITE.location}</p>
@@ -47,4 +47,26 @@ const t = useTranslations(lang);
 
   const canvas = document.getElementById('sketch-scene');
   if (canvas instanceof HTMLCanvasElement) initSketchScene(canvas);
+
+  // As the page scrolls away, the drawing lags behind it and the words lift
+  // off, so leaving the first screen feels like turning from the map.
+  const hero = document.querySelector<HTMLElement>('.sketch-hero');
+  if (hero && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let queued = false;
+    const sync = () => {
+      queued = false;
+      const p = Math.min(1, Math.max(0, window.scrollY / (hero.offsetHeight || 1)));
+      hero.style.setProperty('--hero-p', p.toFixed(3));
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(sync);
+      },
+      { passive: true },
+    );
+    sync();
+  }
 </script>
