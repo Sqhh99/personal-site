@@ -63,7 +63,7 @@ const languages = listLanguages().map((code) => ({
               <a
                 href={link.href}
                 aria-current={link.current ? 'page' : undefined}
-                class:list={['font-display text-3xl leading-none transition-colors sm:text-4xl', link.current ? 'text-ink' : 'text-muted hover:text-ink']}
+                class:list={['font-display text-3xl leading-none text-ink transition-colors sm:text-4xl', link.current ? 'underline underline-offset-8 decoration-1' : 'opacity-90 hover:opacity-100']}
               >
                 {link.label}
               </a>
@@ -114,9 +114,11 @@ const languages = listLanguages().map((code) => ({
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
     header.dataset.open = String(open);
+    document.body.dataset.menuOpen = open ? 'true' : 'false';
     button.setAttribute('aria-expanded', String(open));
     labelOpen.hidden = open;
     labelClose.hidden = !open;
+    document.dispatchEvent(new CustomEvent('landing-menu', { detail: { open } }));
   };
 
   button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));

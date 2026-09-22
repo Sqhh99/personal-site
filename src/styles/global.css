@@ -901,20 +901,100 @@ body[data-landing] .site-header[data-scrolled='false'][data-open='false'] #menu-
   text-underline-offset: 0.22em;
 }
 
-body[data-landing] .site-header[data-scrolled='true'],
-body[data-landing] .site-header[data-open='true'] {
+body[data-landing] .site-header[data-scrolled='true'] {
   background-color: var(--surface-glass);
   backdrop-filter: blur(12px);
 }
 
-body[data-landing] .site-header[data-scrolled='true'] .shell,
-body[data-landing] .site-header[data-open='true'] .shell {
+/* Open menu: full-viewport solid paper sheet — engraving must not bleed through. */
+body[data-landing] .site-header[data-open='true'] {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  backdrop-filter: none;
+  /* Border lives on .site-menu top, not the viewport bottom edge. */
+  border-bottom-color: transparent;
+}
+
+/* Top bar only: full-bleed, wordmark top-left / Close top-right (not 72rem centered). */
+body[data-landing] .site-header[data-open='true'] > .shell {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  height: auto;
+  min-height: 3.5rem;
+  padding: clamp(1.5rem, 3.2vw, 2.5rem);
+  justify-content: space-between;
+}
+
+body[data-landing] .site-header[data-scrolled='true']:not([data-open='true']) .shell {
   padding-top: 0;
   padding-bottom: 0;
   padding-inline: clamp(1.25rem, 4vw, 2rem);
   height: 3.5rem;
   max-width: 72rem;
   margin-inline: auto;
+}
+
+/* Menu panel fills remaining viewport with solid paper (overrides global glass). */
+body[data-landing] .site-header[data-open='true'] .site-menu {
+  flex: 1;
+  display: block;
+  background: var(--bg);
+  backdrop-filter: none;
+  border-top: 1px solid var(--border);
+  min-height: 0;
+  overflow: auto;
+}
+
+body[data-landing] .site-header[data-open='true'] .site-menu > .shell {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding-inline: clamp(1.5rem, 3.2vw, 2.5rem);
+}
+
+/* Primary nav: serif display, readable gap, solid ink. */
+body[data-landing] .site-header[data-open='true'] .site-menu > .shell > ul {
+  gap: 0.875rem;
+}
+
+body[data-landing] .site-header[data-open='true'] .site-menu > .shell > ul > li > a {
+  font-size: clamp(1.75rem, 2vw + 1rem, 2.25rem);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* Close: same type class as closed-state menu; stays top-right alone. */
+body[data-landing] .site-header[data-open='true'] .wordmark,
+body[data-landing] .site-header[data-open='true'] #menu-toggle {
+  color: var(--ink);
+}
+
+body[data-landing] .site-header[data-open='true'] #menu-toggle {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: none;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* Secondary GITHUB/RSS (+ langs): label scale, visually below primary. */
+body[data-landing] .site-header[data-open='true'] .site-menu .label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+/* Hide engraving under the paper sheet while menu is open. */
+body[data-landing][data-menu-open='true'] .ink-hero {
+  visibility: hidden;
 }
 
 .site-header[data-scrolled='true'],
