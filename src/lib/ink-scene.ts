@@ -362,7 +362,8 @@ class Engraver {
   private drawCanopy() {
     const half = this.aspect / 2;
     const stepScale = 1.15 / (0.55 + 0.6 * this.detail);
-    const step = 0.03 * stepScale;
+    // Extra 1.15 on far band to thin far-canopy stroke budget (mori).
+    const step = 0.03 * stepScale * 1.15;
     // Far canopy: small dark clumps, especially crowding the opening's rim.
     for (let y = -0.05; y < this.horizon + 0.05; y += step) {
       for (let x = -half - 0.05; x < half + 0.05; x += step) {
@@ -902,12 +903,37 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
     ctx.stroke();
   };
 
-  // Ground shadow.
+  // Ground shadow — stippled/dotted ellipse (not a solid black blob).
   ctx.fillStyle = ink;
-  ctx.globalAlpha = 0.85;
-  ctx.beginPath();
-  ctx.ellipse(h * 0.01, h * 0.005, h * 0.17, h * 0.03, 0, 0, Math.PI * 2);
-  ctx.fill();
+  {
+    const sx = h * 0.01;
+    const sy = h * 0.005;
+    const rx = h * 0.17;
+    const ry = h * 0.03;
+    const dot = Math.max(0.55, h * 0.0016);
+    for (let i = 0; i < 160; i += 1) {
+      const u = (i * 0.6180339887) % 1;
+      const v = (i * 0.3819660113) % 1;
+      const ang = u * Math.PI * 2;
+      const rad = Math.sqrt(v);
+      const dx = Math.cos(ang) * rad * rx;
+      const dy = Math.sin(ang) * rad * ry;
+      ctx.globalAlpha = 0.28 + 0.55 * (1 - rad);
+      ctx.beginPath();
+      ctx.arc(sx + dx, sy + dy, dot, 0, Math.PI * 2);
+      ctx.fill();
+      // Occasional short tick for engraving grain.
+      if (i % 5 === 0) {
+        ctx.globalAlpha = 0.35 + 0.4 * (1 - rad);
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = Math.max(0.5, h * 0.0014);
+        ctx.beginPath();
+        ctx.moveTo(sx + dx - h * 0.004, sy + dy);
+        ctx.lineTo(sx + dx + h * 0.004, sy + dy);
+        ctx.stroke();
+      }
+    }
+  }
   ctx.globalAlpha = 1;
 
   // Legs mid-stride: the left one forward and planted, the right pushing off.
@@ -929,6 +955,16 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
       ctx.lineTo(tx + h * 0.006, by + h * 0.028);
       ctx.stroke();
     }
+    // Short sole-shadow hatch under the boot.
+    ctx.globalAlpha = 0.45;
+    for (let i = 0; i < 6; i += 1) {
+      const tx = bx + h * 0.012 + i * h * 0.02;
+      ctx.beginPath();
+      ctx.moveTo(tx, by + h * 0.055);
+      ctx.lineTo(tx + h * 0.014, by + h * 0.068);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.7;
   }
   ctx.globalAlpha = 1;
   // Torso: shoulders down to the hips.
@@ -969,6 +1005,26 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   part(() => capsule(h * 0.17, -h * 0.76, h * 0.22 - sway * h * 0.5, -h * 0.6, h * 0.048), { shadow: 0.3, rings: [-h * 0.74, -h * 0.6, h * 0.03] });
   part(() => capsule(h * 0.22 - sway * h * 0.5, -h * 0.6, h * 0.21 - sway * h, -h * 0.44, h * 0.044), { shadow: 0.3, rings: [-h * 0.58, -h * 0.45, h * 0.03] });
   part(() => { ctx.beginPath(); ctx.ellipse(h * 0.21 - sway * h, -h * 0.4, h * 0.042, h * 0.05, -0.2, 0, Math.PI * 2); }, { shadow: 0.3 });
+  // Dense short hatch at knees / elbows — mid-tone density, not thicker outlines.
+  {
+    const jointHatch = (jx: number, jy: number, count = 9) => {
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = Math.max(0.55, h * 0.0018);
+      ctx.globalAlpha = 0.5;
+      for (let i = 0; i < count; i += 1) {
+        const ox = (i - (count - 1) / 2) * h * 0.0038;
+        ctx.beginPath();
+        ctx.moveTo(jx + ox - h * 0.011, jy - h * 0.007);
+        ctx.lineTo(jx + ox + h * 0.011, jy + h * 0.007);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    };
+    jointHatch(-h * 0.08 - sway * h, -h * 0.26);
+    jointHatch(h * 0.085 + sway * h, -h * 0.27);
+    jointHatch(-h * 0.22 + sway * h * 0.5, -h * 0.6);
+    jointHatch(h * 0.22 - sway * h * 0.5, -h * 0.6);
+  }
   // The pack — denser panels, knobs, dual hatched hoses to the suit.
   part(() => { ctx.beginPath(); ctx.roundRect(-h * 0.13, -h * 0.84, h * 0.26, h * 0.32, h * 0.014); }, { shadow: 0.42, angle: 1.4 });
   ctx.strokeStyle = ink;
@@ -1019,6 +1075,34 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   }
   panel(-h * 0.11, -h * 0.595, h * 0.085, h * 0.048, false);
   panel(h * 0.0, -h * 0.555, h * 0.1, h * 0.028, false);
+  // Pack panel seams are drawn above; rivet dots at pack / panel corners.
+  ctx.fillStyle = ink;
+  ctx.globalAlpha = 0.85;
+  for (const [rx, ry] of [
+    [-h * 0.125, -h * 0.835], [h * 0.125, -h * 0.835],
+    [-h * 0.125, -h * 0.535], [h * 0.125, -h * 0.535],
+    [-h * 0.11, -h * 0.82], [h * 0.1, -h * 0.82],
+    [-h * 0.11, -h * 0.7], [h * 0.1, -h * 0.643],
+    [-h * 0.11, -h * 0.595], [h * 0.1, -h * 0.555],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(rx, ry, Math.max(0.7, h * 0.0032), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // Extra seam lines across the pack body.
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(0.7, h * 0.002);
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.moveTo(-h * 0.12, -h * 0.7);
+  ctx.lineTo(h * 0.12, -h * 0.7);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, -h * 0.835);
+  ctx.lineTo(0, -h * 0.54);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
   // Straps over the shoulders.
   ctx.lineWidth = Math.max(1, h * 0.004);
   for (const s of [-1, 1]) {
@@ -1067,6 +1151,11 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
       ctx.moveTo(hx - h * 0.007, hy - h * 0.005);
       ctx.lineTo(hx + h * 0.007, hy + h * 0.005);
       ctx.stroke();
+      // Cross-hatch / crossing lines along the tube.
+      ctx.beginPath();
+      ctx.moveTo(hx - h * 0.007, hy + h * 0.005);
+      ctx.lineTo(hx + h * 0.007, hy - h * 0.005);
+      ctx.stroke();
     }
     ctx.globalAlpha = 1;
   };
@@ -1075,6 +1164,17 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   // Collar ring and helmet with highlight arcs + faint crosshatch on the dome.
   part(() => { ctx.beginPath(); ctx.ellipse(0, -h * 0.83, h * 0.075, h * 0.026, 0, 0, Math.PI * 2); }, { shadow: 0.5 });
   part(() => { ctx.beginPath(); ctx.arc(0, -h * 0.905, h * 0.085, 0, Math.PI * 2); }, { shadow: 0.42, angle: 1.0, outline: lw * 1.2 });
+  // Inner paper ring just inside the helmet rim (paper annulus).
+  {
+    const rim = h * 0.085;
+    const ring = Math.max(1.4, h * 0.0055);
+    ctx.strokeStyle = paper;
+    ctx.lineWidth = ring;
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(0, -h * 0.905, rim - ring * 0.55, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.save();
   ctx.beginPath();
   ctx.arc(0, -h * 0.905, h * 0.085, 0, Math.PI * 2);
@@ -1140,6 +1240,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
   let frame = 0;
   let visible = true;
   let destroyed = false;
+  let paused = false;
   const pointer = { x: 0, y: 0 };
   const eased = { x: 0, y: 0 };
   const start = performance.now();
@@ -1257,7 +1358,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
   };
 
   const tick = (now: number) => {
-    if (destroyed) return;
+    if (destroyed || paused) return;
     if (drawn < ops.length) {
       const p = clamp01((now - revealStart) / revealDuration);
       const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
@@ -1267,7 +1368,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
     }
     composite(now);
     // Reduced motion: stop after settle. Otherwise keep a cheap breath loop.
-    if (visible && !reduced && (drawn < ops.length || frozen)) {
+    if (visible && !paused && !reduced && (drawn < ops.length || frozen)) {
       frame = requestAnimationFrame(tick);
     }
   };
@@ -1292,14 +1393,26 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
       build(true);
       if (!reduced) bakeLayers();
       composite(performance.now());
-      if (visible && !reduced) frame = requestAnimationFrame(tick);
+      if (visible && !paused && !reduced) frame = requestAnimationFrame(tick);
     }, 200);
   };
+
+  const onLandingMenu = (e: Event) => {
+    const open = Boolean((e as CustomEvent<{ open?: boolean }>).detail?.open);
+    paused = open;
+    if (paused) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    } else if (visible && !reduced) {
+      frame = requestAnimationFrame(tick);
+    }
+  };
+  document.addEventListener('landing-menu', onLandingMenu);
 
   const observer = new IntersectionObserver(([entry]) => {
     const was = visible;
     visible = entry.isIntersecting;
-    if (visible && !was && !reduced) frame = requestAnimationFrame(tick);
+    if (visible && !was && !paused && !reduced) frame = requestAnimationFrame(tick);
   });
 
   build(reduced);
@@ -1320,6 +1433,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
       destroyed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      document.removeEventListener('landing-menu', onLandingMenu);
       window.removeEventListener('pointermove', onPointer);
       canvas.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('resize', onResize);

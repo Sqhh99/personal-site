@@ -114,9 +114,11 @@ const languages = listLanguages().map((code) => ({
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
     header.dataset.open = String(open);
+    document.body.dataset.menuOpen = open ? 'true' : 'false';
     button.setAttribute('aria-expanded', String(open));
     labelOpen.hidden = open;
     labelClose.hidden = !open;
+    document.dispatchEvent(new CustomEvent('landing-menu', { detail: { open } }));
   };
 
   button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
