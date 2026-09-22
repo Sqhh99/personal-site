@@ -901,10 +901,22 @@ body[data-landing] .site-header[data-scrolled='false'][data-open='false'] #menu-
   text-underline-offset: 0.22em;
 }
 
-body[data-landing] .site-header[data-scrolled='true'],
-body[data-landing] .site-header[data-open='true'] {
+body[data-landing] .site-header[data-scrolled='true'] {
   background-color: var(--surface-glass);
   backdrop-filter: blur(12px);
+}
+
+/* Open menu: solid paper panel so Writing/Briefs stay legible over ink. */
+body[data-landing] .site-header[data-open='true'] {
+  background-color: var(--bg);
+  backdrop-filter: none;
+}
+
+body[data-landing] .site-header[data-open='true'] .site-menu {
+  background-color: var(--bg);
+  backdrop-filter: none;
+  border-top-color: var(--border);
+  min-height: calc(100svh - 3.5rem);
 }
 
 body[data-landing] .site-header[data-scrolled='true'] .shell,
@@ -915,6 +927,12 @@ body[data-landing] .site-header[data-open='true'] .shell {
   height: 3.5rem;
   max-width: 72rem;
   margin-inline: auto;
+}
+
+/* Open-state chrome stays ink-on-paper (not glass over engraving). */
+body[data-landing] .site-header[data-open='true'] .wordmark,
+body[data-landing] .site-header[data-open='true'] #menu-toggle {
+  color: var(--ink);
 }
 
 .site-header[data-scrolled='true'],

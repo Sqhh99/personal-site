@@ -150,17 +150,19 @@ class Engraver {
   private readonly aspect: number;
   private readonly ink: string;
   private readonly paper: string;
+  private readonly detail: number;
   private readonly opening: { x: number; y: number; rx: number; ry: number };
   private readonly horizon = 0.58;
   private readonly vanish: [number, number];
 
-  constructor(width: number, height: number, ink: string, paper: string) {
+  constructor(width: number, height: number, ink: string, paper: string, detail = 1) {
     this.W = width;
     this.H = height;
     this.S = height;
     this.aspect = width / height;
     this.ink = ink;
     this.paper = paper;
+    this.detail = detail;
     const squeeze = Math.min(1, this.aspect / 1.6);
     this.opening = { x: 0.02, y: 0.34, rx: 0.3 * squeeze, ry: 0.27 };
     this.vanish = [0.02, 0.56];
@@ -226,7 +228,8 @@ class Engraver {
     const rng = this.rng;
     const [cx, cy] = this.px(o.x, o.y);
     const lines: Array<[number, number, number, number, number]> = [];
-    for (let i = 0; i < 2600; i += 1) {
+    const openingLines = Math.round(900 + 1700 * this.detail);
+    for (let i = 0; i < openingLines; i += 1) {
       const a = rng.range(0, Math.PI * 2);
       const r0 = this.openingEdge(o.x + Math.cos(a) * o.rx, o.y + Math.sin(a) * o.ry) * 1.02;
       const d = rng.range(0, 1);
@@ -276,7 +279,7 @@ class Engraver {
     }
     const marks: Array<[number, number, number, number, number]> = [];
     const density = 0.06 + 0.24 * dark;
-    const count = Math.round(Math.PI * R * R * density);
+    const count = Math.round(Math.PI * R * R * density * this.detail);
     for (let i = 0; i < count; i += 1) {
       const a = rng.range(0, Math.PI * 2);
       const d = Math.sqrt(rng.next()) * 0.95;
@@ -358,7 +361,8 @@ class Engraver {
 
   private drawCanopy() {
     const half = this.aspect / 2;
-    const step = 0.03;
+    const stepScale = 1.15 / (0.55 + 0.6 * this.detail);
+    const step = 0.03 * stepScale;
     // Far canopy: small dark clumps, especially crowding the opening's rim.
     for (let y = -0.05; y < this.horizon + 0.05; y += step) {
       for (let x = -half - 0.05; x < half + 0.05; x += step) {
@@ -377,7 +381,7 @@ class Engraver {
       }
     }
     // Middle canopy: bigger, lighter clumps in masses, leaving the opening clear.
-    const step2 = 0.045;
+    const step2 = 0.045 * stepScale;
     for (let y = -0.05; y < this.horizon; y += step2) {
       for (let x = -half - 0.05; x < half + 0.05; x += step2) {
         const jx = x + this.rng.range(-0.5, 0.5) * step2;
@@ -809,14 +813,16 @@ class Engraver {
     const half = this.aspect / 2;
     for (const side of [-1, 1]) {
       // A mass of big leafy clumps in the corner.
-      for (let i = 0; i < 26; i += 1) {
+      const clumpN = Math.max(8, Math.round(26 * this.detail));
+      for (let i = 0; i < clumpN; i += 1) {
         const sx = side * half * rng.range(0.55, 1.05);
         const sy = rng.range(0.72, 1.06);
         const r = rng.range(0.035, 0.08);
         this.clump(2, sx, sy, r, rng.range(0.3, 0.6), sx);
       }
       // Ferns fanning up out of it.
-      for (let i = 0; i < 14; i += 1) {
+      const frondN = Math.max(6, Math.round(14 * this.detail));
+      for (let i = 0; i < frondN; i += 1) {
         const sx = side * half * rng.range(0.55, 1);
         const sy = rng.range(0.84, 1.04);
         const angle = -Math.PI / 2 - side * rng.range(0.1, 1);
@@ -867,7 +873,7 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
     const span = h * 1.2;
     const dx = Math.cos(angle);
     const dy = Math.sin(angle);
-    for (let d = -span; d < span; d += h * 0.0095) {
+    for (let d = -span; d < span; d += h * 0.0065) {
       const p = (d + span) / (2 * span); // 0 at left, 1 at right
       if (p > shadow) continue;
       ctx.globalAlpha = 0.35 + 0.65 * smoothstep(shadow, 0, p);
@@ -909,8 +915,22 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   part(() => capsule(-h * 0.08 - sway * h, -h * 0.26, -h * 0.085 - sway * h, -h * 0.07, h * 0.055, h * 0.05), { shadow: 0.55, rings: [-h * 0.24, -h * 0.09, h * 0.035] });
   part(() => capsule(h * 0.065, -h * 0.47, h * 0.085 + sway * h, -h * 0.27, h * 0.062, h * 0.056), { shadow: 0.35, rings: [-h * 0.44, -h * 0.29, h * 0.035] });
   part(() => capsule(h * 0.085 + sway * h, -h * 0.27, h * 0.095 + sway * h, -h * 0.09, h * 0.055, h * 0.05), { shadow: 0.35, rings: [-h * 0.25, -h * 0.11, h * 0.035] });
+  // Boots + sole tread.
   part(() => { ctx.beginPath(); ctx.roundRect(-h * 0.15 - sway * h, -h * 0.075, h * 0.135, h * 0.075, h * 0.02); }, { shadow: 0.6 });
   part(() => { ctx.beginPath(); ctx.roundRect(h * 0.03 + sway * h, -h * 0.095, h * 0.135, h * 0.075, h * 0.02); }, { shadow: 0.3 });
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(0.7, h * 0.0022);
+  ctx.globalAlpha = 0.7;
+  for (const [bx, by] of [[-h * 0.15 - sway * h, -h * 0.01], [h * 0.03 + sway * h, -h * 0.03]] as const) {
+    for (let i = 0; i < 5; i += 1) {
+      const tx = bx + h * 0.018 + i * h * 0.022;
+      ctx.beginPath();
+      ctx.moveTo(tx, by);
+      ctx.lineTo(tx + h * 0.006, by + h * 0.028);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
   // Torso: shoulders down to the hips.
   part(() => {
     ctx.beginPath();
@@ -921,6 +941,27 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
     ctx.quadraticCurveTo(0, -h * 0.86, -h * 0.165, -h * 0.8);
     ctx.closePath();
   }, { shadow: 0.5, rings: [-h * 0.56, -h * 0.46, h * 0.03] });
+  // Suit seams on torso / legs (ink lines, hatch-first cohesion).
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(0.7, h * 0.002);
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.moveTo(-h * 0.02, -h * 0.78);
+  ctx.quadraticCurveTo(-h * 0.01, -h * 0.62, -h * 0.015, -h * 0.48);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(h * 0.04, -h * 0.76);
+  ctx.quadraticCurveTo(h * 0.045, -h * 0.6, h * 0.03, -h * 0.48);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-h * 0.07, -h * 0.45);
+  ctx.lineTo(-h * 0.075 - sway * h * 0.3, -h * 0.28);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(h * 0.07, -h * 0.45);
+  ctx.lineTo(h * 0.08 + sway * h * 0.3, -h * 0.29);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
   // Arms hanging, gloves.
   part(() => capsule(-h * 0.17, -h * 0.76, -h * 0.22 + sway * h * 0.5, -h * 0.6, h * 0.048), { shadow: 0.6, rings: [-h * 0.74, -h * 0.6, h * 0.03] });
   part(() => capsule(-h * 0.22 + sway * h * 0.5, -h * 0.6, -h * 0.21 + sway * h, -h * 0.44, h * 0.044), { shadow: 0.6, rings: [-h * 0.58, -h * 0.45, h * 0.03] });
@@ -928,7 +969,7 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   part(() => capsule(h * 0.17, -h * 0.76, h * 0.22 - sway * h * 0.5, -h * 0.6, h * 0.048), { shadow: 0.3, rings: [-h * 0.74, -h * 0.6, h * 0.03] });
   part(() => capsule(h * 0.22 - sway * h * 0.5, -h * 0.6, h * 0.21 - sway * h, -h * 0.44, h * 0.044), { shadow: 0.3, rings: [-h * 0.58, -h * 0.45, h * 0.03] });
   part(() => { ctx.beginPath(); ctx.ellipse(h * 0.21 - sway * h, -h * 0.4, h * 0.042, h * 0.05, -0.2, 0, Math.PI * 2); }, { shadow: 0.3 });
-  // The pack.
+  // The pack — denser panels, knobs, dual hatched hoses to the suit.
   part(() => { ctx.beginPath(); ctx.roundRect(-h * 0.13, -h * 0.84, h * 0.26, h * 0.32, h * 0.014); }, { shadow: 0.42, angle: 1.4 });
   ctx.strokeStyle = ink;
   ctx.lineWidth = Math.max(0.9, h * 0.003);
@@ -944,32 +985,41 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
       ctx.globalAlpha = 1;
     }
   };
-  panel(-h * 0.11, -h * 0.82, h * 0.1, h * 0.07);
-  panel(h * 0.01, -h * 0.82, h * 0.1, h * 0.07);
-  panel(-h * 0.11, -h * 0.735, h * 0.22, h * 0.075, false);
-  for (let i = 1; i < 6; i += 1) {
+  panel(-h * 0.11, -h * 0.82, h * 0.095, h * 0.055);
+  panel(h * 0.005, -h * 0.82, h * 0.095, h * 0.055);
+  panel(-h * 0.11, -h * 0.755, h * 0.22, h * 0.055, false);
+  for (let i = 1; i < 7; i += 1) {
     ctx.beginPath();
-    ctx.moveTo(-h * 0.11 + i * h * 0.0367, -h * 0.735);
-    ctx.lineTo(-h * 0.11 + i * h * 0.0367, -h * 0.66);
+    ctx.moveTo(-h * 0.11 + i * h * 0.0314, -h * 0.755);
+    ctx.lineTo(-h * 0.11 + i * h * 0.0314, -h * 0.7);
     ctx.stroke();
   }
-  panel(-h * 0.11, -h * 0.645, h * 0.09, h * 0.085);
+  panel(-h * 0.11, -h * 0.688, h * 0.085, h * 0.072);
   for (let i = 0; i < 5; i += 1) {
     ctx.globalAlpha = 0.7;
     ctx.beginPath();
-    ctx.moveTo(-h * 0.1, -h * 0.63 + i * h * 0.014);
-    ctx.lineTo(-h * 0.03, -h * 0.63 + i * h * 0.014);
+    ctx.moveTo(-h * 0.1, -h * 0.675 + i * h * 0.012);
+    ctx.lineTo(-h * 0.035, -h * 0.675 + i * h * 0.012);
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
-  ctx.beginPath();
-  ctx.arc(h * 0.055, -h * 0.6, h * 0.03, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(h * 0.055, -h * 0.6, h * 0.014, 0, Math.PI * 2);
-  ctx.stroke();
-  panel(h * 0.015, -h * 0.555, h * 0.085, h * 0.028, false);
-  // Straps over the shoulders and hoses to the hip.
+  panel(h * 0.0, -h * 0.688, h * 0.1, h * 0.045);
+  // Small knobs / dials.
+  for (const [kx, ky, kr] of [
+    [h * 0.055, -h * 0.62, h * 0.022],
+    [h * 0.095, -h * 0.62, h * 0.014],
+    [-h * 0.02, -h * 0.62, h * 0.012],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(kx, ky, kr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(kx, ky, kr * 0.45, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  panel(-h * 0.11, -h * 0.595, h * 0.085, h * 0.048, false);
+  panel(h * 0.0, -h * 0.555, h * 0.1, h * 0.028, false);
+  // Straps over the shoulders.
   ctx.lineWidth = Math.max(1, h * 0.004);
   for (const s of [-1, 1]) {
     ctx.beginPath();
@@ -977,39 +1027,74 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
     ctx.quadraticCurveTo(s * h * 0.11, -h * 0.87, s * h * 0.13, -h * 0.8);
     ctx.stroke();
   }
-  const hose = (ox: number) => {
+  // Two hose tubes from pack to suit with hatched thickness.
+  const hosePath = (ox: number, side: 1 | -1) => {
+    const sx = side * h * 0.13;
+    const sy = -h * 0.66 + ox;
+    const mx = side * h * 0.2;
+    const my = -h * 0.58 + ox * 0.4;
+    const ex = side * h * 0.14;
+    const ey = -h * 0.47 + ox * 0.5;
     ctx.beginPath();
-    ctx.moveTo(h * 0.13, -h * 0.66 + ox);
-    ctx.bezierCurveTo(h * 0.2, -h * 0.66 + ox, h * 0.19, -h * 0.5, h * 0.14, -h * 0.47 + ox * 0.5);
+    ctx.moveTo(sx, sy);
+    ctx.bezierCurveTo(mx, sy, mx * 0.95, my, ex, ey);
   };
-  ctx.lineWidth = Math.max(2.4, h * 0.016);
-  ctx.strokeStyle = paper;
-  hose(0);
-  ctx.stroke();
-  hose(h * 0.02);
-  ctx.stroke();
-  ctx.lineWidth = lw;
-  ctx.strokeStyle = ink;
-  hose(0);
-  ctx.stroke();
-  hose(h * 0.02);
-  ctx.stroke();
-  ctx.lineWidth = Math.max(0.7, h * 0.0025);
-  ctx.globalAlpha = 0.6;
-  for (let i = 0; i < 9; i += 1) {
-    const u = 0.1 + i * 0.1;
-    const mt = 1 - u;
-    const hx = mt * mt * mt * h * 0.13 + 3 * mt * mt * u * h * 0.2 + 3 * mt * u * u * h * 0.19 + u * u * u * h * 0.14;
-    const hy = mt * mt * mt * -h * 0.66 + 3 * mt * mt * u * -h * 0.66 + 3 * mt * u * u * -h * 0.5 + u * u * u * -h * 0.47;
-    ctx.beginPath();
-    ctx.moveTo(hx - h * 0.008, hy - h * 0.006);
-    ctx.lineTo(hx + h * 0.008, hy + h * 0.006);
+  const hatchHose = (ox: number, side: 1 | -1) => {
+    ctx.lineWidth = Math.max(2.6, h * 0.018);
+    ctx.strokeStyle = paper;
+    hosePath(ox, side);
     ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-  // Collar ring and helmet.
+    ctx.lineWidth = lw;
+    ctx.strokeStyle = ink;
+    hosePath(ox, side);
+    ctx.stroke();
+    ctx.lineWidth = Math.max(0.65, h * 0.0022);
+    ctx.globalAlpha = 0.55;
+    for (let i = 0; i < 10; i += 1) {
+      const u = 0.08 + i * 0.09;
+      const mt = 1 - u;
+      const sx = side * h * 0.13;
+      const sy = -h * 0.66 + ox;
+      const c1x = side * h * 0.2;
+      const c1y = sy;
+      const c2x = side * h * 0.19;
+      const c2y = -h * 0.58 + ox * 0.4;
+      const ex = side * h * 0.14;
+      const ey = -h * 0.47 + ox * 0.5;
+      const hx = mt * mt * mt * sx + 3 * mt * mt * u * c1x + 3 * mt * u * u * c2x + u * u * u * ex;
+      const hy = mt * mt * mt * sy + 3 * mt * mt * u * c1y + 3 * mt * u * u * c2y + u * u * u * ey;
+      ctx.beginPath();
+      ctx.moveTo(hx - h * 0.007, hy - h * 0.005);
+      ctx.lineTo(hx + h * 0.007, hy + h * 0.005);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  };
+  hatchHose(0, 1);
+  hatchHose(h * 0.022, 1);
+  // Collar ring and helmet with highlight arcs + faint crosshatch on the dome.
   part(() => { ctx.beginPath(); ctx.ellipse(0, -h * 0.83, h * 0.075, h * 0.026, 0, 0, Math.PI * 2); }, { shadow: 0.5 });
   part(() => { ctx.beginPath(); ctx.arc(0, -h * 0.905, h * 0.085, 0, Math.PI * 2); }, { shadow: 0.42, angle: 1.0, outline: lw * 1.2 });
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, -h * 0.905, h * 0.085, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(0.55, h * 0.0018);
+  ctx.globalAlpha = 0.22;
+  for (let d = -h * 0.12; d < h * 0.12; d += h * 0.011) {
+    ctx.beginPath();
+    ctx.moveTo(d - h * 0.1, -h * 0.905 - h * 0.1);
+    ctx.lineTo(d + h * 0.1, -h * 0.905 + h * 0.1);
+    ctx.stroke();
+  }
+  for (let d = -h * 0.12; d < h * 0.12; d += h * 0.014) {
+    ctx.beginPath();
+    ctx.moveTo(d - h * 0.1, -h * 0.905 + h * 0.1);
+    ctx.lineTo(d + h * 0.1, -h * 0.905 - h * 0.1);
+    ctx.stroke();
+  }
+  ctx.restore();
   ctx.strokeStyle = ink;
   ctx.lineWidth = Math.max(0.9, h * 0.003);
   ctx.globalAlpha = 0.7;
@@ -1018,6 +1103,13 @@ function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: 
   ctx.stroke();
   ctx.beginPath();
   ctx.arc(0, -h * 0.905, h * 0.06, -2.5, -1.5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(-h * 0.02, -h * 0.93, h * 0.045, -2.2, -0.6);
+  ctx.stroke();
+  ctx.globalAlpha = 0.45;
+  ctx.beginPath();
+  ctx.arc(h * 0.025, -h * 0.88, h * 0.035, 0.2, 1.4);
   ctx.stroke();
   ctx.globalAlpha = 1;
   ctx.restore();
@@ -1044,7 +1136,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
   let drawn = 0;
   let drawnWeight = 0;
   let revealStart = 0;
-  const revealDuration = 4200;
+  const revealDuration = 1400;
   let frame = 0;
   let visible = true;
   let destroyed = false;
@@ -1070,10 +1162,13 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
     width = Math.max(1, Math.round(rect.width));
     height = Math.max(1, Math.round(rect.height));
     // Cap DPR so retina does not keep a double-density stroke budget alive.
-    dpr = Math.min(window.devicePixelRatio || 1, width < 720 ? 1.25 : 1.75);
+    dpr = Math.min(window.devicePixelRatio || 1, width < 720 ? 1.1 : 1.5);
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
-    const engraver = new Engraver(width, height, ink, paper);
+    let detail = reduced ? 0.55 : width < 720 ? 0.55 : width < 1100 ? 0.75 : 1;
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (conn?.saveData) detail = Math.min(detail, 0.5);
+    const engraver = new Engraver(width, height, ink, paper, detail);
     engraver.build();
     ops = engraver.ops;
     totalWeight = ops.reduce((sum, op) => sum + op.weight, 0) || 1;
@@ -1166,7 +1261,7 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
     if (drawn < ops.length) {
       const p = clamp01((now - revealStart) / revealDuration);
       const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-      inkUpTo(e * totalWeight);
+      inkUpTo(Math.max(e * totalWeight, drawnWeight + totalWeight * 0.06));
     } else if (!frozen) {
       bakeLayers();
     }
