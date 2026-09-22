@@ -919,7 +919,7 @@ body[data-landing] .site-header {
   background-color: transparent;
 }
 
-body[data-landing] .site-header .shell {
+body[data-landing] .site-header > .shell {
   height: auto;
   min-height: 0;
   padding-top: clamp(1.5rem, 3.2vw, 2.5rem);
@@ -973,8 +973,9 @@ body[data-landing] .site-header[data-open='true'] {
   background-color: var(--bg);
 }
 
-/* Once scrolled or open, the bar shrinks to the normal centred header. */
-body[data-landing] .site-header:is([data-scrolled='true'], [data-open='true']) .shell {
+/* Once scrolled or open, the bar shrinks to the normal centred header. Only
+   the bar's own shell — the menu below it keeps its own padding. */
+body[data-landing] .site-header:is([data-scrolled='true'], [data-open='true']) > .shell {
   padding-top: 0;
   padding-bottom: 0;
   padding-inline: clamp(1.25rem, 4vw, 2rem);

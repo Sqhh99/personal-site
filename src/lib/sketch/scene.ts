@@ -6,7 +6,9 @@
  * sketched in, mark by mark, as if a hand were drawing it. When the last mark
  * lands, the sky and the ground are baked into a single bitmap and the figure
  * into another, so the idle loop is two `drawImage` calls and nothing else:
- * parallax and a slow breath, no re-drawing, no per-frame geometry.
+ * parallax, a slow breath, and a little live pen-work over the top — stars
+ * that twinkle, a constellation drawn to whatever the cursor is near, and a
+ * new star wherever you tap. None of that touches the baked picture.
  */
 
 import { drawAstronaut, drawFlag, star } from './astronaut';
@@ -14,6 +16,19 @@ import { Pen, Rng, catmull, circlePoly, ellipsePoly, markWeight, renderMarks, ty
 
 export interface SketchSceneHandle {
   destroy: () => void;
+}
+
+/** A star's place in the sky, kept so the cursor can find its neighbours. */
+export interface SkyStar {
+  x: number;
+  y: number;
+  r: number;
+}
+
+export interface Scene {
+  marks: Mark[];
+  /** Sky stars only — the ones the live pen is allowed to play with. */
+  stars: SkyStar[];
 }
 
 interface Layout {
@@ -56,8 +71,9 @@ export function layout(width: number, height: number, detail: number): Layout {
 }
 
 /** Everything in the picture, in drawing order — which is also reveal order. */
-export function build(l: Layout, seed: number): Mark[] {
+export function build(l: Layout, seed: number): Scene {
   const pen = new Pen(new Rng(seed));
+  const stars: SkyStar[] = [];
   const rng = pen.rng;
   const { width, height, planet, figure, detail } = l;
   pen.scale = Math.max(0.7, Math.min(1.25, Math.min(width, height) / 760));
@@ -185,7 +201,9 @@ export function build(l: Layout, seed: number): Mark[] {
     ];
     for (const [x, y] of sparkles) {
       if (!clear(x, y)) continue;
-      star(pen, x, y, Math.min(width, height) * rng.range(0.016, 0.026), nib * 1.1);
+      const r = Math.min(width, height) * rng.range(0.016, 0.026);
+      star(pen, x, y, r, nib * 1.1);
+      stars.push({ x, y, r });
     }
     // Portrait reserves the whole top of the page for the words, so it needs
     // more throws of the pen to end up with the same scatter of stars.
@@ -194,8 +212,14 @@ export function build(l: Layout, seed: number): Mark[] {
       const x = rng.range(width * 0.03, width * 0.97);
       const y = rng.range(height * 0.05, height * 0.78);
       if (!clear(x, y)) continue;
-      if (rng.next() < 0.22) star(pen, x, y, Math.min(width, height) * rng.range(0.006, 0.011), nib * 0.8);
-      else pen.dot(x, y, nib * rng.range(0.6, 1.2), rng.range(0.4, 0.85));
+      if (rng.next() < 0.22) {
+        const r = Math.min(width, height) * rng.range(0.006, 0.011);
+        star(pen, x, y, r, nib * 0.8);
+        stars.push({ x, y, r });
+      } else {
+        pen.dot(x, y, nib * rng.range(0.6, 1.2), rng.range(0.4, 0.85));
+        stars.push({ x, y, r: nib * 1.8 });
+      }
     }
     // One comet, going somewhere.
     const cx0 = width * 0.9;
@@ -213,7 +237,7 @@ export function build(l: Layout, seed: number): Mark[] {
     }
   });
 
-  return pen.marks;
+  return { marks: pen.marks, stars };
 }
 
 export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
@@ -230,7 +254,10 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
   let width = 0;
   let height = 0;
   let dpr = 1;
+  let lay: Layout | null = null;
   let marks: Mark[] = [];
+  let stars: SkyStar[] = [];
+  let twinklers: { s: SkyStar; phase: number; speed: number }[] = [];
   let weights: number[] = [];
   let totalWeight = 1;
   let drawn = 0;
@@ -248,6 +275,11 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
   const start = performance.now();
   const pointer = { x: 0, y: 0 };
   const eased = { x: 0, y: 0 };
+  /** The cursor in canvas pixels; `on` eases the live pen in and out. */
+  const cursor = { x: 0, y: 0, in: false, on: 0 };
+  /** Stars the visitor added by tapping the sky. */
+  const added: { x: number; y: number; r: number; born: number }[] = [];
+  const near: { s: SkyStar; d: number }[] = [];
 
   const sizeLayer = (c: HTMLCanvasElement) => {
     c.width = canvas.width;
@@ -266,7 +298,16 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
     canvas.height = Math.round(height * dpr);
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
     const detail = conn?.saveData ? 0.55 : width < 720 ? 0.75 : 1;
-    marks = build(layout(width, height, detail), 20260922);
+    lay = layout(width, height, detail);
+    const scene = build(lay, 20260922);
+    marks = scene.marks;
+    stars = scene.stars;
+    // The brightest handful breathe, each on its own clock.
+    twinklers = [...stars]
+      .sort((a, b) => b.r - a.r)
+      .slice(0, 8)
+      .map((star_, i) => ({ s: star_, phase: i * 1.37, speed: 0.6 + (i % 4) * 0.17 }));
+    added.length = 0;
     weights = marks.map(markWeight);
     totalWeight = weights.reduce((a, b) => a + b, 0) || 1;
     layerCanvas = [0, 1, 2].map(() => document.createElement('canvas'));
@@ -300,6 +341,82 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
     baked = c;
   };
 
+  /** A straight line with a bow in it, so the live pen matches the drawn one. */
+  const penLine = (ax: number, ay: number, bx: number, by: number, w: number, a: number, bow: number) => {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    ctx.globalAlpha = a;
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.quadraticCurveTo((ax + bx) / 2 - (dy / len) * bow, (ay + by) / 2 + (dx / len) * bow, bx, by);
+    ctx.stroke();
+  };
+
+  /** The same four-point star the pen draws, but live. */
+  const sparkle = (x: number, y: number, r: number, w: number, a: number) => {
+    const k = r * 0.16;
+    ctx.globalAlpha = a;
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r);
+    ctx.quadraticCurveTo(x + k, y - k, x + r, y);
+    ctx.quadraticCurveTo(x + k, y + k, x, y + r);
+    ctx.quadraticCurveTo(x - k, y + k, x - r, y);
+    ctx.quadraticCurveTo(x - k, y - k, x, y - r);
+    ctx.stroke();
+  };
+
+  /** Pen-work over the finished picture: nothing here is ever baked in. */
+  const garnish = (now: number) => {
+    const nib = Math.max(0.7, Math.min(width, height) / 760);
+    const px = eased.x * 5;
+    const py = eased.y * 3;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = palette.ink;
+
+    for (const tw of twinklers) {
+      const k = 0.5 + 0.5 * Math.sin((now / 1000) * tw.speed + tw.phase);
+      sparkle(tw.s.x + px, tw.s.y + py, tw.s.r * (1.2 + k * 0.7), nib * 0.9, 0.1 + k * 0.38);
+    }
+
+    // The cursor joins up whatever stars it is near, the way a finger traces
+    // a constellation. The links are redrawn each frame, never kept.
+    cursor.on += ((cursor.in ? 1 : 0) - cursor.on) * 0.08;
+    if (cursor.on > 0.01) {
+      const reach = Math.min(width, height) * 0.26;
+      near.length = 0;
+      for (const s of stars) {
+        const d = Math.hypot(s.x + px - cursor.x, s.y + py - cursor.y);
+        if (d < reach) near.push({ s, d });
+      }
+      near.sort((a, b) => a.d - b.d);
+      for (let i = 0; i < Math.min(4, near.length); i += 1) {
+        const { s, d } = near[i];
+        const fade = (1 - d / reach) * cursor.on;
+        penLine(cursor.x, cursor.y, s.x + px, s.y + py, nib * 0.8, fade * 0.55, Math.sin(now / 1400 + i) * nib * 4);
+        sparkle(s.x + px, s.y + py, s.r * 1.6, nib * 0.9, fade * 0.65);
+      }
+      // …and the pen's own tip, a small cross on the paper.
+      const c = nib * 7 * cursor.on;
+      penLine(cursor.x - c, cursor.y, cursor.x + c, cursor.y, nib * 1.1, cursor.on * 0.5, nib * 0.9);
+      penLine(cursor.x, cursor.y - c, cursor.x, cursor.y + c, nib * 1.1, cursor.on * 0.5, -nib * 0.9);
+    }
+
+    // Stars the visitor put there, each drawn in over a moment.
+    for (const a of added) {
+      const t = Math.min(1, (now - a.born) / 420);
+      const e = 1 - (1 - t) * (1 - t);
+      sparkle(a.x, a.y, a.r * e, nib * 1.1, 0.25 + e * 0.6);
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  };
+
   const composite = (now: number) => {
     const t = (now - start) / 1000;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -313,7 +430,19 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
     const sky = baked ?? layerCanvas[0];
     ctx.drawImage(sky, eased.x * 5, eased.y * 3, width, height);
     if (!baked) ctx.drawImage(layerCanvas[1], eased.x * -6, eased.y * -3, width, height);
+    // The figure leans a little toward the cursor. Half a degree is plenty —
+    // it reads as weight shifting, not as the drawing sliding about.
+    const fig = lay?.figure;
+    const tilt = reduced || !fig ? 0 : eased.x * 0.02;
+    if (tilt) {
+      ctx.save();
+      ctx.translate(fig!.x, fig!.y);
+      ctx.rotate(tilt);
+      ctx.translate(-fig!.x, -fig!.y);
+    }
     ctx.drawImage(layerCanvas[2], eased.x * -11, eased.y * -5 + bob, width, height);
+    if (tilt) ctx.restore();
+    if (!reduced && baked) garnish(now);
   };
 
   const tick = (now: number) => {
@@ -342,12 +471,30 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
 
   const onPointer = (e: PointerEvent) => {
     const rect = canvas.getBoundingClientRect();
-    pointer.x = (e.clientX - rect.left) / rect.width - 0.5;
-    pointer.y = (e.clientY - rect.top) / rect.height - 0.5;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    pointer.x = x / rect.width - 0.5;
+    pointer.y = y / rect.height - 0.5;
+    cursor.x = x;
+    cursor.y = y;
+    cursor.in = e.pointerType !== 'touch' && x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
   };
   const onLeave = () => {
     pointer.x = 0;
     pointer.y = 0;
+    cursor.in = false;
+  };
+
+  /** Tap the sky and a star appears there. The last dozen are kept. */
+  const onTap = (e: PointerEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+    const s = Math.min(width, height);
+    added.push({ x, y, r: s * (0.008 + Math.random() * 0.007), born: performance.now() });
+    if (added.length > 12) added.shift();
+    resume();
   };
 
   const resume = () => {
@@ -397,6 +544,7 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
     observer.observe(canvas);
     window.addEventListener('pointermove', onPointer, { passive: true });
     canvas.addEventListener('pointerleave', onLeave);
+    canvas.addEventListener('pointerdown', onTap);
     resume();
   }
   window.addEventListener('resize', onResize);
@@ -409,6 +557,7 @@ export function initSketchScene(canvas: HTMLCanvasElement): SketchSceneHandle {
       observer.disconnect();
       window.removeEventListener('pointermove', onPointer);
       canvas.removeEventListener('pointerleave', onLeave);
+      canvas.removeEventListener('pointerdown', onTap);
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', onVisibility);
     },

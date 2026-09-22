@@ -84,6 +84,9 @@ Everything ships as its own island; the page is server-rendered otherwise.
   `astronaut.ts` is the figure; `scene.ts` composes them and drives the reveal. Once the
   last mark lands, the sky and ground are baked into one bitmap and the figure into
   another, so the idle loop is two `drawImage` calls at 30fps and nothing is re-drawn.
+  Over that, a little live pen-work that never touches the baked picture: the brightest
+  stars breathe, the figure leans toward the cursor, the cursor joins up whatever stars
+  it is near, and a tap puts a new star in the sky.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on

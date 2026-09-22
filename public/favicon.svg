@@ -1,7 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#080a0e"/>
-  <circle cx="32" cy="32" r="21" fill="none" stroke="#d4b483" stroke-width="1"/>
-  <circle cx="32" cy="32" r="13" fill="none" stroke="#d4b483" stroke-width="0.6" opacity="0.45"/>
-  <circle cx="49.5" cy="22.5" r="1.7" fill="#d4b483"/>
-  <text x="32" y="39" font-family="Georgia, 'Times New Roman', serif" font-size="22" font-weight="500" fill="#eee8dc" text-anchor="middle">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="A hand-drawn astronaut helmet">
+  <!-- Paper, then one pen. The helmet is drawn twice, slightly out of
+       register, which is what makes a vector line read as a drawn one. -->
+  <rect width="64" height="64" rx="12" fill="#f1eee6"/>
+  <g fill="none" stroke="#161513" stroke-linecap="round" stroke-linejoin="round">
+    <!-- side pods -->
+    <path d="M11.8 26.6C9.2 27.6 8.1 30.4 8.4 33.4 8.7 36.4 10.3 38.4 12.6 38.9" stroke-width="3.2"/>
+    <path d="M52.4 26.4C55 27.5 56.1 30.3 55.8 33.3 55.5 36.3 53.9 38.3 51.6 38.8" stroke-width="3.2"/>
+    <!-- helmet -->
+    <path d="M32 10.4C43.6 10.2 52.7 19.4 53 31.2 53.3 43 44.2 52.4 32.3 52.6 20.4 52.8 11.2 43.6 11 31.8 10.8 20.2 20.2 10.6 32 10.4Z" stroke-width="3"/>
+    <path d="M32.6 12.1C43.1 12.4 51.2 20.8 51.4 31.4 51.6 41.6 43.6 50.5 32.8 51" stroke-width="1.1" opacity="0.3"/>
+  </g>
+  <!-- The visor is the one solid black in the drawing. -->
+  <path d="M20.2 29.2C20.6 22.2 25.9 18.3 32.2 18.2 38.6 18.1 43.6 21.9 44.2 28.9 44.7 34.4 39.6 38.2 32.3 38.3 25 38.4 19.9 34.7 20.2 29.2Z" fill="#161513"/>
+  <g stroke="#f1eee6" stroke-linecap="round" fill="none">
+    <path d="M24.6 28.8C24.9 24.8 27.4 22 30.9 21.3" stroke-width="2.4"/>
+    <path d="M22.2 33.6C26.4 35.6 37 35.9 41.8 33.2" stroke-width="1.4" opacity="0.7"/>
+  </g>
+  <!-- One star, so it is clearly out there. -->
+  <path d="M54.2 9.4C54.6 12.2 55.4 13 58.2 13.4 55.4 13.8 54.6 14.6 54.2 17.4 53.8 14.6 53 13.8 50.2 13.4 53 13 53.8 12.2 54.2 9.4Z" fill="#161513"/>
 </svg>
