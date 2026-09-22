@@ -36,9 +36,9 @@ const languages = listLanguages().map((code) => ({
 }));
 ---
 
-<header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false">
+<header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false" data-open="false">
   <div class="shell flex h-14 items-center justify-between">
-    <a href={homeHref} class="wordmark text-[1.15rem] text-ink" aria-label={`${t('site.name')} — home`}>
+    <a href={homeHref} class:list={["wordmark text-ink", overlay ? "wordmark-landing" : "text-[1.15rem]"]} aria-label={`${t('site.name')} — home`}>
       {t('site.name')}
     </a>
 
@@ -47,7 +47,7 @@ const languages = listLanguages().map((code) => ({
       type="button"
       aria-expanded="false"
       aria-controls="site-menu"
-      class="label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink"
+      class:list={[overlay ? 'menu-toggle-plain' : 'label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink']}
     >
       <span data-label-open>{t('nav.menu')}</span>
       <span data-label-close hidden>{t('nav.close')}</span>

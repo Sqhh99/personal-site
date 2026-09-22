@@ -836,8 +836,9 @@ class Engraver {
  * made of leaves.
  */
 function drawFigure(ctx: CanvasRenderingContext2D, x: number, footY: number, h: number, t: number, ink: string, paper: string) {
-  const bob = Math.sin(t * 1.6) * h * 0.005;
-  const sway = Math.sin(t * 0.8) * 0.012;
+  // Breath only: ≥8s period, ≤2px travel — anything snappier reads as shake.
+  const bob = Math.sin(t * ((Math.PI * 2) / 8)) * Math.min(2, h * 0.002);
+  const sway = Math.sin(t * ((Math.PI * 2) / 10.5)) * 0.003;
   ctx.save();
   ctx.translate(x, footY + bob);
   ctx.lineJoin = 'round';
@@ -1050,6 +1051,10 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
   const pointer = { x: 0, y: 0 };
   const eased = { x: 0, y: 0 };
   const start = performance.now();
+  /** After the engraving finishes, bake layers and only breathe the figure. */
+  let frozen = false;
+  let layerCache: HTMLCanvasElement | null = null;
+
 
   const inkUpTo = (weight: number) => {
     while (drawn < ops.length && drawnWeight < weight) {
@@ -1064,7 +1069,8 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
     const rect = canvas.getBoundingClientRect();
     width = Math.max(1, Math.round(rect.width));
     height = Math.max(1, Math.round(rect.height));
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Cap DPR so retina does not keep a double-density stroke budget alive.
+    dpr = Math.min(window.devicePixelRatio || 1, width < 720 ? 1.25 : 1.75);
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     const engraver = new Engraver(width, height, ink, paper);
@@ -1085,17 +1091,51 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
     drawn = 0;
     drawnWeight = 0;
     revealStart = performance.now();
+    frozen = false;
+    layerCache = null;
     if (instant) inkUpTo(Infinity);
+  };
+
+  const bakeLayers = () => {
+    const cache = document.createElement('canvas');
+    cache.width = canvas.width;
+    cache.height = canvas.height;
+    const c = cache.getContext('2d')!;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = paper;
+    c.fillRect(0, 0, width, height);
+    for (const layer of layers) {
+      c.drawImage(layer, 0, 0, width, height);
+    }
+    layerCache = cache;
+    frozen = true;
+    pointer.x = 0;
+    pointer.y = 0;
+    eased.x = 0;
+    eased.y = 0;
   };
 
   const composite = (now: number) => {
     const t = (now - start) / 1000;
     const reveal = drawnWeight / totalWeight;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (frozen && layerCache) {
+      ctx.drawImage(layerCache, 0, 0, width, height);
+      ctx.save();
+      const portrait = width / height < 1;
+      const h = height * (portrait ? 0.34 : 0.44);
+      const fx = width / 2 + (portrait ? width * 0.14 : -height * 0.08);
+      drawFigure(ctx, fx, height * 0.93, h, reduced ? 0 : t, ink, paper);
+      ctx.restore();
+      return;
+    }
+
     const dolly = reduced ? 1 : 1 + 0.03 * (1 - Math.exp(-t / 50));
     eased.x += (pointer.x - eased.x) * 0.04;
     eased.y += (pointer.y - eased.y) * 0.04;
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = paper;
     ctx.fillRect(0, 0, width, height);
     ctx.save();
@@ -1127,13 +1167,18 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
       const p = clamp01((now - revealStart) / revealDuration);
       const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
       inkUpTo(e * totalWeight);
+    } else if (!frozen) {
+      bakeLayers();
     }
     composite(now);
-    const settled = drawn >= ops.length && reduced;
-    if (visible && !settled) frame = requestAnimationFrame(tick);
+    // Reduced motion: stop after settle. Otherwise keep a cheap breath loop.
+    if (visible && !reduced && (drawn < ops.length || frozen)) {
+      frame = requestAnimationFrame(tick);
+    }
   };
 
   const onPointer = (e: PointerEvent) => {
+    if (frozen || reduced) return;
     const rect = canvas.getBoundingClientRect();
     pointer.x = (e.clientX - rect.left) / rect.width - 0.5;
     pointer.y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -1150,24 +1195,30 @@ export function initInkScene(canvas: HTMLCanvasElement): InkSceneHandle {
       const rect = canvas.getBoundingClientRect();
       if (Math.round(rect.width) === width && Math.round(rect.height) === height) return;
       build(true);
+      if (!reduced) bakeLayers();
       composite(performance.now());
+      if (visible && !reduced) frame = requestAnimationFrame(tick);
     }, 200);
   };
 
   const observer = new IntersectionObserver(([entry]) => {
     const was = visible;
     visible = entry.isIntersecting;
-    if (visible && !was) frame = requestAnimationFrame(tick);
+    if (visible && !was && !reduced) frame = requestAnimationFrame(tick);
   });
 
   build(reduced);
+  if (reduced) {
+    bakeLayers();
+    composite(performance.now());
+  }
   observer.observe(canvas);
   if (!reduced) {
     window.addEventListener('pointermove', onPointer, { passive: true });
     canvas.addEventListener('pointerleave', onLeave);
   }
   window.addEventListener('resize', onResize);
-  frame = requestAnimationFrame(tick);
+  if (!reduced) frame = requestAnimationFrame(tick);
 
   return {
     destroy: () => {

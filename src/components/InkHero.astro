@@ -1,8 +1,8 @@
 ---
 /**
- * The first thing a visitor sees: the engraving drawing itself across the
- * whole viewport. Type is kept to one line and a scroll cue so the picture is
- * the page; everything else lives in the header's menu.
+ * Landing engraving: the picture is the page. Chrome is copperplate marginalia —
+ * wordmark and menu live in the header; the tagline sits in the void; scroll
+ * is a vertical cue at the lower right. No UI-kit plates.
  */
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
@@ -19,13 +19,12 @@ const t = useTranslations(lang);
   <canvas id="ink-scene" class="ink-hero-canvas" aria-hidden="true"></canvas>
   <div class="ink-hero-grain" aria-hidden="true"></div>
 
-  <div class="ink-hero-foot">
-    <p class="ink-hero-line font-display">{t('hero.line')}</p>
-    <a href="#latest" class="ink-hero-scroll label" aria-label={t('hero.scroll')}>
-      <span>{t('hero.scroll')}</span>
-      <span class="ink-hero-scroll-rule" aria-hidden="true"></span>
-    </a>
-  </div>
+  <p class="ink-hero-line font-display">{t('hero.line')}</p>
+
+  <a href="#latest" class="ink-hero-scroll" aria-label={t('hero.scroll')}>
+    <span class="ink-hero-scroll-rule" aria-hidden="true"></span>
+    <span class="ink-hero-scroll-label">{t('hero.scroll')}</span>
+  </a>
 </section>
 
 <script>
