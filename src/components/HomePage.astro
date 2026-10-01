@@ -1,16 +1,9 @@
 ---
 /**
- * The landing page: the drawing, then the four most recent pieces, then the
- * latest brief. Nothing else — the point of the page is the drawing and the
- * writing under it.
+ * The landing page is the poster and nothing else. The writing and the briefs
+ * are one click away in its index; nothing waits below the fold.
  */
-import SketchHero from './SketchHero.astro';
-import SketchRule from './SketchRule.astro';
-import PostCard from './PostCard.astro';
-import { getPosts, leadPostId } from '../lib/posts';
-import { getBriefs, getBriefUrl } from '../lib/briefs';
-import { formatDate, isoDate } from '../lib/posts';
-import { getLocalizedPath, useTranslations } from '../i18n/utils';
+import PosterHero from './PosterHero.astro';
 import type { Language } from '../i18n/ui';
 
 interface Props {
@@ -18,46 +11,6 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const t = useTranslations(lang);
-const posts = (await getPosts()).slice(0, 4);
-const lead = leadPostId(posts);
-const [brief] = await getBriefs();
 ---
 
-<SketchHero lang={lang} />
-
-<section id="latest" class="shell scroll-mt-24 pb-16 pt-20 sm:pt-28">
-  <div class="reveal mb-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-    <div>
-      <h2 class="font-display text-3xl leading-none tracking-tight text-ink sm:text-4xl">
-        {t('home.latest')}
-      </h2>
-      <SketchRule class="mt-3 h-2 w-36 text-ink opacity-50" />
-    </div>
-    <a href={getLocalizedPath('/blog/', lang)} class="sketch-link">{t('home.allWriting')} →</a>
-  </div>
-
-  <div class="grid gap-7 sm:grid-cols-2">
-    {posts.map((post, i) => <PostCard post={post} feature={post.id === lead} lang={lang} delay={i * 60} />)}
-  </div>
-</section>
-
-{
-  brief && (
-    <section class="shell pb-24">
-      <a
-        href={getBriefUrl(brief, lang)}
-        class="reveal group sketch-frame sketch-ticks relative block p-7 sm:p-9"
-        style="--reveal-delay:120ms"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <span class="label">{t('home.briefs')}</span>
-          <time datetime={isoDate(brief.data.date)} class="label">{formatDate(brief.data.date, lang)}</time>
-        </div>
-        <p class="mt-4 max-w-[62ch] font-display text-xl leading-snug text-muted transition-colors group-hover:text-ink sm:text-2xl">
-          {brief.data.description}
-        </p>
-      </a>
-    </section>
-  )
-}
+<PosterHero lang={lang} />

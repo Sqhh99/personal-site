@@ -1,7 +1,7 @@
 # personal-site
 
 Personal site and engineering blog — long-form explanatory essays with interactive
-figures, plus a daily AI news brief, behind a landing page drawn by hand in pen. Built with Astro, deployed as static files to
+figures, plus a daily AI news brief, behind a landing page set as a printed poster. Built with Astro, deployed as static files to
 Cloudflare.
 
 **Stack:** Astro · TypeScript · Tailwind CSS v4 · MDX content collections ·
@@ -27,7 +27,8 @@ src/
 └── pages/               # routes (EN unprefixed, ZH under /zh), rss.xml.ts
 scripts/new-article.mjs  # npm run new:article
 scripts/check-brief.mjs  # npm run check:brief — daily brief QA gate
-public/                  # favicon, robots.txt — copied verbatim
+scripts/prep-hero-art.mjs # npm run prep:art — prepares the landing poster's picture
+public/                  # favicon, robots.txt, art/ — copied verbatim
 ```
 
 The UI is bilingual (EN/ZH); **articles are not**. Each article is written in one
@@ -44,6 +45,7 @@ language and appears in both listings.
 | `npm run check` | Type-check `.astro`, `.ts` and `.tsx` |
 | `npm run new:article -- <slug>` | Scaffold a new article directory |
 | `npm run check:brief [-- YYYY-MM-DD]` | QA gate for a daily brief: shape/links/dates in code, tone/hedging/dedup via TypeSafe (needs `TYPESAFE_API_KEY`; add `--no-ai` for code checks only) |
+| `npm run prep:art` | Re-fetch and prepare the landing poster's picture (output is committed) |
 | `npm run deploy` | Build, then `wrangler deploy` |
 
 ## Adding a post
@@ -77,21 +79,18 @@ loads automatically as a skill in Claude Code.
 
 Everything ships as its own island; the page is server-rendered otherwise.
 
-- **Landing sketch** (`SketchHero.astro` + `src/lib/sketch/`) — the first screen is a
-  hand-drawn chart of "the edge of the map": a neatline with a graduated border and
-  degree marks, an astronaut planting a flag on a small planet, a compass, a dashed route
-  in from a ringed world, and a sea-serpent where the chart runs out. It is sketched in
-  mark by mark on arrival. No image assets; the geometry is generated for the viewport and
-  laid out round the tagline, whose box is measured from the page. `pen.ts` is the drawing
-  vocabulary (hand strokes, scanline hatching, stippling, lettering) and emits marks as
-  plain data; `astronaut.ts` is the figure; `chart.ts` is the map furniture; `scene.ts`
-  composes them and drives the reveal. Once drawn, sky and ground are baked to one bitmap
-  and the figure to three small ones traced from different seeds, which the idle loop
-  cycles for a hand-drawn "boil". A live layer, rebuilt each frame and never baked, adds
-  the flag, a compass needle that swings to find the cursor, the swimming serpent, a
-  paper plane, tumbling rocks, shooting stars, twinkling, a constellation drawn to the
-  stars near the cursor, and a star wherever you tap. Scrolling away, the drawing lags
-  and dissolves into the paper. All motion is off under `prefers-reduced-motion`.
+- **Landing poster** (`PosterHero.astro` + `src/lib/poster/`) — the first screen is a
+  dark printed sheet: Gustave Doré's *Paradiso* XXXI (1868, public domain) set as a field
+  of ASCII characters, a hot-pink panel behind it, the name in heavy type underneath, and
+  sheet furniture (rules, registration marks, plate number, barcode) round the edge.
+  `field.ts` lays the sheet out for the viewport and samples the plate at one value per
+  character cell; `glyphs.ts` is the character ramp, the ordered dither and a glyph atlas
+  so each cell is one `drawImage`; `scene.ts` prints the static field once, then
+  overprints only what moves: a decode-in scan on arrival, a shimmer, gold rays turning
+  round the light, a cursor "lantern" that brings up the detail hidden in the grey sky,
+  and rising embers. A few pencil marks are drawn over it with `src/lib/sketch/pen.ts`
+  and boil between three tracings. The source picture is prepared once by
+  `npm run prep:art` into `public/art/`. All motion is off under `prefers-reduced-motion`.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on
