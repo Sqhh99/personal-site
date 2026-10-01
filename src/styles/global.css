@@ -1,33 +1,37 @@
 @import 'tailwindcss';
 
 /* ---------------------------------------------------------------------------
-   Palette — a drawing. Black pen on paper, and nothing else: the only
-   "colour" is how much ink is on the page. Token names stay stable so essay
-   canvases keep resolving the same properties; series that used to be gold
-   against blue-grey are now full ink against mid ink.
+   Palette — a dark printed sheet. Bone-white type on near-black, one cobalt
+   for the picture and the links, and a hot pink used as a spot colour, the
+   way a two-colour poster would. Token names stay stable so essay canvases
+   keep resolving the same properties.
    --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #f1eee6;
-  --surface: #f6f4ee;
-  --surface-sunk: #e7e3d9;
-  --surface-glass: rgba(241, 238, 230, 0.86);
-  --ink: #161513;
-  --muted: #4d4a45;
-  --faint: #807c74;
-  --border: #d3cec2;
-  --border-strong: #b3ada0;
-  --accent: #161513;
-  --accent-deep: #000000;
-  --accent-glow: rgba(22, 21, 19, 0.1);
-  --on-accent: #f1eee6;
-  --kraft: #6f6b64;
-  --manilla: #9c978d;
-  --code-bg: #e7e3d9;
-  --shadow: 0 1px 0 rgb(22 21 19 / 0.05);
-  --shadow-lg: 0 18px 40px -28px rgb(22 21 19 / 0.3);
+  color-scheme: dark;
+  --bg: #0b0b0e;
+  --surface: #121217;
+  --surface-sunk: #18181f;
+  --surface-glass: rgba(11, 11, 14, 0.82);
+  --ink: #e8e3d6;
+  --muted: #a7a195;
+  --faint: #6f6a61;
+  --border: #26262e;
+  --border-strong: #3a3a45;
+  --accent: #5b74ff;
+  --accent-deep: #93a3ff;
+  --accent-glow: rgba(91, 116, 255, 0.24);
+  --on-accent: #0b0b0e;
+  --kraft: #8a857b;
+  --manilla: #5c5850;
+  --code-bg: #15151b;
+  --pink: #ff3d7f;
+  --gold: #f2b35e;
+  --cobalt-deep: #2b3dbd;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 24px 48px -28px rgb(0 0 0 / 0.8);
   --paper-hatch: transparent;
-  --tick: rgb(22 21 19 / 0.35);
+  --tick: rgb(232 227 214 / 0.3);
   --tick-size: 11px;
 }
 
@@ -46,12 +50,15 @@
   --color-kraft: var(--kraft);
   --color-manilla: var(--manilla);
   --color-on-accent: var(--on-accent);
+  --color-pink: var(--pink);
+  --color-gold: var(--gold);
 
   --font-display: 'Newsreader Variable', 'Songti SC', 'Hiragino Mincho ProN', 'Yu Mincho',
     'Noto Serif CJK SC', ui-serif, Georgia, serif;
   --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     'PingFang SC', 'Hiragino Sans', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    monospace;
 
   --shadow-card: var(--shadow);
   --shadow-float: var(--shadow-lg);
@@ -96,8 +103,8 @@
   }
 
   ::selection {
-    background-color: var(--accent-glow);
-    color: var(--ink);
+    background-color: var(--pink);
+    color: var(--bg);
   }
 
   :focus-visible {
@@ -186,256 +193,288 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 /* ---------------------------------------------------------------------------
-   Landing — a drawn chart that fills the first screen. The drawing works round
-   the words, so the tagline sits on clean paper and needs no scrim; the
-   writing waits below the fold.
+   Landing — a poster. The picture is a canvas of characters (lib/poster); the
+   name sits under it in heavy type, and the furniture of a printed sheet —
+   hairline rules, registration marks, a plate number, an info band — runs
+   round the edge. Nothing here is a sentence.
    --------------------------------------------------------------------------- */
 
-.sketch-hero {
-  --hero-p: 0;
+.poster {
+  --pad: clamp(1.5rem, 3.2vw, 2.5rem);
   position: relative;
-  display: grid;
   height: 100vh;
   height: 100svh;
-  min-height: 30rem;
+  min-height: 32rem;
   overflow: hidden;
+  isolation: isolate;
   background-color: var(--bg);
 }
 
-/* Scrolling away, the drawing lags behind the page and the words lift off.
-   Both are compositor-only properties, so the scroll stays cheap. */
-.sketch-hero-canvas {
+/* Film grain over everything, so the black reads as ink on a sheet, not a screen. */
+.poster::after {
+  content: '';
   position: absolute;
   inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* The name, set big and under the picture, so the characters print across it. */
+.poster-title {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--pad) + 2.75rem);
+  left: calc(var(--pad) - 0.06em);
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(4.5rem, 15.5vw, 16rem);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  animation: poster-rise 1000ms var(--ease-out-quint) 120ms backwards;
+}
+
+.poster-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
   width: 100%;
   height: 100%;
-  display: block;
-  transform: translate3d(0, calc(var(--hero-p) * 20%), 0);
-  /* …and dissolves into the paper from the bottom up, rather than being
-     sliced off by the edge of the section. At rest the mask is all ink. */
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 calc(100% - var(--hero-p) * 60%),
-    transparent calc(118% - var(--hero-p) * 60%)
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 calc(100% - var(--hero-p) * 60%),
-    transparent calc(118% - var(--hero-p) * 60%)
-  );
-  cursor: crosshair;
+  pointer-events: none;
 }
 
-.sketch-hero-copy {
-  position: relative;
-  z-index: 2;
-  align-self: center;
-  justify-self: start;
-  width: min(30rem, 100%);
-  padding-inline: clamp(1.5rem, 4vw, 4.5rem);
-  padding-block: 1rem;
-  opacity: calc(1 - var(--hero-p) * 1.8);
-  transform: translate3d(0, calc(var(--hero-p) * -4rem), 0);
-  /* backwards, not both: once it has played, the scroll owns these again. */
-  animation: sketch-in 800ms var(--ease-out-quint) 120ms backwards;
+.poster-chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  animation: poster-fade 900ms ease 500ms backwards;
 }
 
-.sketch-hero-eyebrow {
-  margin: 0 0 1.1rem;
+.poster-chrome a {
+  pointer-events: auto;
+}
+
+/* The top rule runs between the header's wordmark and its menu. */
+.poster-top {
+  position: absolute;
+  top: var(--pad);
+  left: calc(var(--pad) + 7.5rem);
+  right: calc(var(--pad) + 5.5rem);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.poster-rule {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-strong);
+}
+
+/* The plate number, up the right edge. */
+.poster-fig {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--pad) - 0.2rem);
+  margin: 0;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
   font-family: var(--font-sans);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
+  font-size: clamp(1.3rem, 2.2vw, 2.1rem);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* The info band: four hairline cells, the way a sleeve lists its credits. */
+.poster-info {
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  bottom: var(--pad);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  border-top: 1px solid var(--border-strong);
+  background-color: var(--bg);
+}
+
+.poster-cell {
+  min-width: 0;
+  padding: 0.75rem 1rem 0 0;
+}
+
+.poster-cell + .poster-cell {
+  padding-left: 1rem;
+  border-left: 1px solid var(--border);
+}
+
+.poster-cell p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.poster-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--faint);
 }
 
-.sketch-hero-line {
-  margin: 0;
-  /* Written out, left to right, a moment after the page arrives. */
-  animation: sketch-write 1400ms cubic-bezier(0.55, 0.1, 0.3, 1) 350ms backwards;
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 1.1rem + 2.4vw, 3.15rem);
-  font-weight: 400;
-  line-height: 1.16;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-  text-wrap: balance;
-}
-
-/* The pen underline: two passes, like the rest of the drawing. */
-.sketch-hero-rule {
-  display: block;
-  width: min(15rem, 70%);
-  height: auto;
-  margin-top: 1.1rem;
-  color: var(--ink);
-  opacity: 0.55;
-}
-
-.sketch-hero-actions {
+.poster-index {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.6rem;
-  margin-top: 2rem;
+  gap: 0.4rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.sketch-hero-scroll {
-  position: absolute;
-  z-index: 2;
-  left: clamp(1.5rem, 4vw, 4.5rem);
-  bottom: clamp(1.5rem, 3vw, 2.5rem);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: var(--muted);
+.poster-index a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink);
   text-decoration: none;
-  opacity: calc(1 - var(--hero-p) * 4);
-  animation: sketch-in 700ms var(--ease-out-quint) 420ms backwards;
+  transition: color 180ms ease;
 }
 
-.sketch-hero-scroll svg {
-  width: 0.75rem;
-  height: auto;
+.poster-index a:hover {
+  color: var(--pink);
+}
+
+.poster-index a > span:last-child {
   transition: transform 260ms var(--ease-spring);
 }
 
-.sketch-hero-scroll:hover {
-  color: var(--ink);
+.poster-index a:hover > span:last-child {
+  transform: translateX(3px);
 }
 
-.sketch-hero-scroll:hover svg {
-  transform: translateY(3px);
+.poster-n {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--pink);
 }
 
-.sketch-hero-scroll-label {
-  font-family: var(--font-sans);
-  font-size: 0.66rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  line-height: 1;
-  text-transform: uppercase;
+.poster-cell--code {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.35rem;
 }
 
-/* A link the pen underlines when you reach for it. */
-.sketch-link {
-  position: relative;
-  font-family: var(--font-sans);
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  text-decoration: none;
+.poster-cell--code .poster-label {
+  margin: 0;
 }
 
-.sketch-link::after {
-  content: '';
+.poster-barcode {
+  display: block;
+  width: 7.5rem;
+  height: 1.5rem;
+  fill: var(--ink);
+}
+
+/* Registration marks: the corners a printer trims to. */
+.poster-reg {
   position: absolute;
-  left: -0.1em;
-  right: -0.1em;
-  bottom: -0.32em;
-  height: 6px;
-  background: currentColor;
-  /* A lopsided radius is all it takes to make a rule look drawn. */
-  border-radius: 90% 8% 92% 6% / 90% 90% 10% 10%;
-  clip-path: inset(0 0 3px 0);
-  opacity: 0.35;
-  transform: scaleX(0.35);
-  transform-origin: left;
-  transition: transform 260ms var(--ease-spring), opacity 200ms ease;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 0 solid var(--muted);
 }
 
-.sketch-link:hover::after {
-  transform: scaleX(1);
-  opacity: 0.8;
+.poster-reg--tl {
+  top: calc(var(--pad) * 0.4);
+  left: calc(var(--pad) * 0.4);
+  border-top-width: 1px;
+  border-left-width: 1px;
 }
 
-@keyframes sketch-write {
-  from {
-    clip-path: inset(-0.2em 100% -0.3em 0);
-  }
-  to {
-    clip-path: inset(-0.2em 0 -0.3em 0);
-  }
+.poster-reg--tr {
+  top: calc(var(--pad) * 0.4);
+  right: calc(var(--pad) * 0.4);
+  border-top-width: 1px;
+  border-right-width: 1px;
 }
 
-/* The underline is drawn in once the line is written. */
-.sketch-hero-rule path {
-  stroke-dasharray: 260;
-  stroke-dashoffset: 0;
-  animation: sketch-draw 900ms var(--ease-out-quint) 1500ms backwards;
+.poster-reg--bl {
+  bottom: calc(var(--pad) * 0.4);
+  left: calc(var(--pad) * 0.4);
+  border-bottom-width: 1px;
+  border-left-width: 1px;
 }
 
-.sketch-hero-rule path + path {
-  animation-delay: 1750ms;
+.poster-reg--br {
+  right: calc(var(--pad) * 0.4);
+  bottom: calc(var(--pad) * 0.4);
+  border-right-width: 1px;
+  border-bottom-width: 1px;
 }
 
-@keyframes sketch-draw {
-  from {
-    stroke-dashoffset: 260;
-  }
-}
-
-@keyframes sketch-in {
+@keyframes poster-rise {
   from {
     opacity: 0;
-    transform: translateY(0.6rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+    transform: translateY(0.12em);
   }
 }
 
-/* Short landscape: the drawing is close, so the words take less width. */
-@media (min-aspect-ratio: 85/100) and (max-width: 1100px) {
-  .sketch-hero-copy {
-    width: min(24rem, 100%);
-  }
-
-  .sketch-hero-line {
-    font-size: clamp(1.55rem, 0.9rem + 1.8vw, 2.25rem);
+@keyframes poster-fade {
+  from {
+    opacity: 0;
   }
 }
 
-/* Portrait: the drawing sits below, so the words take the top of the page. */
+/* Narrower sheets: the band keeps the index and the barcode. */
+@media (max-width: 900px) {
+  .poster-info {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .poster-cell--wide {
+    display: none;
+  }
+}
+
+/* Portrait: the name across the top, the picture filling the rest. */
 @media (max-aspect-ratio: 85/100) {
-  .sketch-hero-copy {
-    align-self: start;
-    justify-self: stretch;
-    width: 100%;
-    max-width: 34rem;
-    padding-top: clamp(5.5rem, 16vh, 9rem);
+  .poster-title {
+    top: calc(var(--pad) + 3rem);
+    font-size: 23vw;
   }
 
-  .sketch-hero-rule {
-    width: min(13rem, 60%);
-  }
-
-  .sketch-hero-scroll {
+  .poster-top,
+  .poster-fig {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sketch-hero-copy,
-  .sketch-hero-scroll,
-  .sketch-hero-line,
-  .sketch-hero-rule path {
+  .poster-title,
+  .poster-chrome {
     animation: none;
-  }
-
-  .sketch-hero-canvas,
-  .sketch-hero-copy {
-    transform: none;
-    opacity: 1;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-
-  .sketch-link::after {
-    transition: none;
   }
 }
 
@@ -942,20 +981,25 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 /* ---------------------------------------------------------------------------
-   Chrome — the tooth of the paper, a header that stays out of the way, and
-   the menu.
+   Chrome — grain on the sheet, a header that stays out of the way, the menu,
+   and the hairline furniture the cards and pages are built from.
    --------------------------------------------------------------------------- */
 
-/* Just enough grain that the drawing reads as sitting on a sheet. */
+/* Film grain: on black it has to lighten, not darken, to show at all. */
 .paper-grain {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
-  opacity: 0.045;
-  mix-blend-mode: multiply;
+  opacity: 0.05;
+  mix-blend-mode: screen;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 180px 180px;
+}
+
+/* The poster brings its own grain. */
+body[data-landing] .paper-grain {
+  display: none;
 }
 
 .site-stack {
@@ -972,7 +1016,7 @@ html[data-reveal] .reveal:not(.is-visible) {
   transition: border-color 200ms ease, background-color 200ms ease;
 }
 
-/* Landing header: float over the drawing as pencilled marginalia — no plates. */
+/* Landing header: bare mono type in the poster's top corners — no plates. */
 body[data-landing] .site-header {
   position: fixed;
   inset-inline: 0;
@@ -989,37 +1033,32 @@ body[data-landing] .site-header > .shell {
   width: 100%;
 }
 
-/* The landing bar is always over paper, so the chrome is styled once rather
-   than per state: bare type, underlined on hover, no plates. */
 body[data-landing] .wordmark,
 body[data-landing] #menu-toggle {
   padding: 0;
   background: none;
   box-shadow: none;
   color: var(--ink);
-  line-height: 1;
-}
-
-body[data-landing] .wordmark {
-  font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
+  line-height: 1;
   text-decoration: none;
 }
 
+body[data-landing] .wordmark::before {
+  content: '@';
+  color: var(--pink);
+}
+
 body[data-landing] #menu-toggle {
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: lowercase;
+  text-transform: uppercase;
 }
 
 body[data-landing] .wordmark:hover,
 body[data-landing] #menu-toggle:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
+  color: var(--pink);
 }
 
 body[data-landing] .site-header[data-scrolled='true'] {
@@ -1027,8 +1066,7 @@ body[data-landing] .site-header[data-scrolled='true'] {
   backdrop-filter: blur(12px);
 }
 
-/* Open menu: a panel that drops from the bar. It never covers the page — it
-   is solid paper rather than glass only so it stays readable over the drawing. */
+/* Open menu: a panel that drops from the bar, solid so it reads over the poster. */
 body[data-landing] .site-header[data-open='true'] {
   background-color: var(--bg);
 }
@@ -1079,50 +1117,38 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   }
 }
 
+/* Cards are hairline cells on the sheet. The names are kept from when they
+   were drawn boxes, so the markup that uses them did not have to change. */
 .sketch-frame {
   position: relative;
-  background-color: color-mix(in srgb, var(--surface) 70%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--ink) 72%, transparent);
-  /* A lopsided radius is what makes a CSS box look like a drawn one. */
-  border-radius: 255px 14px 225px 16px / 16px 225px 14px 255px;
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
   transition:
     border-color 180ms ease,
-    background-color 180ms ease,
-    transform 260ms var(--ease-spring);
+    background-color 180ms ease;
 }
 
 .sketch-frame:hover {
-  border-color: var(--ink);
-  background-color: color-mix(in srgb, var(--surface) 95%, transparent);
+  border-color: var(--muted);
+  background-color: var(--surface-sunk);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .sketch-frame:hover {
-    transform: translateY(-3px) rotate(-0.25deg);
-  }
-}
-
-/* The second pass of the pen, slightly out of register with the first. */
+/* The spot colour: a pink rule along the top that runs out on hover. */
 .sketch-ticks::after {
   content: '';
   position: absolute;
-  inset: 4px 5px 6px 4px;
+  top: -1px;
+  left: -1px;
+  height: 2px;
+  width: 2.5rem;
   pointer-events: none;
-  border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent);
-  border-radius: 16px 240px 14px 220px / 220px 15px 250px 14px;
-  transition: opacity 180ms ease;
-  opacity: 0.8;
+  background-color: var(--pink);
+  transition: width 320ms var(--ease-spring);
 }
 
 .sketch-frame:hover.sketch-ticks::after {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sketch-frame,
-  .sketch-frame:hover {
-    transform: none;
-  }
+  width: calc(100% + 2px);
 }
 
 .zine-rule {
@@ -1130,8 +1156,8 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   height: 1px;
   background: linear-gradient(
     to right,
-    var(--accent),
-    color-mix(in srgb, var(--border) 35%, transparent) 42%,
+    var(--pink) 0 2.5rem,
+    var(--border-strong) 2.5rem 60%,
     transparent
   );
 }
@@ -1140,7 +1166,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   display: inline-block;
   height: 1px;
   width: 1.55rem;
-  background-color: var(--accent);
+  background-color: var(--pink);
 }
 
 .ink-btn {
@@ -1149,10 +1175,10 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   justify-content: center;
   height: 2.75rem;
   padding-inline: 1.2rem;
-  border: 1px solid var(--accent);
-  border-radius: 1px;
-  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent-deep);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--ink);
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 500;
@@ -1162,7 +1188,8 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 }
 
 .ink-btn:hover {
-  background-color: var(--accent);
+  border-color: var(--pink);
+  background-color: var(--pink);
   color: var(--on-accent);
 }
 
@@ -1175,7 +1202,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 }
 
 .ghost-link:hover {
-  border-color: var(--accent);
+  border-color: var(--pink);
   color: var(--ink);
 }
 
@@ -1183,11 +1210,10 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.18rem 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
-  /* Drawn, like the frame it sits in. */
-  border-radius: 40px 6px 36px 8px / 8px 34px 6px 40px;
-  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  padding: 0.18rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 0;
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent-deep);
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -1197,33 +1223,26 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 }
 
 .stamp-dot {
-  width: 0.28rem;
-  height: 0.28rem;
-  border-radius: 50%;
-  background-color: var(--accent);
+  width: 0.3rem;
+  height: 0.3rem;
+  background-color: var(--pink);
 }
 
 .wordmark {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 450;
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 
 .sketch-control {
   border: 1px solid var(--border);
-  border-radius: 1px;
-  background-color: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-radius: 0;
+  background-color: var(--surface);
   transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
 }
 
 .sketch-control:hover {
   border-color: var(--border-strong);
   color: var(--ink);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sketch-frame:hover {
-    transform: none;
-  }
 }
