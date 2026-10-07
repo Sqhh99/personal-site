@@ -1,0 +1,51 @@
+[
+  {
+    "id": "saturn",
+    "file": "Gustave Doré - Dante Alighieri - Inferno - Plate 5 (End of Canto I).jpg",
+    "credit": "Gustave Doré — Inferno, Canto I, 1861",
+    "focus": [0.45, 0.6],
+    "tone": [0.3, 0.92, 1.45]
+  },
+  {
+    "id": "jupiter",
+    "file": "Idylls of the King 1.jpg",
+    "credit": "Gustave Doré — Idylls of the King, 1868",
+    "focus": [0.45, 0.55],
+    "tone": [0.2, 0.86, 1.3]
+  },
+  {
+    "id": "mars",
+    "file": "Idylls of the King 7.jpg",
+    "credit": "Gustave Doré — Idylls of the King, 1868",
+    "focus": [0.5, 0.56],
+    "tone": [0.2, 0.88, 1.3]
+  },
+  {
+    "id": "sun",
+    "file": "Atala y los Natchez, 1880 \"Otras veces fatigado con la preciosa carga, me era preciso dejarla sobre el musgo...\" (4426986452).jpg",
+    "credit": "Gustave Doré — Atala, 1863",
+    "focus": [0.5, 0.45],
+    "tone": [0.32, 0.94, 1.5]
+  },
+  {
+    "id": "venus",
+    "file": "Atala y los Natchez, 1880 \"Y un anciano sacerdote cavaba con sus propias manos un sepulcro para la infeliz mujer...\" (4426973718).jpg",
+    "credit": "Gustave Doré — Atala, 1863",
+    "focus": [0.45, 0.5],
+    "tone": [0.3, 0.92, 1.45]
+  },
+  {
+    "id": "mercury",
+    "file": "Gustave Doré - Dante Alighieri - Inferno - Plate 6 (Start of Canto II - Day was departing).jpg",
+    "credit": "Gustave Doré — Inferno, Canto II, 1861",
+    "focus": [0.6, 0.66],
+    "tone": [0.18, 0.8, 1.25]
+  },
+  {
+    "id": "moon",
+    "file": "Dore The Raven 1884-24.jpg",
+    "credit": "Gustave Doré — The Raven, 1884",
+    "focus": [0.55, 0.4],
+    "tone": [0.3, 0.93, 1.45]
+  }
+]

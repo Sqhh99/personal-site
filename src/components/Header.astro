@@ -2,7 +2,7 @@
 /**
  * The header is a wordmark and one word, "Menu". Everything a visitor might
  * want — writing, briefs, GitHub, RSS, the language — waits behind that word
- * so the pages, and above all the landing drawing, are not crowded by chrome.
+ * so the pages, and above all the landing plates, are not crowded by chrome.
  * Opening it drops a panel from the bar; it never takes over the viewport.
  */
 import { getLangFromUrl, getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
@@ -11,7 +11,7 @@ import { SITE } from '../consts';
 
 interface Props {
   lang?: Language;
-  /** On the landing page the header floats over the drawing. */
+  /** On the landing page the header floats over the plates, nameless. */
   overlay?: boolean;
 }
 
@@ -39,9 +39,13 @@ const languages = listLanguages().map((code) => ({
 
 <header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false" data-open="false">
   <div class="shell flex h-14 items-center justify-between">
-    <a href={homeHref} class:list={['wordmark text-ink', !overlay && 'text-[1.15rem]']} aria-label={`${t('site.name')} — home`}>
-      {t('site.name')}
-    </a>
+    {
+      !overlay && (
+        <a href={homeHref} class="wordmark text-ink text-[1.15rem]" aria-label={`${t('site.name')} — home`}>
+          {t('site.name')}
+        </a>
+      )
+    }
 
     <button
       id="menu-toggle"

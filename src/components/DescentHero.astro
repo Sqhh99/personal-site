@@ -1,0 +1,64 @@
+---
+/**
+ * The landing: seven Doré plates, one per classical planet from Saturn down
+ * to the Moon, printed in umber and black by ordered dither (see
+ * `lib/descent/`). No title and no sentence — the plates are the page. The
+ * only furniture is a row of planetary sigils to move between them.
+ *
+ * Each sigil is a real button, named for its planet and its plate, so the
+ * descent can be walked with a keyboard or a screen reader; the canvas itself
+ * is decoration and says so.
+ */
+import { useTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/ui';
+import { PLATES, type Level } from '../lib/descent/plates';
+
+interface Props {
+  lang: Language;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+/** The old signs, drawn on a 24-unit square as 1.5-unit strokes. */
+const SIGILS: Record<Level, string> = {
+  saturn: 'M8 3v15.5 M5 5.5h6 M8 12.5c1.5-2.6 7.5-3 7.5 1.2c0 2.6-3.2 3.6-3.2 5.8c0 1.1.9 1.7 2.2 1.7',
+  jupiter: 'M5.5 8.5c0-3 3.8-4.6 5.9-2.6c2.3 2.2-.6 6.3-5.4 10.1h13 M15.5 5v15',
+  mars: 'M14 10a5.5 5.5 0 1 0 .01 .01z M14 10l5-5 M14.5 5h4.5v4.5',
+  sun: 'M12 4.5a7.5 7.5 0 1 0 .01 0z M12 11.2a.8 .8 0 1 0 .01 0z',
+  venus: 'M12 3.5a5 5 0 1 0 .01 0z M12 13.5v7.5 M8.5 17.5h7',
+  mercury: 'M8.5 3c.4 2 1.8 3 3.5 3s3.1-1 3.5-3 M12 7a4 4 0 1 0 .01 0z M12 15v6.5 M9 18.5h6',
+  moon: 'M15.5 4.2a8 8 0 1 0 0 15.6a6.6 6.6 0 0 1 0-15.6z',
+};
+---
+
+<section class="descent" aria-label={t('descent.levels')}>
+  <link rel="preload" as="image" href={PLATES[0].src} />
+  <canvas class="descent-canvas" aria-hidden="true"></canvas>
+
+  <nav class="descent-levels" aria-label={t('descent.levels')}>
+    {
+      PLATES.map((plate, i) => (
+        <button
+          type="button"
+          class="descent-sigil"
+          data-level={plate.id}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+          aria-label={`${t(`planet.${plate.id}`)} — ${plate.credit}`}
+          title={t(`planet.${plate.id}`)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d={SIGILS[plate.id]} />
+          </svg>
+        </button>
+      ))
+    }
+  </nav>
+</section>
+
+<script>
+  import { initDescent } from '../lib/descent/scene';
+
+  const root = document.querySelector<HTMLElement>('.descent');
+  if (root) initDescent(root);
+</script>

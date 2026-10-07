@@ -21,17 +21,17 @@ const TOKENS = [
 export type ThemeColors = Record<(typeof TOKENS)[number], string>;
 
 const FALLBACK: ThemeColors = {
-  ink: '#e8e3d6',
-  muted: '#a7a195',
-  faint: '#6f6a61',
-  accent: '#5b74ff',
-  'accent-deep': '#93a3ff',
-  kraft: '#8a857b',
-  manilla: '#5c5850',
-  surface: '#121217',
-  'surface-sunk': '#18181f',
-  border: '#26262e',
-  'border-strong': '#3a3a45',
+  ink: '#cdbb9a',
+  muted: '#9c8a6c',
+  faint: '#6b5d48',
+  accent: '#b08a58',
+  'accent-deep': '#d2b07c',
+  kraft: '#8a7a62',
+  manilla: '#5a4d3c',
+  surface: '#17130f',
+  'surface-sunk': '#1d1813',
+  border: '#2a231b',
+  'border-strong': '#3d3327',
 };
 
 function read(): ThemeColors {
