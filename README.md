@@ -93,7 +93,9 @@ Everything ships as its own island; the page is server-rendered otherwise.
   with their focus and tone and is shared with `npm run prep:art`, which crops them out
   of their Wikimedia Commons scans into `public/plates/`.
   Plates: *Inferno* I and II (1861), *Idylls of the King* (1868), *Atala* (1863),
-  *The Raven* (1884) — all public domain.
+  *The Raven* (1884) — all public domain. The style rules, tuning knobs and pitfalls
+  are written up in
+  [`.claude/skills/umber-engraving/SKILL.md`](.claude/skills/umber-engraving/SKILL.md).
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on
