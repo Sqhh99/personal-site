@@ -1,37 +1,35 @@
 @import 'tailwindcss';
 
 /* ---------------------------------------------------------------------------
-   Palette — a dark printed sheet. Bone-white type on near-black, one cobalt
-   for the picture and the links, and a hot pink used as a spot colour, the
-   way a two-colour poster would. Token names stay stable so essay canvases
-   keep resolving the same properties.
+   Palette — burnt umber on black, the two inks of a dithered engraving. The
+   landing prints in exactly two (`--umber` on `--bg`); everything else takes
+   a paler umber for type and a warmer one for links. Token names stay stable
+   so essay canvases keep resolving the same properties.
    --------------------------------------------------------------------------- */
 
 :root {
   color-scheme: dark;
-  --bg: #0b0b0e;
-  --surface: #121217;
-  --surface-sunk: #18181f;
-  --surface-glass: rgba(11, 11, 14, 0.82);
-  --ink: #e8e3d6;
-  --muted: #a7a195;
-  --faint: #6f6a61;
-  --border: #26262e;
-  --border-strong: #3a3a45;
-  --accent: #5b74ff;
-  --accent-deep: #93a3ff;
-  --accent-glow: rgba(91, 116, 255, 0.24);
-  --on-accent: #0b0b0e;
-  --kraft: #8a857b;
-  --manilla: #5c5850;
-  --code-bg: #15151b;
-  --pink: #ff3d7f;
-  --gold: #f2b35e;
-  --cobalt-deep: #2b3dbd;
+  --bg: #110e0b;
+  --surface: #17130f;
+  --surface-sunk: #1d1813;
+  --surface-glass: rgba(17, 14, 11, 0.84);
+  --ink: #cdbb9a;
+  --muted: #9c8a6c;
+  --faint: #6b5d48;
+  --border: #2a231b;
+  --border-strong: #3d3327;
+  --accent: #b08a58;
+  --accent-deep: #d2b07c;
+  --accent-glow: rgba(176, 138, 88, 0.22);
+  --on-accent: #110e0b;
+  --kraft: #8a7a62;
+  --manilla: #5a4d3c;
+  --code-bg: #15110d;
+  --umber: #9a8264;
   --shadow: 0 1px 0 rgb(0 0 0 / 0.4);
   --shadow-lg: 0 24px 48px -28px rgb(0 0 0 / 0.8);
   --paper-hatch: transparent;
-  --tick: rgb(232 227 214 / 0.3);
+  --tick: rgb(205 187 154 / 0.3);
   --tick-size: 11px;
 }
 
@@ -50,8 +48,7 @@
   --color-kraft: var(--kraft);
   --color-manilla: var(--manilla);
   --color-on-accent: var(--on-accent);
-  --color-pink: var(--pink);
-  --color-gold: var(--gold);
+  --color-umber: var(--umber);
 
   --font-display: 'Newsreader Variable', 'Songti SC', 'Hiragino Mincho ProN', 'Yu Mincho',
     'Noto Serif CJK SC', ui-serif, Georgia, serif;
@@ -103,7 +100,7 @@
   }
 
   ::selection {
-    background-color: var(--pink);
+    background-color: var(--accent);
     color: var(--bg);
   }
 
@@ -193,288 +190,104 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 /* ---------------------------------------------------------------------------
-   Landing — a poster. The picture is a canvas of characters (lib/poster); the
-   name sits under it in heavy type, and the furniture of a printed sheet —
-   hairline rules, registration marks, a plate number, an info band — runs
-   round the edge. Nothing here is a sentence.
+   Landing — the descent. One canvas the size of the screen, a pixel per
+   dither cell, scaled up crisp (lib/descent); a row of planetary sigils along
+   the foot. Nothing here is a word.
    --------------------------------------------------------------------------- */
 
-.poster {
-  --pad: clamp(1.5rem, 3.2vw, 2.5rem);
+.descent {
   position: relative;
   height: 100vh;
   height: 100svh;
-  min-height: 32rem;
+  min-height: 28rem;
   overflow: hidden;
-  isolation: isolate;
   background-color: var(--bg);
+  touch-action: pan-y;
 }
 
-/* Film grain over everything, so the black reads as ink on a sheet, not a screen. */
-.poster::after {
+/* Sized to whole cells by the script, so the scale-up never doubles a column. */
+.descent-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.descent-levels {
+  position: absolute;
+  bottom: clamp(1rem, 3.5vh, 2rem);
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  gap: clamp(0.25rem, 1.6vw, 1rem);
+  /* A strip of plain black, so the signs never sit on lit engraving. */
+  padding: 0.25rem clamp(0.5rem, 2vw, 1rem);
+  background-color: var(--bg);
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 900ms ease 600ms;
+}
+
+.descent[data-ready] .descent-levels {
+  opacity: 1;
+}
+
+.descent-sigil {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--umber);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 240ms ease, color 240ms ease;
+}
+
+.descent-sigil svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: square;
+}
+
+.descent-sigil:hover {
+  opacity: 0.8;
+}
+
+.descent-sigil[aria-pressed='true'] {
+  color: var(--accent-deep);
+  opacity: 1;
+}
+
+/* A short rule under the level you are on. */
+.descent-sigil::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  opacity: 0.07;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-}
-
-/* The name, set big and under the picture, so the characters print across it. */
-.poster-title {
-  position: absolute;
-  z-index: 1;
-  top: calc(var(--pad) + 2.75rem);
-  left: calc(var(--pad) - 0.06em);
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: clamp(4.5rem, 15.5vw, 16rem);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.065em;
-  text-transform: uppercase;
-  color: var(--ink);
-  white-space: nowrap;
-  animation: poster-rise 1000ms var(--ease-out-quint) 120ms backwards;
-}
-
-.poster-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: block;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.poster-chrome {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  animation: poster-fade 900ms ease 500ms backwards;
-}
-
-.poster-chrome a {
-  pointer-events: auto;
-}
-
-/* The top rule runs between the header's wordmark and its menu. */
-.poster-top {
-  position: absolute;
-  top: var(--pad);
-  left: calc(var(--pad) + 7.5rem);
-  right: calc(var(--pad) + 5.5rem);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  height: 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--faint);
-  white-space: nowrap;
-}
-
-.poster-rule {
-  flex: 1;
+  right: 32%;
+  bottom: 0.15rem;
+  left: 32%;
   height: 1px;
-  background-color: var(--border-strong);
+  background-color: currentColor;
+  transform: scaleX(0);
+  transition: transform 320ms var(--ease-out-quint);
 }
 
-/* The plate number, up the right edge. */
-.poster-fig {
-  position: absolute;
-  top: 50%;
-  right: calc(var(--pad) - 0.2rem);
-  margin: 0;
-  writing-mode: vertical-rl;
-  transform: translateY(-50%) rotate(180deg);
-  font-family: var(--font-sans);
-  font-size: clamp(1.3rem, 2.2vw, 2.1rem);
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
-/* The info band: four hairline cells, the way a sleeve lists its credits. */
-.poster-info {
-  position: absolute;
-  left: var(--pad);
-  right: var(--pad);
-  bottom: var(--pad);
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1fr) auto;
-  border-top: 1px solid var(--border-strong);
-  background-color: var(--bg);
-}
-
-.poster-cell {
-  min-width: 0;
-  padding: 0.75rem 1rem 0 0;
-}
-
-.poster-cell + .poster-cell {
-  padding-left: 1rem;
-  border-left: 1px solid var(--border);
-}
-
-.poster-cell p {
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.poster-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.poster-index {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.poster-index a {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.45rem;
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--ink);
-  text-decoration: none;
-  transition: color 180ms ease;
-}
-
-.poster-index a:hover {
-  color: var(--pink);
-}
-
-.poster-index a > span:last-child {
-  transition: transform 260ms var(--ease-spring);
-}
-
-.poster-index a:hover > span:last-child {
-  transform: translateX(3px);
-}
-
-.poster-n {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--pink);
-}
-
-.poster-cell--code {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.poster-cell--code .poster-label {
-  margin: 0;
-}
-
-.poster-barcode {
-  display: block;
-  width: 7.5rem;
-  height: 1.5rem;
-  fill: var(--ink);
-}
-
-/* Registration marks: the corners a printer trims to. */
-.poster-reg {
-  position: absolute;
-  width: 0.75rem;
-  height: 0.75rem;
-  border: 0 solid var(--muted);
-}
-
-.poster-reg--tl {
-  top: calc(var(--pad) * 0.4);
-  left: calc(var(--pad) * 0.4);
-  border-top-width: 1px;
-  border-left-width: 1px;
-}
-
-.poster-reg--tr {
-  top: calc(var(--pad) * 0.4);
-  right: calc(var(--pad) * 0.4);
-  border-top-width: 1px;
-  border-right-width: 1px;
-}
-
-.poster-reg--bl {
-  bottom: calc(var(--pad) * 0.4);
-  left: calc(var(--pad) * 0.4);
-  border-bottom-width: 1px;
-  border-left-width: 1px;
-}
-
-.poster-reg--br {
-  right: calc(var(--pad) * 0.4);
-  bottom: calc(var(--pad) * 0.4);
-  border-right-width: 1px;
-  border-bottom-width: 1px;
-}
-
-@keyframes poster-rise {
-  from {
-    opacity: 0;
-    transform: translateY(0.12em);
-  }
-}
-
-@keyframes poster-fade {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Narrower sheets: the band keeps the index and the barcode. */
-@media (max-width: 900px) {
-  .poster-info {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .poster-cell--wide {
-    display: none;
-  }
-}
-
-/* Portrait: the name across the top, the picture filling the rest. */
-@media (max-aspect-ratio: 85/100) {
-  .poster-title {
-    top: calc(var(--pad) + 3rem);
-    font-size: 23vw;
-  }
-
-  .poster-top,
-  .poster-fig {
-    display: none;
-  }
+.descent-sigil[aria-pressed='true']::after {
+  transform: scaleX(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .poster-title,
-  .poster-chrome {
-    animation: none;
+  .descent-levels,
+  .descent-sigil,
+  .descent-sigil::after {
+    transition: none;
   }
 }
 
@@ -997,7 +810,7 @@ html[data-reveal] .reveal:not(.is-visible) {
   background-size: 180px 180px;
 }
 
-/* The poster brings its own grain. */
+/* The plates bring their own grain. */
 body[data-landing] .paper-grain {
   display: none;
 }
@@ -1016,7 +829,7 @@ body[data-landing] .paper-grain {
   transition: border-color 200ms ease, background-color 200ms ease;
 }
 
-/* Landing header: bare mono type in the poster's top corners — no plates. */
+/* Landing header: no name, just a faint "Menu" in the corner of the plate. */
 body[data-landing] .site-header {
   position: fixed;
   inset-inline: 0;
@@ -1033,12 +846,13 @@ body[data-landing] .site-header > .shell {
   width: 100%;
 }
 
-body[data-landing] .wordmark,
 body[data-landing] #menu-toggle {
+  margin-left: auto;
   padding: 0;
   background: none;
   box-shadow: none;
   color: var(--ink);
+  opacity: 0.55;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 500;
@@ -1047,18 +861,14 @@ body[data-landing] #menu-toggle {
   text-decoration: none;
 }
 
-body[data-landing] .wordmark::before {
-  content: '@';
-  color: var(--pink);
-}
-
 body[data-landing] #menu-toggle {
   text-transform: uppercase;
+  transition: opacity 200ms ease, color 200ms ease;
 }
 
-body[data-landing] .wordmark:hover,
-body[data-landing] #menu-toggle:hover {
-  color: var(--pink);
+body[data-landing] #menu-toggle:is(:hover, :focus-visible, [aria-expanded='true']) {
+  color: var(--accent-deep);
+  opacity: 1;
 }
 
 body[data-landing] .site-header[data-scrolled='true'] {
@@ -1066,7 +876,7 @@ body[data-landing] .site-header[data-scrolled='true'] {
   backdrop-filter: blur(12px);
 }
 
-/* Open menu: a panel that drops from the bar, solid so it reads over the poster. */
+/* Open menu: a panel that drops from the bar, solid so it reads over the plate. */
 body[data-landing] .site-header[data-open='true'] {
   background-color: var(--bg);
 }
@@ -1134,7 +944,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   background-color: var(--surface-sunk);
 }
 
-/* The spot colour: a pink rule along the top that runs out on hover. */
+/* An umber rule along the top that runs out on hover. */
 .sketch-ticks::after {
   content: '';
   position: absolute;
@@ -1143,7 +953,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   height: 2px;
   width: 2.5rem;
   pointer-events: none;
-  background-color: var(--pink);
+  background-color: var(--accent);
   transition: width 320ms var(--ease-spring);
 }
 
@@ -1156,7 +966,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   height: 1px;
   background: linear-gradient(
     to right,
-    var(--pink) 0 2.5rem,
+    var(--accent) 0 2.5rem,
     var(--border-strong) 2.5rem 60%,
     transparent
   );
@@ -1166,7 +976,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   display: inline-block;
   height: 1px;
   width: 1.55rem;
-  background-color: var(--pink);
+  background-color: var(--accent);
 }
 
 .ink-btn {
@@ -1179,6 +989,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   border-radius: 0;
   background-color: transparent;
   color: var(--ink);
+  opacity: 0.55;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 500;
@@ -1188,8 +999,8 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 }
 
 .ink-btn:hover {
-  border-color: var(--pink);
-  background-color: var(--pink);
+  border-color: var(--accent);
+  background-color: var(--accent);
   color: var(--on-accent);
 }
 
@@ -1202,7 +1013,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 }
 
 .ghost-link:hover {
-  border-color: var(--pink);
+  border-color: var(--accent);
   color: var(--ink);
 }
 
@@ -1225,7 +1036,7 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
 .stamp-dot {
   width: 0.3rem;
   height: 0.3rem;
-  background-color: var(--pink);
+  background-color: var(--accent);
 }
 
 .wordmark {

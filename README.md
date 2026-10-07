@@ -1,8 +1,8 @@
 # personal-site
 
 Personal site and engineering blog — long-form explanatory essays with interactive
-figures, plus a daily AI news brief, behind a landing page set as a printed poster. Built with Astro, deployed as static files to
-Cloudflare.
+figures, plus a daily AI news brief, behind a landing page of seven dithered Doré
+engravings. Built with Astro, deployed as static files to Cloudflare.
 
 **Stack:** Astro · TypeScript · Tailwind CSS v4 · MDX content collections ·
 React islands · KaTeX · Cloudflare Workers Static Assets
@@ -27,7 +27,7 @@ src/
 └── pages/               # routes (EN unprefixed, ZH under /zh), rss.xml.ts
 scripts/new-article.mjs  # npm run new:article
 scripts/check-brief.mjs  # npm run check:brief — daily brief QA gate
-scripts/prep-hero-art.mjs # npm run prep:art — prepares the landing poster's picture
+scripts/prep-plates.mjs   # npm run prep:art — fetches and prepares the landing's seven plates
 public/                  # favicon, robots.txt, art/ — copied verbatim
 ```
 
@@ -45,7 +45,7 @@ language and appears in both listings.
 | `npm run check` | Type-check `.astro`, `.ts` and `.tsx` |
 | `npm run new:article -- <slug>` | Scaffold a new article directory |
 | `npm run check:brief [-- YYYY-MM-DD]` | QA gate for a daily brief: shape/links/dates in code, tone/hedging/dedup via TypeSafe (needs `TYPESAFE_API_KEY`; add `--no-ai` for code checks only) |
-| `npm run prep:art` | Re-fetch and prepare the landing poster's picture (output is committed) |
+| `npm run prep:art` | Re-fetch and prepare the landing's plates (output is committed); `-- --sheet out.png` also writes a dithered contact sheet |
 | `npm run deploy` | Build, then `wrangler deploy` |
 
 ## Adding a post
@@ -79,18 +79,21 @@ loads automatically as a skill in Claude Code.
 
 Everything ships as its own island; the page is server-rendered otherwise.
 
-- **Landing poster** (`PosterHero.astro` + `src/lib/poster/`) — the first screen is a
-  dark printed sheet: Gustave Doré's *Paradiso* XXXI (1868, public domain) set as a field
-  of ASCII characters, a hot-pink panel behind it, the name in heavy type underneath, and
-  sheet furniture (rules, registration marks, plate number, barcode) round the edge.
-  `field.ts` lays the sheet out for the viewport and samples the plate at one value per
-  character cell; `glyphs.ts` is the character ramp, the ordered dither and a glyph atlas
-  so each cell is one `drawImage`; `scene.ts` prints the static field once, then
-  overprints only what moves: a decode-in scan on arrival, a shimmer, gold rays turning
-  round the light, a cursor "lantern" that brings up the detail hidden in the grey sky,
-  and rising embers. A few pencil marks are drawn over it with `src/lib/sketch/pen.ts`
-  and boil between three tracings. The source picture is prepared once by
-  `npm run prep:art` into `public/art/`. All motion is off under `prefers-reduced-motion`.
+- **Landing descent** (`DescentHero.astro` + `src/lib/descent/`) — the first screen is
+  one of seven Gustave Doré wood engravings, a "level" for each classical planet from
+  Saturn down to the Moon, printed in two inks — burnt umber on black — by 8×8 ordered
+  dither. No name and no text: a row of planetary sigils (or ←/→, 1–7, a swipe, or
+  `#venus` in the URL) moves between plates, and left alone it goes down a level every
+  20 s. `gl.ts` is a single WebGL1 shader on a canvas of one pixel per dither cell,
+  scaled up crisp; every effect is a change of exposure ahead of the threshold, so it
+  stays in the grain: the descent (the old plate gutters out cell by cell and the next
+  catches), a candle flicker, a lantern under the pointer that drops the black point,
+  dust motes and a slow push-in. Without WebGL the plate is dithered once on the CPU;
+  under `prefers-reduced-motion` it is a still print. `plates.json` lists the plates
+  with their focus and tone and is shared with `npm run prep:art`, which crops them out
+  of their Wikimedia Commons scans into `public/plates/`.
+  Plates: *Inferno* I and II (1861), *Idylls of the King* (1868), *Atala* (1863),
+  *The Raven* (1884) — all public domain.
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.
 - **Article figures** (`client:visible`) — Canvas 2D React components built on

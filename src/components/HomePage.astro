@@ -1,9 +1,9 @@
 ---
 /**
- * The landing page is the poster and nothing else. The writing and the briefs
- * are one click away in its index; nothing waits below the fold.
+ * The landing page is the descent and nothing else: seven plates, no words.
+ * The writing and the briefs wait behind the header's menu.
  */
-import PosterHero from './PosterHero.astro';
+import DescentHero from './DescentHero.astro';
 import type { Language } from '../i18n/ui';
 
 interface Props {
@@ -13,4 +13,4 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
-<PosterHero lang={lang} />
+<DescentHero lang={lang} />
