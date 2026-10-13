@@ -5,7 +5,7 @@ import PostFilter from './react/PostFilter';
 import { TAGS } from '../consts';
 import { getColumn } from '../lib/columns';
 import { paginate } from '../lib/pagination';
-import { getPosts, leadPostId } from '../lib/posts';
+import { getPosts } from '../lib/posts';
 import { useTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/ui';
 
@@ -21,7 +21,6 @@ const posts = await getPosts();
 const config = getColumn('blog');
 const page = paginate(posts, currentPage, config.pageSize);
 const pagePostIds = new Set(page.items.map((post) => post.id));
-const lead = leadPostId(posts);
 
 // Only offer tags that actually have posts, in canonical order.
 const used = new Set(posts.map((post) => post.data.tag));
@@ -78,7 +77,6 @@ const filterLabels = {
     {posts.map((post, i) => (
       <PostCard
         post={post}
-        feature={post.id === lead}
         delay={(i % config.pageSize) * 60}
         lang={lang}
         hidden={!pagePostIds.has(post.id)}

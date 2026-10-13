@@ -41,8 +41,8 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
   title={t(config.i18n.title)}
   description={t(config.i18n.description)}
 >
-  <div class="shell py-16 md:py-24">
-    <header class="reveal max-w-[46rem]">
+  <div class:list={['shell py-16 md:py-24', column === 'blog' && 'blog-list']}>
+    <header class="collection-heading reveal max-w-[46rem]">
       <p class="label relative flex items-center gap-3">
         <span class="ink-rule"></span>
         {t(config.i18n.nav)}
@@ -57,12 +57,12 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
     </header>
 
     {Astro.slots.has('toolbar') && (
-      <div class="reveal mt-12" style="--reveal-delay:80ms">
+      <div class="collection-toolbar reveal mt-12" style="--reveal-delay:80ms">
         <slot name="toolbar" />
       </div>
     )}
 
-    <div id={gridId} class="mt-12 grid gap-7 sm:grid-cols-2">
+    <div id={gridId} class="collection-grid mt-12 grid gap-7 sm:grid-cols-2">
       <slot name="grid" />
     </div>
 
@@ -82,3 +82,29 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
     {clientPagerId && <div id={clientPagerId}></div>}
   </div>
 </BaseLayout>
+
+<style>
+  .blog-list {
+    padding-block: clamp(3rem, 6vw, 5rem) 1rem;
+  }
+
+  .blog-list .collection-heading {
+    max-width: none;
+  }
+
+  .blog-list .zine-rule {
+    margin-top: 2rem;
+    background: var(--border-strong);
+  }
+
+  .blog-list .collection-toolbar {
+    margin-top: 2rem;
+  }
+
+  .blog-list .collection-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-top: 2rem;
+    border-bottom: 1px solid var(--border-strong);
+  }
+</style>
