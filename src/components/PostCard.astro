@@ -6,8 +6,6 @@ import type { Language } from '../i18n/ui';
 
 interface Props {
   post: Post;
-  /** Large treatment for the lead post. */
-  feature?: boolean;
   delay?: number;
   lang?: Language;
   hidden?: boolean;
@@ -16,7 +14,7 @@ interface Props {
   enter?: 'card';
 }
 
-const { post, feature = false, delay = 0, lang = 'en', hidden = false, reveal = true, enter } = Astro.props;
+const { post, delay = 0, lang = 'en', hidden = false, reveal = true, enter } = Astro.props;
 const { title, description, tag, date } = post.data;
 const t = useTranslations(lang);
 
@@ -34,18 +32,17 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
   data-enter={enter}
   hidden={hidden}
   class:list={[
-    'group sketch-frame sketch-ticks relative flex flex-col',
+    'post-card group relative',
     reveal && 'reveal',
-    feature ? 'p-8 sm:col-span-2 sm:p-10' : 'p-7',
   ]}
   style={reveal ? `--reveal-delay:${delay}ms` : undefined}
 >
-  <div class="flex items-center justify-between gap-4">
+  <div class="post-meta">
     <span class="stamp">
       <span class="stamp-dot" aria-hidden="true"></span>
       {tag}
     </span>
-    <div class="flex items-center gap-3">
+    <div class="post-date flex flex-wrap items-center gap-3">
       {
         foreign && (
           <span class="label border border-line/80 px-2 py-0.5 text-[0.6rem]">
@@ -57,27 +54,19 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
     </div>
   </div>
 
-  <h3
-    class:list={[
-      'mt-6 leading-[1.18] font-display text-ink group-hover:text-accent transition-colors',
-      feature ? 'text-3xl sm:text-[2.5rem]' : 'text-2xl',
-    ]}
-  >
-    <a href={postUrl} class="after:absolute after:inset-0 focus:outline-none">
-      {title}
-    </a>
-  </h3>
+  <div class="post-copy">
+    <h2 class="post-title font-display text-ink group-hover:text-accent transition-colors">
+      <a href={postUrl} class="after:absolute after:inset-0 focus:outline-none">
+        {title}
+      </a>
+    </h2>
 
-  <p
-    class:list={[
-      'mt-3 max-w-[58ch] leading-relaxed text-muted font-sans',
-      feature ? 'text-base' : 'text-[0.925rem]',
-    ]}
-  >
-    {description}
-  </p>
+    <p class="post-description text-muted font-sans">
+      {description}
+    </p>
+  </div>
 
-  <div class="mt-6 flex items-center justify-between gap-4 border-t border-line/70 pt-4">
+  <div class="post-footer flex items-center justify-between gap-4">
     <span class="label flex items-center gap-1.5">
       <svg viewBox="0 0 24 24" class="size-3.5 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"/>
@@ -102,3 +91,81 @@ const search = `${title} ${description} ${tag}`.toLowerCase();
     </span>
   </div>
 </article>
+
+<style>
+  .post-card {
+    min-width: 0;
+    gap: 1.25rem;
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--border-strong);
+    transition: background-color 180ms ease;
+  }
+
+  .post-card:not([hidden]) {
+    display: grid;
+  }
+
+  .post-card:hover {
+    background-color: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+  .post-card:focus-within {
+    outline: 1px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+  }
+
+  .post-date {
+    min-width: 0;
+  }
+
+  .post-copy {
+    min-width: 0;
+  }
+
+  .post-title {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .post-description {
+    max-width: 65ch;
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .post-footer {
+    margin-top: 0.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .post-card {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      column-gap: clamp(2rem, 4vw, 4rem);
+      row-gap: 1.25rem;
+      padding-block: 2rem;
+    }
+
+    .post-meta {
+      align-self: start;
+      align-items: flex-start;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 1rem;
+      padding-top: 0.35rem;
+    }
+
+    .post-footer {
+      grid-column: 2;
+    }
+  }
+</style>

@@ -118,9 +118,9 @@ export default function PostFilter({
 
   return (
     <>
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <label className="group sketch-control relative flex h-12 w-full max-w-md items-center gap-3 px-4 focus-within:border-accent">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:flex-1 lg:justify-end lg:gap-6">
+          <label className="group sketch-control relative flex h-12 w-full min-w-0 items-center gap-3 px-4 focus-within:border-accent sm:max-w-md lg:max-w-sm">
             <svg
               viewBox="0 0 24 24"
               className="size-4 shrink-0 text-faint transition-colors group-focus-within:text-accent"
@@ -162,13 +162,13 @@ export default function PostFilter({
           </label>
 
           {visibleCount !== null && (
-            <p className="font-mono text-[0.725rem] tracking-wide text-faint" aria-live="polite">
+            <p className="shrink-0 font-mono text-[0.725rem] tracking-wide text-faint" aria-live="polite">
               {labels.showing ?? 'Showing'} <span className="font-medium text-ink">{visibleCount}</span> {postUnit}
             </p>
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label={labels.filterByTag ?? 'Filter by tag'}>
+        <div className="flex flex-wrap gap-2 lg:order-first lg:max-w-[45%]" role="group" aria-label={labels.filterByTag ?? 'Filter by tag'}>
           {options.map((tag) => {
             const selected = tag === active;
             return (
