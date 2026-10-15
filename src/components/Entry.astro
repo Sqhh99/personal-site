@@ -1,0 +1,56 @@
+---
+/**
+ * One row of a list — an essay or a brief, set alike so the two columns read
+ * as one index. The date and the tag stand in a narrow left column, the
+ * title runs the full width beside them, and the reading time hangs at the
+ * right. The whole row is the link. Any other attribute (the writing
+ * filter's `data-*`, `hidden`) passes through to the row.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { formatDate, isoDate } from '../lib/posts';
+import type { Language } from '../i18n/ui';
+
+interface Props extends HTMLAttributes<'article'> {
+  href: string;
+  title: string;
+  description: string;
+  date: Date;
+  lang: Language;
+  readingLabel: string;
+  /** The word under the date, in the accent; left out where every row would say the same. */
+  tag?: string;
+  /** The language an article is written in, when it isn't the page's. */
+  foreign?: string;
+  /** Reveal stagger, in ms. */
+  delay?: number;
+}
+
+const { href, title, description, date, lang, readingLabel, tag, foreign, delay = 0, class: className, ...rest } = Astro.props;
+---
+
+<article class:list={['entry reveal', className]} style={`--reveal-delay:${delay}ms`} {...rest}>
+  <div class="entry-meta">
+    <time datetime={isoDate(date)}>{formatDate(date, lang)}</time>
+    {
+      tag && (
+        <span class="stamp">
+          <span class="stamp-dot" aria-hidden="true" />
+          {tag}
+        </span>
+      )
+    }
+    {foreign && <span class="entry-lang">{foreign}</span>}
+  </div>
+
+  <div class="entry-body">
+    <h2 class="entry-title">
+      <a href={href} class="entry-link">{title}</a>
+    </h2>
+    <p class="entry-desc">{description}</p>
+  </div>
+
+  <div class="entry-aside" aria-hidden="true">
+    <span>{readingLabel}</span>
+    <span class="entry-arrow">→</span>
+  </div>
+</article>

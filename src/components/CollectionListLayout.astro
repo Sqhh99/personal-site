@@ -42,29 +42,28 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
   title={t(config.i18n.title)}
   description={t(config.i18n.description)}
 >
-  <div class:list={['shell py-16 md:py-24', column === 'blog' && 'blog-list']}>
-    <header class="collection-heading reveal max-w-[46rem]">
+  <div class="shell collection">
+    <header class="collection-head reveal">
       {/* The column's number in the menu, not its name again over its name. */}
-      <p class="label relative flex items-center gap-3" aria-hidden="true">
+      <p class="label flex items-center gap-3" aria-hidden="true">
         <span class="ink-rule"></span>
         {ROMAN[listColumns().findIndex((c) => c.id === column)]}
       </p>
-      <h1 class="relative mt-4 text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] font-display text-ink">
-        {t(config.i18n.heading)}
-      </h1>
-      <p class="relative mt-6 font-display text-xl italic leading-relaxed text-muted">
-        {totalItems} {t(config.i18n.description)}
-      </p>
-      <div class="zine-rule relative"></div>
+      <div class="collection-title">
+        <h1>{t(config.i18n.heading)}</h1>
+        <p>
+          <span class="collection-count">{totalItems}</span> {t(config.i18n.description)}
+        </p>
+      </div>
     </header>
 
     {Astro.slots.has('toolbar') && (
-      <div class="collection-toolbar reveal mt-12" style="--reveal-delay:80ms">
+      <div class="collection-toolbar reveal" style="--reveal-delay:80ms">
         <slot name="toolbar" />
       </div>
     )}
 
-    <div id={gridId} class="collection-grid mt-12 grid gap-7 sm:grid-cols-2">
+    <div id={gridId} class="entry-list">
       <slot name="grid" />
     </div>
 
@@ -85,29 +84,3 @@ const nextUrl = currentPage < totalPages ? getPagedListUrl(basePath, currentPage
     {clientPagerId && <div id={clientPagerId}></div>}
   </div>
 </BaseLayout>
-
-<style>
-  .blog-list {
-    padding-block: clamp(3rem, 6vw, 5rem) 1rem;
-  }
-
-  .blog-list .collection-heading {
-    max-width: none;
-  }
-
-  .blog-list .zine-rule {
-    margin-top: 2rem;
-    background: var(--border-strong);
-  }
-
-  .blog-list .collection-toolbar {
-    margin-top: 2rem;
-  }
-
-  .blog-list .collection-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    margin-top: 2rem;
-    border-bottom: 1px solid var(--border-strong);
-  }
-</style>

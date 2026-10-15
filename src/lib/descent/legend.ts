@@ -5,8 +5,9 @@
  * sunk away under it (the veil, in `gl.ts`), and it comes and goes by the
  * same dither as everything else.
  *
- * All twenty-one legends are in the HTML; this only shows one of them. The
- * visitor's choice to have it open or shut is remembered in this browser.
+ * All twenty-one legends are in the HTML; this only shows one of them. It
+ * starts shut — the plate first, the words only when the book is opened —
+ * and an open legend is remembered for the tab, not for the next visit.
  */
 
 import type { Masks } from './chrome';
@@ -32,7 +33,7 @@ interface LegendOptions {
 
 const read = (): boolean | null => {
   try {
-    const v = localStorage.getItem(KEY);
+    const v = sessionStorage.getItem(KEY);
     return v === null ? null : v === '1';
   } catch {
     return null;
@@ -41,7 +42,7 @@ const read = (): boolean | null => {
 
 const write = (v: boolean) => {
   try {
-    localStorage.setItem(KEY, v ? '1' : '0');
+    sessionStorage.setItem(KEY, v ? '1' : '0');
   } catch {
     /* private mode, blocked storage: the choice just won't be remembered */
   }
@@ -51,7 +52,7 @@ export function createLegend(root: HTMLElement, { masks, onChange }: LegendOptio
   const aside = root.querySelector<HTMLElement>('.descent-legend');
   const toggles = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-legend-toggle]'));
   const articles = Array.from(root.querySelectorAll<HTMLElement>('.descent-legend [data-plate]'));
-  let isOpen = read() ?? window.matchMedia('(min-width: 900px)').matches;
+  let isOpen = read() ?? false;
   let cur = -1;
   let swap = 0;
 
