@@ -116,7 +116,7 @@ The fragment shader (`gl.ts`) runs these steps for each cell:
 
 `legend.ts`:
 
-- **Default state:** open at ≥ 900 px wide, shut on phones. The choice is stored in `localStorage['descent.legend']`, wrapped in try/catch.
+- **Default state:** shut, at every width; it shows only when the book or `L` opens it. An open legend is kept in `sessionStorage['descent.legend']` (wrapped in try/catch), so it survives a reload in the tab but a new visit starts on the bare plate.
 - **Changing plates:** the old article dissolves out over 40% of the change. The new article's `[data-line]` children then ink in, 6% staggered.
 - **Accessibility:** `aria-live` is `polite` only while the legend is open.
 - **Veil:** a `ResizeObserver` reports box changes. `measureVeil()` converts the box to screen fractions, padded by 28 px. `veil.amt` and `veil.box` ease in the tick.
@@ -189,7 +189,8 @@ To **add a planet or change the count per planet**, also change these together:
   - No boxes. A tag, the current menu entry, the active filter and the wordmark are marked by one lit 4–5 px cell (`--accent-deep`); a section break and the end of a post are three cells (`.cell-mark`, `.prose hr`).
   - Numbering by Roman numerals, as the plates are: the menu entries, and the kicker over each column's heading.
   - The menu prints in with `createMasks()` at a 3 px cell (`Header.astro`).
-  - An essay sets its text at `--text-measure` (40rem) and opens figures, code and tables out to `--measure` (58rem); margin notes hang outside the figure width, from 1440 px.
+  - Writing and briefs share one list row (`Entry.astro`): date and tag in a left column, the title across, reading time at the right, the whole row a link.
+  - A post or brief sets its text at `--text-measure` (46rem) and opens figures, code and tables out to `--measure` (58rem). The head sits on the text's left edge but runs out to the figure width on the right, so titles don't wrap early. Margin notes hang outside the figure width, from 1440 px.
 
 ## Pitfalls already hit
 
@@ -216,7 +217,7 @@ To **add a planet or change the count per planet**, also change these together:
    - every `#<plate>`, ideally on a grid of all 21 with the legend open
    - frames about 500 and 900 ms after → and after ←, which should show opposite sweeps and the lamp igniting
    - the bar hidden after about 4 s, mid-dissolve, and back after a click; staying while focused and while the menu is open
-   - `L` toggling the legend, persistence across a reload, and the phone layout
+   - `L` toggling the legend, staying open across a reload in the same tab, shut on a fresh visit, and the phone layout
    - `page.clock.install` on a Tuesday with no hash, which should open on Mars
    - `/zh/` with `reducedMotion: 'reduce'`, where the bar should still hide
    - `/ja/` in Chrome with `--disable-webgl --disable-3d-apis`, where the legend gets its own black panel

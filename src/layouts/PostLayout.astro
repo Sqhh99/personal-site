@@ -28,8 +28,9 @@ interface Props {
   headings?: MarkdownHeading[];
   tocLabel?: string;
   siteName: string;
-  /** Open on an initial capital — for an essay, not a brief that starts on a label. */
-  initial?: boolean;
+  /** An essay opens on an initial capital; a brief is a run of bold-headed
+   *  items under small-caps section labels, and is set to match. */
+  kind?: 'essay' | 'brief';
 }
 
 const {
@@ -49,7 +50,7 @@ const {
   headings = [],
   tocLabel = 'Contents',
   siteName,
-  initial = false,
+  kind = 'essay',
 } = Astro.props;
 
 // The outline is a tree three levels deep: h2 sections, h3 subsections, h4
@@ -131,22 +132,20 @@ const toc = headings
           {backLabel}
         </a>
 
-        {/* A title page: the kicker and the date over the title, the dek under
-            it, closed by three cells of the print. */}
         <header class="post-head">
           <p class="post-meta">
-            <span class="post-kicker">{kicker}</span>
-            <span aria-hidden="true">·</span>
+            <span class="stamp">
+              <span class="stamp-dot" aria-hidden="true"></span>
+              {kicker}
+            </span>
             <time datetime={isoDate(date)}>{formatDate(date, lang)}</time>
-            <span aria-hidden="true">·</span>
             <span>{readingLabel}</span>
           </p>
           <h1 class="post-title">{title}</h1>
           <p class="post-dek">{description}</p>
-          <span class="cell-mark post-mark" aria-hidden="true"></span>
         </header>
 
-        <div class:list={['prose', initial && 'prose-initial']}>
+        <div class:list={['prose', `prose-${kind}`]}>
           <slot />
         </div>
 

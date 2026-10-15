@@ -496,13 +496,15 @@ html[data-reveal] .reveal:not(.is-visible) {
 /* ---------------------------------------------------------------------------
    Prose — set like the books the plates came from: a serif text face on a
    measure of about seventy characters, umber on black, with the figures
-   given more room than the text around them.
+   given more room than the text around them. The measure runs long for a
+   book (about eighty characters) because the essays are technical and the
+   figures want to sit close to the text that explains them.
    --------------------------------------------------------------------------- */
 
 .prose {
   font-family: var(--font-display);
-  font-size: 1.1875rem;
-  line-height: 1.72;
+  font-size: 1.21875rem;
+  line-height: 1.7;
   color: var(--text);
   font-variant-numeric: oldstyle-nums proportional-nums;
   hanging-punctuation: first;
@@ -534,7 +536,7 @@ html[data-reveal] .reveal:not(.is-visible) {
 .prose h4 {
   margin-top: 1.8em;
   margin-bottom: -0.55em;
-  font-size: 1.1875rem;
+  font-size: 1.21875rem;
   font-style: italic;
   line-height: 1.4;
   letter-spacing: -0.01em;
@@ -542,13 +544,52 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 /* An essay opens on an initial, as a chapter of the old books did. */
-.prose-initial > p:first-child::first-letter {
+.prose-essay > p:first-child::first-letter {
   float: left;
   margin: 0.06em 0.09em 0 -0.02em;
   color: var(--accent-deep);
   font-size: 3.55em;
   font-weight: 400;
   line-height: 0.82;
+}
+
+/* A brief: each item is a paragraph that opens on its bold headline and a
+   line break, and the sections are paragraphs of bold alone. The headline
+   becomes a subhead, the section a small-caps label over a rule. */
+.prose-brief > p > strong:first-child:has(+ br) {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--ink);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.prose-brief > p > strong:first-child + br {
+  display: none;
+}
+
+.prose-brief > p:has(> strong:only-child) {
+  margin-top: 3em;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose-brief > p:first-child:has(> strong:only-child) {
+  margin-top: 0;
+}
+
+.prose-brief > p > strong:only-child {
+  color: var(--accent-deep);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.prose-brief > p + p {
+  margin-top: 1.6em;
 }
 
 /* Lining figures where numbers are compared, not read. */
@@ -716,7 +757,7 @@ html[data-reveal] .reveal:not(.is-visible) {
    against the wider of the two. */
 :root {
   --measure: 58rem;
-  --text-measure: 40rem;
+  --text-measure: 46rem;
   --rail-right: 13rem;
   --rail-gap: 1.75rem;
 }
@@ -772,19 +813,29 @@ html[data-reveal] .reveal:not(.is-visible) {
   color: var(--ink);
 }
 
+/* The head of a post: left on the text's edge, but free to run out to the
+   figure width on the right, so a long title still sets in a line or two. */
 .post-head {
-  display: grid;
-  justify-items: center;
-  margin-top: clamp(2.5rem, 7vw, 4.5rem);
-  margin-bottom: clamp(3rem, 7vw, 4.5rem);
-  text-align: center;
+  margin-top: clamp(2.25rem, 6vw, 4rem);
+  margin-bottom: clamp(2.5rem, 6vw, 3.75rem);
+  margin-right: min(0px, calc((100% - min(var(--measure), 100vw - 2.5rem)) / 2));
+}
+
+/* The rule under it keeps to the text, so it ends where the lines do. */
+.post-head::after {
+  content: '';
+  display: block;
+  max-width: var(--text-measure);
+  height: 1px;
+  margin-top: clamp(2rem, 4vw, 2.75rem);
+  background-color: var(--border);
 }
 
 .post-meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem 0.6rem;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -792,33 +843,24 @@ html[data-reveal] .reveal:not(.is-visible) {
   text-transform: uppercase;
 }
 
-.post-kicker {
-  color: var(--accent-deep);
-}
-
 .post-title {
-  margin-top: 1.4rem;
+  margin-top: 1.25rem;
   color: var(--ink);
+  font-size: clamp(2.1rem, 4.4vw, 3.3rem);
+  line-height: 1.08;
   /* CJK titles break at their spaces, not inside a word. */
   word-break: keep-all;
   overflow-wrap: anywhere;
-  font-size: clamp(2.35rem, 6vw, 4rem);
-  line-height: 1.04;
 }
 
 .post-dek {
-  max-width: 34rem;
-  margin-top: 1.5rem;
+  max-width: 44rem;
+  margin-top: 1.25rem;
   color: var(--muted);
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.3rem);
   font-style: italic;
-  line-height: 1.6;
-}
-
-.post-mark {
-  width: 100%;
-  margin-top: 2.5rem;
+  line-height: 1.55;
 }
 
 .post-end {
@@ -1463,38 +1505,188 @@ body[data-landing] .site-header[data-open='true'] > .site-bar {
   }
 }
 
-/* Cards are hairline cells on the sheet. The names are kept from when they
-   were drawn boxes, so the markup that uses them did not have to change. */
-.sketch-frame {
+/* Lists — writing and briefs share one index: a heading over a rule, then
+   rows with the date and tag on the left, the title across, and the reading
+   time hung at the right. ------------------------------------------------- */
+
+.collection {
+  padding-block: clamp(3rem, 7vw, 5.5rem) 1rem;
+}
+
+.collection-head {
+  padding-bottom: clamp(1.75rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.collection-title {
+  display: grid;
+  gap: 1rem 3rem;
+  margin-top: 1rem;
+}
+
+.collection-title h1 {
+  color: var(--ink);
+  font-size: clamp(2.6rem, 6vw, 4.25rem);
+  line-height: 1;
+}
+
+.collection-title p {
+  max-width: 32rem;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.collection-count {
+  color: var(--accent-deep);
+  font-style: normal;
+  font-variant-numeric: lining-nums;
+}
+
+@media (min-width: 48rem) {
+  .collection-title {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .collection-title p {
+    text-align: right;
+  }
+}
+
+.collection-toolbar {
+  padding-block: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.entry {
   position: relative;
-  background-color: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 0;
-  transition:
-    border-color 180ms ease,
-    background-color 180ms ease;
+  gap: 0.75rem;
+  padding-block: 1.6rem;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 180ms ease;
 }
 
-.sketch-frame:hover {
-  border-color: var(--muted);
-  background-color: var(--surface-sunk);
+.entry:not([hidden]) {
+  display: grid;
 }
 
-/* An umber rule along the top that runs out on hover. */
-.sketch-ticks::after {
+/* A lit cell in the margin marks the row under the pointer. */
+.entry::before {
   content: '';
   position: absolute;
-  top: -1px;
-  left: -1px;
-  height: 2px;
-  width: 2.5rem;
-  pointer-events: none;
-  background-color: var(--accent);
-  transition: width 320ms var(--ease-spring);
+  top: 2.35rem;
+  left: -0.85rem;
+  width: 4px;
+  height: 4px;
+  background-color: var(--accent-deep);
+  opacity: 0;
+  transition: opacity 180ms ease;
 }
 
-.sketch-frame:hover.sketch-ticks::after {
-  width: calc(100% + 2px);
+.entry:hover::before,
+.entry:focus-within::before {
+  opacity: 1;
+}
+
+.entry-meta,
+.entry-aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.1rem;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.entry-lang {
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--border-strong);
+}
+
+.entry-title {
+  color: var(--ink);
+  font-size: clamp(1.5rem, 2.4vw, 1.95rem);
+  line-height: 1.2;
+  text-wrap: pretty;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  transition: color 180ms ease;
+}
+
+/* The whole row is the link; the focus ring is drawn on the row. */
+.entry-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.entry-link:focus-visible {
+  outline: none;
+}
+
+.entry:has(.entry-link:focus-visible) {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.entry-desc {
+  display: -webkit-box;
+  max-width: 68ch;
+  margin-top: 0.55rem;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.entry-arrow {
+  color: var(--accent);
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  transition: translate 300ms var(--ease-out-quint);
+}
+
+.entry:hover .entry-title {
+  color: var(--accent-deep);
+}
+
+.entry:hover .entry-arrow {
+  translate: 4px 0;
+}
+
+@media (min-width: 48rem) {
+  .entry {
+    grid-template-columns: 8.5rem minmax(0, 1fr) auto;
+    column-gap: clamp(1.75rem, 3.5vw, 3.25rem);
+    padding-block: 2rem;
+  }
+
+  .entry-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding-top: 0.6rem;
+  }
+
+  .entry-aside {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.6rem;
+    padding-top: 0.6rem;
+  }
+
+  .entry::before {
+    top: 2.95rem;
+  }
 }
 
 .zine-rule {

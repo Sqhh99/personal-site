@@ -1,7 +1,7 @@
 ---
+import Entry from './Entry.astro';
 import type { Post } from '../lib/posts';
-import { formatDate, getPostUrl, isoDate, readingTime } from '../lib/posts';
-import { useTranslations } from '../i18n/utils';
+import { getPostUrl, readingTime } from '../lib/posts';
 import type { Language } from '../i18n/ui';
 
 interface Props {
@@ -9,163 +9,28 @@ interface Props {
   delay?: number;
   lang?: Language;
   hidden?: boolean;
-  /** CSS IntersectionObserver reveal. Off when a page owns its own motion. */
-  reveal?: boolean;
-  enter?: 'card';
 }
 
-const { post, delay = 0, lang = 'en', hidden = false, reveal = true, enter } = Astro.props;
+const { post, delay = 0, lang = 'en', hidden = false } = Astro.props;
 const { title, description, tag, date } = post.data;
-const t = useTranslations(lang);
-
-const postUrl = getPostUrl(post, lang);
 // Articles are single-language, so flag the ones not written in the UI's language.
-const foreign = post.data.lang !== lang;
+const foreign = post.data.lang !== lang ? post.data.lang.toUpperCase() : undefined;
 // Lower-cased haystack read by the PostFilter island.
 const search = `${title} ${description} ${tag}`.toLowerCase();
 ---
 
-<article
+<Entry
+  href={getPostUrl(post, lang)}
+  title={title}
+  description={description}
+  date={date}
+  lang={lang}
+  readingLabel={readingTime(post.body, lang)}
+  tag={tag}
+  foreign={foreign}
+  delay={delay}
+  hidden={hidden}
   data-post
   data-tag={tag}
   data-search={search}
-  data-enter={enter}
-  hidden={hidden}
-  class:list={[
-    'post-card group relative',
-    reveal && 'reveal',
-  ]}
-  style={reveal ? `--reveal-delay:${delay}ms` : undefined}
->
-  <div class="post-meta">
-    <span class="stamp">
-      <span class="stamp-dot" aria-hidden="true"></span>
-      {tag}
-    </span>
-    <div class="post-date flex flex-wrap items-center gap-3">
-      {
-        foreign && (
-          <span class="label border border-line/80 px-2 py-0.5 text-[0.6rem]">
-            {post.data.lang.toUpperCase()}
-          </span>
-        )
-      }
-      <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
-    </div>
-  </div>
-
-  <div class="post-copy">
-    <h2 class="post-title font-display text-ink group-hover:text-accent transition-colors">
-      <a href={postUrl} class="after:absolute after:inset-0 focus:outline-none">
-        {title}
-      </a>
-    </h2>
-
-    <p class="post-description text-muted font-display">
-      {description}
-    </p>
-  </div>
-
-  <div class="post-footer flex items-center justify-between gap-4">
-    <span class="label flex items-center gap-1.5">
-      <svg viewBox="0 0 24 24" class="size-3.5 text-faint" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      {readingTime(post.body, lang)}
-    </span>
-    <span class="inline-flex items-center gap-1.5 font-mono text-[0.725rem] font-medium tracking-wider text-ink group-hover:text-accent transition-colors">
-      {t('blog.readPost')}
-      <svg
-        viewBox="0 0 24 24"
-        class="size-4 transition-transform duration-300 group-hover:translate-x-1"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.8"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M5 12h14M13 6l6 6-6 6"></path>
-      </svg>
-    </span>
-  </div>
-</article>
-
-<style>
-  .post-card {
-    min-width: 0;
-    gap: 1.25rem;
-    padding-block: 1.75rem;
-    border-top: 1px solid var(--border-strong);
-    transition: background-color 180ms ease;
-  }
-
-  .post-card:not([hidden]) {
-    display: grid;
-  }
-
-  .post-card:hover {
-    background-color: color-mix(in srgb, var(--surface) 55%, transparent);
-  }
-
-  .post-card:focus-within {
-    outline: 1px solid var(--accent);
-    outline-offset: 4px;
-  }
-
-  .post-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem 1rem;
-  }
-
-  .post-date {
-    min-width: 0;
-  }
-
-  .post-copy {
-    min-width: 0;
-  }
-
-  .post-title {
-    font-size: clamp(1.75rem, 3vw, 2.25rem);
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-  }
-
-  .post-description {
-    max-width: 62ch;
-    margin-top: 0.75rem;
-    font-size: 1.125rem;
-    line-height: 1.65;
-  }
-
-  .post-footer {
-    margin-top: 0.25rem;
-  }
-
-  @media (min-width: 48rem) {
-    .post-card {
-      grid-template-columns: 10rem minmax(0, 1fr);
-      column-gap: clamp(2rem, 4vw, 4rem);
-      row-gap: 1.25rem;
-      padding-block: 2rem;
-    }
-
-    .post-meta {
-      align-self: start;
-      align-items: flex-start;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 1rem;
-      padding-top: 0.35rem;
-    }
-
-    .post-footer {
-      grid-column: 2;
-    }
-  }
-</style>
+/>
