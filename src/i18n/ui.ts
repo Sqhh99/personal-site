@@ -37,6 +37,8 @@ export const UI_STRINGS = {
     'nav.github': 'GitHub',
 
     'descent.levels': 'Levels',
+    'descent.legend': 'Legend',
+    'descent.plate': 'plate',
     'planet.saturn': 'Saturn',
     'planet.jupiter': 'Jupiter',
     'planet.mars': 'Mars',
@@ -114,6 +116,8 @@ export const UI_STRINGS = {
     'nav.github': 'GitHub',
 
     'descent.levels': '层',
+    'descent.legend': '图注',
+    'descent.plate': '图版',
     'planet.saturn': '土星',
     'planet.jupiter': '木星',
     'planet.mars': '火星',
@@ -190,6 +194,8 @@ export const UI_STRINGS = {
     'nav.github': 'GitHub',
 
     'descent.levels': '階層',
+    'descent.legend': '解説',
+    'descent.plate': '図版',
     'planet.saturn': '土星',
     'planet.jupiter': '木星',
     'planet.mars': '火星',
