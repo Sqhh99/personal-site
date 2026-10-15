@@ -103,10 +103,10 @@ The fragment shader (`gl.ts`) runs these steps for each cell:
 - **Hiding:** after `IDLE_MS 3500` the bar and `#menu-toggle` hide.
   - The state is set on `.descent[data-chrome]` and `html[data-descent-chrome]`.
   - The cursor is hidden on fine pointers.
-- **Coming back:** on `pointerdown`, `keydown`, `wheel`, or more than 24 px of mouse travel.
+- **Coming back:** on `pointerdown`, `keydown`, `wheel`, or more than 24 px of mouse travel in one movement (travel is forgotten after a 300 ms pause, `NUDGE_GAP_MS`).
 - **Never hides while:**
   - the pointer is over the bar
-  - focus is in the bar or on "Menu"
+  - keyboard focus (`:focus-visible`) is in the bar or on "Menu". A clicked sigil keeps focus too, so plain focus would hold the bar up for good
   - the menu is open
   - a descent the visitor started is still running (`busy`, checked against the clock, not the frame loop)
 - **Dissolve:** `createMasks().run(els, 'in'|'out', ms, stagger)` steps through 9 coverage tiles: 0, 8 … 64 of the 64 cells.
@@ -176,7 +176,7 @@ To **add a planet or change the count per planet**, also change these together:
 | Candle | `gl.ts` | 0.16 and 0.025. Stay under about ±10%. |
 | Lantern | `gl.ts`, `scene.ts` | Radius `min(cols,rows)·0.2`, black-point drop 0.24, gain 0.55. Follow rate 9/s on the pointer and 0.8/s when wandering; wander strength 0.6. |
 | Veil | `gl.ts`, `scene.ts` | Shore `−0.03…0.16` of screen height, padding 28 px, ease rates 4/s (depth) and 6/s (box). |
-| Bar | `chrome.ts` | `IDLE_MS`, `DISSOLVE_MS 420`, `NUDGE_PX 24`. |
+| Bar | `chrome.ts` | `IDLE_MS`, `DISSOLVE_MS 420`, `NUDGE_PX 24`, `NUDGE_GAP_MS 300`. |
 | Legend | `legend.ts` | Swap split 0.4/0.45; ink-in 0.25 with 0.06 stagger. |
 
 ### Carry the look to another surface
@@ -184,10 +184,16 @@ To **add a planet or change the count per planet**, also change these together:
 - **A static asset** (favicon, OG card): pre-render it in exactly `#9a8264` on `#110e0b`, with square cells. See `public/favicon.svg`, or `ditherPreview()` in `prep-plates.mjs`.
 - **A canvas figure:** threshold per cell against `BAYER8` from `plates.ts`, and read the inks with `useThemeColors`.
 - **UI that should appear or disappear:** reuse `createMasks()` from `chrome.ts` rather than a CSS fade.
-- **Site chrome:** the tokens are already global. Don't reintroduce pink, gold or cobalt.
+- **Site chrome:** the tokens are already global. Don't reintroduce pink, gold or cobalt. The header, the menu and the writing pages carry the look this way:
+  - Type: small-caps mono (`0.66–0.72rem`, tracking `0.14–0.16em`) for every label, Newsreader for titles and for running text.
+  - No boxes. A tag, the current menu entry, the active filter and the wordmark are marked by one lit 4–5 px cell (`--accent-deep`); a section break and the end of a post are three cells (`.cell-mark`, `.prose hr`).
+  - Numbering by Roman numerals, as the plates are: the menu entries, and the kicker over each column's heading.
+  - The menu prints in with `createMasks()` at a 3 px cell (`Header.astro`).
+  - An essay sets its text at `--text-measure` (40rem) and opens figures, code and tables out to `--measure` (58rem); margin notes hang outside the figure width, from 1440 px.
 
 ## Pitfalls already hit
 
+- **The bar never hid after a click.** A clicked sigil keeps focus, and "focus in the bar" held it. Hold only for `:focus-visible`.
 - **Dots in pure black.** Grain pushed the threshold below 0. Keep `max(0.008, …)`.
 - **Doubled columns or moiré.** The canvas CSS size was not a whole number of cells. Keep `measure()` as it is.
 - **Black side bands.** These come from `FIT < 1`.
