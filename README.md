@@ -27,7 +27,7 @@ src/
 └── pages/               # routes (EN unprefixed, ZH under /zh), rss.xml.ts
 scripts/new-article.mjs  # npm run new:article
 scripts/check-brief.mjs  # npm run check:brief — daily brief QA gate
-scripts/prep-plates.mjs   # npm run prep:art — fetches and prepares the landing's seven plates
+scripts/prep-plates.mjs   # npm run prep:art — fetches and prepares the landing's plates
 public/                  # favicon, robots.txt, art/ — copied verbatim
 ```
 
@@ -45,7 +45,7 @@ language and appears in both listings.
 | `npm run check` | Type-check `.astro`, `.ts` and `.tsx` |
 | `npm run new:article -- <slug>` | Scaffold a new article directory |
 | `npm run check:brief [-- YYYY-MM-DD]` | QA gate for a daily brief: shape/links/dates in code, tone/hedging/dedup via TypeSafe (needs `TYPESAFE_API_KEY`; add `--no-ai` for code checks only) |
-| `npm run prep:art` | Re-fetch and prepare the landing's plates (output is committed); `-- --sheet out.png` also writes a dithered contact sheet |
+| `npm run prep:art` | Re-fetch and prepare the landing's plates (output is committed); `-- --sheet out.png` also writes a dithered contact sheet; `-- --only id,id` fetches just those |
 | `npm run deploy` | Build, then `wrangler deploy` |
 
 ## Adding a post
@@ -80,21 +80,27 @@ loads automatically as a skill in Claude Code.
 Everything ships as its own island; the page is server-rendered otherwise.
 
 - **Landing descent** (`DescentHero.astro` + `src/lib/descent/`) — the first screen is
-  one of seven Gustave Doré wood engravings, a "level" for each classical planet from
+  one of twenty-one Gustave Doré wood engravings, three for each classical planet from
   Saturn down to the Moon, printed in two inks — burnt umber on black — by 8×8 ordered
-  dither. No name and no text: a row of planetary sigils (or ←/→, 1–7, a swipe, or
-  `#venus` in the URL) moves between plates, and left alone it goes down a level every
-  20 s. `gl.ts` is a single WebGL1 shader on a canvas of one pixel per dither cell,
-  scaled up crisp; every effect is a change of exposure ahead of the threshold, so it
-  stays in the grain: the descent (the old plate gutters out cell by cell and the next
-  catches), a candle flicker, a lantern under the pointer that drops the black point,
-  dust motes and a slow push-in. Without WebGL the plate is dithered once on the CPU;
-  under `prefers-reduced-motion` it is a still print. `plates.json` lists the plates
-  with their focus and tone and is shared with `npm run prep:art`, which crops them out
-  of their Wikimedia Commons scans into `public/plates/`.
-  Plates: *Inferno* I and II (1861), *Idylls of the King* (1868), *Atala* (1863),
-  *The Raven* (1884) — all public domain. The style rules, tuning knobs and pitfalls
-  are written up in
+  dither. No name and no words of its own. A bar of planetary sigils, with a tick for each
+  of a planet's plates, moves between them (so do ←/→ for a plate, ↑/↓ or 1–7 for a planet,
+  a swipe, or `#venus-2` in the URL); with no hash it opens on the planet that rules the
+  day. Left alone it goes down a plate every 20 s, and after 3.5 s idle the bar and the
+  menu dissolve away in the same dither and come back at a touch (`chrome.ts`). `L` or the
+  book lays in a legend (`legend.ts`, text in `legends.ts`): the lines the plate
+  illustrates, from public-domain texts, and a short note in the page's language, set on
+  black where the print sinks away beneath it. `gl.ts` is a single WebGL1 shader on a
+  canvas of one pixel per dither cell, scaled up crisp; every effect is a change of
+  exposure ahead of the threshold, so it stays in the grain: the descent (the old plate
+  goes out in a sweep the way you are moving, the new one catches outward from its own
+  lamp), a candle flicker, a lantern under the pointer — or wandering the plate's points of
+  interest when there is none — dust rising from the light, a slow push-in, and the veil.
+  Without WebGL the plate is dithered once on the CPU; under `prefers-reduced-motion` it is
+  a still print. `plates.json` lists the plates with their focus, tone and light points and
+  is shared with `npm run prep:art`, which crops them out of their Wikimedia Commons scans
+  into `public/plates/`. Plates: *Inferno* (1861), *Purgatorio* (1868), *Paradise Lost*
+  (1866), *Idylls of the King* (1867–68), *Atala* (1863), *The Raven* (1884) — all public
+  domain. The style rules, tuning knobs and pitfalls are written up in
   [`.claude/skills/umber-engraving/SKILL.md`](.claude/skills/umber-engraving/SKILL.md).
 - `PostFilter` (`client:load`) — search and tag filtering. The cards themselves are
   server-rendered; the island only toggles visibility, so every post stays in the HTML.

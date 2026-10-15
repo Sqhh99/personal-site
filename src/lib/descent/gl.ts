@@ -7,12 +7,15 @@
  * Everything that moves is a change of exposure ahead of the threshold, so the
  * motion stays in the same grain as the still picture:
  *
- *  - the descent: the old plate gutters out and the new one catches, each
- *    cell changing over in its own turn, a little later toward the bottom;
+ *  - the descent: the old plate gutters out in a sweep the way you are
+ *    going (down the screen going deeper, up it going back), each cell in
+ *    its own turn, and the new one catches outward from its own lamp;
  *  - the candle: a slow noise field breathes across the plate;
  *  - the lantern: under the pointer the black point drops and the shadows
  *    give up what is cut into them;
- *  - the motes: single cells of dust drifting up through the dark.
+ *  - the motes: single cells of dust drifting up through the dark;
+ *  - the veil: where the legend lies, the plate sinks to black under it, and
+ *    the foot darkens only while the sigils are there to need it.
  */
 
 import { BAYER8 } from './plates';
@@ -36,6 +39,11 @@ uniform vec4 uToXf;
 uniform vec3 uFromTone;
 uniform vec3 uToTone;
 uniform float uMix;
+uniform float uDir;
+uniform vec2 uToLight;
+uniform vec4 uVeil;
+uniform float uVeilAmt;
+uniform float uFoot;
 uniform float uTime;
 uniform float uLive;
 uniform vec4 uLamp;
@@ -75,30 +83,41 @@ void main() {
   float threshold = bayer(cell);
 
   // The lantern: x, y in cells, radius in cells, strength.
-  float d = distance(cell, uLamp.xy) / uLamp.z;
-  float lift = uLamp.w * exp(-d * d * 2.4);
+  float ld = distance(cell, uLamp.xy) / uLamp.z;
+  float lift = uLamp.w * exp(-ld * ld * 2.4);
 
   // The descent: each cell changes plate when its turn in a second, offset
-  // Bayer order comes up, the top of the screen a little before the bottom.
-  float turn = bayer(cell + vec2(3.0, 5.0));
-  float k = clamp(uMix * 1.4 - p.y * 0.4, 0.0, 1.0);
-  float v = turn < k
-    ? plate(uTo, uToXf, uToTone, p, lift)
-    : plate(uFrom, uFromXf, uFromTone, p, lift);
-
-  // The light gutters through the change, and the candle never quite settles.
-  float exposure = 1.0 - sin(3.14159265 * uMix) * 0.8;
+  // Bayer order comes up, swept along the way you are going. The old plate
+  // goes out ahead of the change; the new one catches outward from its lamp.
   float aspect = uGrid.x / uGrid.y;
+  float s = uDir > 0.0 ? p.y : 1.0 - p.y;
+  float sweep = uMix * 1.5 - s * 0.5;
+  float turn = bayer(cell + vec2(3.0, 5.0));
+  float d = distance(vec2(p.x * aspect, p.y), vec2(uToLight.x * aspect, uToLight.y)) / length(vec2(aspect, 1.0));
+  float r = clamp((uMix - 0.25) / 0.75, 0.0, 1.0);
+  float front = r * r * (3.0 - 2.0 * r) * 1.35;
+  float v = turn < clamp(sweep, 0.0, 1.0)
+    ? plate(uTo, uToXf, uToTone, p, lift) * smoothstep(d - 0.3, d + 0.05, front)
+    : plate(uFrom, uFromXf, uFromTone, p, lift) * (1.0 - smoothstep(0.0, 0.5, sweep));
+
+  // The candle never quite settles.
+  float exposure = 1.0;
   float breath = noise(vec2(p.x * aspect, p.y) * 2.6 + vec2(uTime * 0.07, -uTime * 0.05));
   float flutter = sin(uTime * 7.3) * sin(uTime * 3.1 + 1.0);
   exposure *= 1.0 + uLive * ((breath - 0.5) * 0.16 + flutter * 0.025);
   exposure *= 1.0 + 0.55 * lift;
 
-  // The corners sink into the dark, and the foot darkens under the sigils —
-  // still in the two inks, by lowering exposure rather than laying a tint.
+  // The corners sink into the dark, the foot darkens under the sigils, and
+  // the plate gives way to black under the legend — still in the two inks,
+  // by lowering exposure rather than laying a tint.
   vec2 off = (p - vec2(0.5, 0.45)) * vec2(1.0, 1.15);
   exposure *= 1.0 - 0.45 * smoothstep(0.35, 0.85, length(off));
-  exposure *= 1.0 - 0.55 * smoothstep(0.84, 1.0, p.y);
+  exposure *= 1.0 - 0.55 * uFoot * smoothstep(0.84, 1.0, p.y);
+  // The veil is a rounded box with a long dithered shore, so the black under
+  // the legend reads as shadow in the plate, not a panel laid on it.
+  vec2 out2 = max(uVeil.xy - p, p - uVeil.zw) * vec2(aspect, 1.0);
+  float outside = length(max(out2, 0.0)) + min(max(out2.x, out2.y), 0.0);
+  exposure *= 1.0 - uVeilAmt * (1.0 - smoothstep(-0.03, 0.16, outside));
 
   // A whisper of grain on the threshold, so edges shimmer like cut line.
   // Never below the lowest Bayer step, or true black would catch dots.
@@ -108,7 +127,8 @@ void main() {
 
   for (int i = 0; i < ${MOTES}; i++) {
     vec3 m = uMotes[i];
-    if (m.z > 0.0 && floor(m.xy) == cell && m.z > threshold * 0.8) lit = 1.0;
+    // Dust shows wherever the light reaches, which is not under the legend.
+    if (m.z > 0.0 && floor(m.xy) == cell && m.z * min(exposure, 1.0) > threshold * 0.8) lit = 1.0;
   }
 
   gl_FragColor = vec4(mix(uDark, uInk, lit), 1.0);
@@ -124,6 +144,16 @@ export interface FrameState {
   fromTone: readonly number[];
   toTone: readonly number[];
   mix: number;
+  /** 1 going deeper, −1 going back up. */
+  dir: number;
+  /** The new plate's lamp, in screen fractions. */
+  toLight: readonly [number, number];
+  /** The legend's box in screen fractions (x0, y0, x1, y1), and how far the
+   *  plate has sunk under it, 0..1. */
+  veil: readonly [number, number, number, number];
+  veilAmt: number;
+  /** How much the foot darkens under the sigils, 0..1. */
+  foot: number;
   time: number;
   live: number;
   /** x, y and radius in cells, and strength 0..1. */
@@ -187,6 +217,11 @@ export function createPrinter(canvas: HTMLCanvasElement, inks: { ink: string; da
     fromTone: u('uFromTone'),
     toTone: u('uToTone'),
     mix: u('uMix'),
+    dir: u('uDir'),
+    toLight: u('uToLight'),
+    veil: u('uVeil'),
+    veilAmt: u('uVeilAmt'),
+    foot: u('uFoot'),
     time: u('uTime'),
     live: u('uLive'),
     lamp: u('uLamp'),
@@ -244,6 +279,11 @@ export function createPrinter(canvas: HTMLCanvasElement, inks: { ink: string; da
       gl.uniform3fv(loc.fromTone, s.fromTone);
       gl.uniform3fv(loc.toTone, s.toTone);
       gl.uniform1f(loc.mix, s.mix);
+      gl.uniform1f(loc.dir, s.dir);
+      gl.uniform2fv(loc.toLight, s.toLight);
+      gl.uniform4fv(loc.veil, s.veil);
+      gl.uniform1f(loc.veilAmt, s.veilAmt);
+      gl.uniform1f(loc.foot, s.foot);
       gl.uniform1f(loc.time, s.time);
       gl.uniform1f(loc.live, s.live);
       gl.uniform4fv(loc.lamp, s.lamp);

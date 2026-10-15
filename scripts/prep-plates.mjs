@@ -6,6 +6,9 @@
  *   npm run prep:art -- --sheet out.png
  *                                    # …and a contact sheet of the plates as
  *                                    #    the page prints them (umber dither)
+ *   npm run prep:art -- --only mars-2,moon-3 --sheet out.png
+ *                                    # fetch just these; the sheet still
+ *                                    #    shows every plate, from disk
  *
  * Every plate is a Gustave Doré wood engraving, public domain, fetched from
  * Wikimedia Commons. Each is cropped to lose its border and caption, made
@@ -27,8 +30,12 @@ const WIDTH = 900;
 const UA = 'personal-site prep-plates (https://github.com/Sqhh99/personal-site)';
 const OUT = 'public/plates';
 
-const sheetArg = process.argv.indexOf('--sheet');
-const sheetPath = sheetArg > 0 ? process.argv[sheetArg + 1] : null;
+const arg = (name) => {
+  const i = process.argv.indexOf(name);
+  return i > 0 ? process.argv[i + 1] : null;
+};
+const sheetPath = arg('--sheet');
+const only = arg('--only')?.split(',');
 
 async function fetchPlate(file) {
   const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}`;
@@ -115,11 +122,25 @@ async function findPlate(input) {
   return { left: x0 + inset, top: y0 + inset, width: x1 - x0 - inset * 2, height: y1 - y0 - inset * 2 };
 }
 
+async function cropBox(input, [x0, y0, x1, y1]) {
+  const { width: w, height: h } = await sharp(input).metadata();
+  const left = Math.round(x0 * w);
+  const top = Math.round(y0 * h);
+  return { left, top, width: Math.round(x1 * w) - left, height: Math.round(y1 * h) - top };
+}
+
 await mkdir(OUT, { recursive: true });
 const previews = [];
 for (const plate of PLATES) {
+  const out = `${OUT}/${plate.id}.jpg`;
+  if (only && !only.includes(plate.id)) {
+    if (sheetPath) previews.push(await ditherPreview(await readFile(out), 600, plate.tone));
+    continue;
+  }
   const input = await fetchPlate(plate.file);
-  const box = await findPlate(input);
+  // A scan whose sky is paper-white defeats the search; `crop` (fractions
+  // of the scan: left, top, right, bottom) says where the plate is instead.
+  const box = plate.crop ? await cropBox(input, plate.crop) : await findPlate(input);
   const img = await sharp(input)
     .extract(box)
     .grayscale()
@@ -131,7 +152,6 @@ for (const plate of PLATES) {
     .toColourspace('b-w')
     .jpeg({ quality: 68, mozjpeg: true })
     .toBuffer();
-  const out = `${OUT}/${plate.id}.jpg`;
   await writeFile(out, img);
   const m = await sharp(img).metadata();
   console.log(`${out}: ${m.width}×${m.height}, ${(img.length / 1024).toFixed(0)} KB (plate ${box.width}×${box.height}+${box.left}+${box.top})`);
@@ -141,9 +161,11 @@ for (const plate of PLATES) {
 
 if (sheetPath) {
   const metas = await Promise.all(previews.map((p) => sharp(p).metadata()));
+  // Three plates to a row, so each planet's chapter reads across.
   const h = Math.max(...metas.map((m) => m.height));
-  const sheet = await sharp({ create: { width: 600 * previews.length, height: h, channels: 3, background: '#110e0b' } })
-    .composite(previews.map((input, i) => ({ input, left: i * 600, top: 0 })))
+  const rows = Math.ceil(previews.length / 3);
+  const sheet = await sharp({ create: { width: 600 * 3, height: h * rows, channels: 3, background: '#110e0b' } })
+    .composite(previews.map((input, i) => ({ input, left: (i % 3) * 600, top: Math.floor(i / 3) * h })))
     .png()
     .toBuffer();
   await writeFile(sheetPath, sheet);
