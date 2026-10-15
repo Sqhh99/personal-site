@@ -101,8 +101,11 @@ interface ChromeOptions {
 /** How long the furniture waits before it goes. */
 const IDLE_MS = 3500;
 const DISSOLVE_MS = 420;
-/** Mouse travel, in CSS px, that counts as someone being there. */
+/** Mouse travel, in CSS px, that counts as someone being there… */
 const NUDGE_PX = 24;
+/** …within one movement: travel is forgotten after a pause this long, so a
+ *  hand resting on the mouse never adds up to a nudge. */
+const NUDGE_GAP_MS = 300;
 
 export function createChrome(root: HTMLElement, bar: HTMLElement, { masks, busy, onChange }: ChromeOptions): Chrome {
   const header = document.getElementById('site-header');
@@ -112,17 +115,24 @@ export function createChrome(root: HTMLElement, bar: HTMLElement, { masks, busy,
   let hovering = false;
   let timer = 0;
   let travel = 0;
-  let last: { x: number; y: number } | null = null;
+  let last: { x: number; y: number; t: number } | null = null;
 
   const state = (v: boolean) => {
     root.dataset.chrome = v ? 'shown' : 'hidden';
     document.documentElement.dataset.descentChrome = v ? 'shown' : 'hidden';
   };
 
+  // Focus holds the bar only when it came from the keyboard: a sigil that was
+  // clicked keeps focus too, and would otherwise keep the bar up for good.
+  const keyboardIn = (el: Element | null) => {
+    const f = document.activeElement;
+    return el !== null && f !== null && el.contains(f) && f.matches(':focus-visible');
+  };
+
   const holding = () =>
     hovering ||
-    bar.contains(document.activeElement) ||
-    (menu !== null && menu === document.activeElement) ||
+    keyboardIn(bar) ||
+    keyboardIn(menu) ||
     header?.dataset.open === 'true' ||
     (busy?.() ?? false);
 
@@ -154,8 +164,9 @@ export function createChrome(root: HTMLElement, bar: HTMLElement, { masks, busy,
 
   const onMove = (e: PointerEvent) => {
     if (e.pointerType === 'touch') return;
+    if (last && e.timeStamp - last.t > NUDGE_GAP_MS) travel = 0;
     if (last) travel += Math.hypot(e.clientX - last.x, e.clientY - last.y);
-    last = { x: e.clientX, y: e.clientY };
+    last = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     if (travel > NUDGE_PX) {
       travel = 0;
       poke();

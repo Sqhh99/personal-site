@@ -14,7 +14,7 @@ interface Props {
   title: string;
   description: string;
   date: Date;
-  /** Text inside the accent pill above the headline — a tag, or a brief's source. */
+  /** The word over the headline, in the accent — a tag, or a brief's source. */
   kicker: string;
   readingLabel: string;
   backHref: string;
@@ -28,6 +28,8 @@ interface Props {
   headings?: MarkdownHeading[];
   tocLabel?: string;
   siteName: string;
+  /** Open on an initial capital — for an essay, not a brief that starts on a label. */
+  initial?: boolean;
 }
 
 const {
@@ -47,6 +49,7 @@ const {
   headings = [],
   tocLabel = 'Contents',
   siteName,
+  initial = false,
 } = Astro.props;
 
 // The outline is a tree three levels deep: h2 sections, h3 subsections, h4
@@ -74,13 +77,7 @@ const toc = headings
   ogType="article"
   publishedAt={date}
 >
-  <!-- Top Reading Progress Indicator -->
-  <div
-    id="read-progress"
-    class="fixed top-0 left-0 z-[80] h-0.5 w-0 bg-accent transition-all duration-150"
-    aria-hidden="true"
-  >
-  </div>
+  <div id="read-progress" class="read-progress" aria-hidden="true"></div>
 
   {
     toc.length > 0 && (
@@ -126,98 +123,65 @@ const toc = headings
     )
   }
 
-  <article class="essay-shell py-12 sm:py-16">
+  <article class="essay-shell py-10 sm:py-14">
     <div class="essay">
       <div class="essay-body">
-        <a
-          href={backHref}
-          class="group inline-flex items-center gap-2 font-mono text-[0.725rem] tracking-wider text-muted transition-colors hover:text-ink"
-        >
+        <a href={backHref} class="post-back group">
           <span class="transition-transform duration-300 group-hover:-translate-x-1" aria-hidden="true">←</span>
           {backLabel}
         </a>
 
-        <header class="mt-8 pb-10">
-          <div class="flex flex-wrap items-center gap-3">
-            <span class="stamp">
-              <span class="stamp-dot" aria-hidden="true"></span>
-              {kicker}
-            </span>
-            <time datetime={isoDate(date)} class="label">{formatDate(date, lang)}</time>
-            <span class="label flex items-center gap-1">
-              <svg
-                viewBox="0 0 24 24"
-                class="size-3 text-faint"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              {readingLabel}
-            </span>
-          </div>
-          <h1 class="mt-6 font-display text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.05] text-ink">
-            {title}
-          </h1>
-          <p class="mt-6 max-w-[58ch] font-sans text-lg leading-relaxed text-muted">{description}</p>
-          <div class="zine-rule"></div>
+        {/* A title page: the kicker and the date over the title, the dek under
+            it, closed by three cells of the print. */}
+        <header class="post-head">
+          <p class="post-meta">
+            <span class="post-kicker">{kicker}</span>
+            <span aria-hidden="true">·</span>
+            <time datetime={isoDate(date)}>{formatDate(date, lang)}</time>
+            <span aria-hidden="true">·</span>
+            <span>{readingLabel}</span>
+          </p>
+          <h1 class="post-title">{title}</h1>
+          <p class="post-dek">{description}</p>
+          <span class="cell-mark post-mark" aria-hidden="true"></span>
         </header>
 
-        <div class="prose mt-12">
+        <div class:list={['prose', initial && 'prose-initial']}>
           <slot />
         </div>
 
-        <div
-          class="mt-16 flex flex-col gap-4 border-t border-line pt-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div><slot name="byline" /></div>
-          <a
-            href="https://github.com/Sqhh99"
-            target="_blank"
-            rel="noreferrer"
-            class="font-mono text-xs transition-colors hover:text-ink"
-          >
-            GitHub @Sqhh99
-          </a>
-        </div>
+        <footer class="post-end">
+          <span class="cell-mark" aria-hidden="true"></span>
+          <div class="post-byline">
+            <div><slot name="byline" /></div>
+            <a href="https://github.com/Sqhh99" target="_blank" rel="noreferrer" class="transition-colors hover:text-ink">
+              GitHub @Sqhh99
+            </a>
+          </div>
 
-        <nav class="mt-12 grid gap-4 border-t border-line pt-8 sm:grid-cols-2" aria-label={navLabel}>
           {
-            prev && (
-              <a
-                href={prev.href}
-                class="group sketch-frame sketch-ticks p-6"
-              >
-                <span class="label flex items-center gap-1 text-accent">
-                  <span class="transition-transform group-hover:-translate-x-1">←</span> {prevLabel}
-                </span>
-                <p class="mt-2 font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent">
-                  {prev.title}
-                </p>
-              </a>
+            (prev || next) && (
+              <nav class="post-nav" aria-label={navLabel}>
+                {prev && (
+                  <a href={prev.href} class="post-nav-link group" rel="prev">
+                    <span class="label">
+                      <span class="inline-block transition-transform group-hover:-translate-x-1" aria-hidden="true">←</span> {prevLabel}
+                    </span>
+                    <span class="post-nav-title">{prev.title}</span>
+                  </a>
+                )}
+                {next && (
+                  <a href={next.href} class="post-nav-link post-nav-next group" rel="next">
+                    <span class="label">
+                      {nextLabel} <span class="inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+                    </span>
+                    <span class="post-nav-title">{next.title}</span>
+                  </a>
+                )}
+              </nav>
             )
           }
-          {
-            next && (
-              <a
-                href={next.href}
-                class="group sketch-frame sketch-ticks p-6 sm:col-start-2 sm:text-right"
-              >
-                <span class="label flex items-center justify-end gap-1 text-accent">
-                  {nextLabel} <span class="transition-transform group-hover:translate-x-1">→</span>
-                </span>
-                <p class="mt-2 font-display text-lg leading-snug text-ink transition-colors group-hover:text-accent">
-                  {next.title}
-                </p>
-              </a>
-            )
-          }
-        </nav>
+        </footer>
       </div>
     </div>
   </article>
@@ -229,7 +193,7 @@ const toc = headings
       if (!progress) return;
       const total = document.documentElement.scrollHeight - window.innerHeight;
       const pct = total > 0 ? (window.scrollY / total) * 100 : 0;
-      progress.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+      progress.style.transform = `scaleX(${Math.min(1, Math.max(0, pct / 100))})`;
     };
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
@@ -242,11 +206,9 @@ const toc = headings
       const button = document.createElement('button');
       button.type = 'button';
       button.ariaLabel = 'Copy code';
-      button.className =
-        'absolute top-3 right-3 hidden group-hover:flex items-center gap-1 border border-line bg-surface/90 px-2.5 py-1 font-mono text-[0.65rem] tracking-wider text-muted transition-all hover:border-line-strong hover:text-ink';
+      button.className = 'code-copy';
       button.innerHTML = '<span>Copy</span>';
 
-      pre.classList.add('group');
       pre.appendChild(button);
 
       button.addEventListener('click', async () => {

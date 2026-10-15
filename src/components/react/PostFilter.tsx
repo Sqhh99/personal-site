@@ -120,7 +120,7 @@ export default function PostFilter({
     <>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:flex-1 lg:justify-end lg:gap-6">
-          <label className="group sketch-control relative flex h-12 w-full min-w-0 items-center gap-3 px-4 focus-within:border-accent sm:max-w-md lg:max-w-sm">
+          <label className="group filter-search">
             <svg
               viewBox="0 0 24 24"
               className="size-4 shrink-0 text-faint transition-colors group-focus-within:text-accent"
@@ -142,7 +142,7 @@ export default function PostFilter({
               }}
               placeholder={labels.searchPlaceholder ?? 'Search posts by title, tag, or topic...'}
               aria-label={labels.searchAria ?? 'Search writing'}
-              className="w-full bg-transparent text-[0.925rem] text-ink outline-none placeholder:text-faint/80"
+              className="w-full bg-transparent font-display text-[1.05rem] italic text-ink outline-none placeholder:text-faint"
             />
             {query && (
               <button
@@ -152,7 +152,7 @@ export default function PostFilter({
                   setFilterPage(1);
                 }}
                 aria-label={labels.clearSearch ?? 'Clear search query'}
-                className="grid size-5 place-items-center rounded-full bg-surface-sunk text-faint hover:text-ink transition-colors"
+                className="grid size-6 shrink-0 place-items-center text-faint transition-colors hover:text-ink"
               >
                 <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -168,7 +168,7 @@ export default function PostFilter({
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2 lg:order-first lg:max-w-[45%]" role="group" aria-label={labels.filterByTag ?? 'Filter by tag'}>
+        <div className="flex flex-wrap gap-x-5 gap-y-2 lg:order-first lg:max-w-[50%]" role="group" aria-label={labels.filterByTag ?? 'Filter by tag'}>
           {options.map((tag) => {
             const selected = tag === active;
             return (
@@ -180,12 +180,7 @@ export default function PostFilter({
                   setActive(tag);
                   setFilterPage(1);
                 }}
-                className={[
-                  'border px-3 py-1.5 font-mono text-[0.7rem] tracking-wider transition-colors',
-                  selected
-                    ? 'border-accent bg-accent text-on-accent font-semibold'
-                    : 'border-line bg-surface/80 text-muted hover:border-line-strong hover:text-ink hover:bg-surface-sunk/50',
-                ].join(' ')}
+                className="filter-tag"
               >
                 {tag}
               </button>

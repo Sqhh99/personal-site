@@ -15,6 +15,9 @@
   --surface-glass: rgba(17, 14, 11, 0.84);
   --ink: #cdbb9a;
   --muted: #9c8a6c;
+  /* Running text in an essay: between --ink and --muted, so a long page
+     reads without glare and without going grey. */
+  --text: #b8a684;
   --faint: #6b5d48;
   --border: #2a231b;
   --border-strong: #3d3327;
@@ -481,7 +484,7 @@ html[data-reveal] .reveal:not(.is-visible) {
   }
 
   .descent[data-ready][data-chrome='hidden'] .descent-bar,
-  html[data-descent-chrome='hidden'] body[data-landing] #menu-toggle {
+  html[data-descent-chrome='hidden'] body[data-landing] .menu-toggle {
     opacity: 0;
     visibility: hidden;
     transition:
@@ -491,46 +494,66 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 /* ---------------------------------------------------------------------------
-   Prose — Hand-crafted editorial typography rhythm for long technical posts.
+   Prose — set like the books the plates came from: a serif text face on a
+   measure of about seventy characters, umber on black, with the figures
+   given more room than the text around them.
    --------------------------------------------------------------------------- */
 
 .prose {
-  /* Slightly larger than before: the measure widened to meet the figures, and
-     a wider column needs a bigger face to keep the line length bearable. */
-  font-size: 1.125rem;
-  line-height: 1.78;
-  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  line-height: 1.72;
+  color: var(--text);
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  hanging-punctuation: first;
 }
 
 .prose > * + * {
-  margin-top: 1.5em;
+  margin-top: 1.25em;
 }
 
 .prose h2 {
-  margin-top: 2.6em;
-  margin-bottom: -0.2em;
-  font-size: 1.85rem;
-  line-height: 1.25;
+  margin-top: 2.8em;
+  margin-bottom: -0.15em;
+  font-size: 1.9rem;
+  line-height: 1.2;
   color: var(--ink);
   letter-spacing: -0.02em;
 }
 
 .prose h3 {
-  margin-top: 2.1em;
+  margin-top: 2.2em;
   margin-bottom: -0.3em;
-  font-size: 1.35rem;
-  line-height: 1.35;
+  font-size: 1.4rem;
+  line-height: 1.3;
   color: var(--ink);
 }
 
-/* The third outline level. Deliberately close in size to the body text — it is
-   a labelled paragraph group, not another headline. */
+/* The third outline level: a labelled paragraph group, not another headline,
+   so it takes the body size and sets itself apart by italic alone. */
 .prose h4 {
-  margin-top: 1.7em;
-  margin-bottom: -0.5em;
-  font-size: 1.05rem;
+  margin-top: 1.8em;
+  margin-bottom: -0.55em;
+  font-size: 1.1875rem;
+  font-style: italic;
   line-height: 1.4;
+  letter-spacing: -0.01em;
   color: var(--ink);
+}
+
+/* An essay opens on an initial, as a chapter of the old books did. */
+.prose-initial > p:first-child::first-letter {
+  float: left;
+  margin: 0.06em 0.09em 0 -0.02em;
+  color: var(--accent-deep);
+  font-size: 3.55em;
+  font-weight: 400;
+  line-height: 0.82;
+}
+
+/* Lining figures where numbers are compared, not read. */
+.prose :is(table, figure, figcaption, .katex) {
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .prose strong {
@@ -539,6 +562,8 @@ html[data-reveal] .reveal:not(.is-visible) {
 }
 
 .prose a {
+  /* A bare URL breaks rather than pushing the page sideways on a phone. */
+  overflow-wrap: anywhere;
   color: var(--accent-deep);
   text-decoration: underline;
   text-underline-offset: 0.25em;
@@ -587,10 +612,26 @@ html[data-reveal] .reveal:not(.is-visible) {
   font-style: italic;
 }
 
-.prose hr {
+/* A section break is three cells of the print, like a planet's ticks. */
+.prose hr,
+.cell-mark {
+  display: block;
+  height: 4px;
   border: 0;
-  border-top: 1px solid var(--border);
-  margin-block: 3em;
+  background-image:
+    linear-gradient(var(--umber), var(--umber)),
+    linear-gradient(var(--accent-deep), var(--accent-deep)),
+    linear-gradient(var(--umber), var(--umber));
+  background-position:
+    calc(50% - 10px) 0,
+    50% 0,
+    calc(50% + 10px) 0;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.prose hr {
+  margin-block: 3.25em;
 }
 
 /* Inline Code */
@@ -621,6 +662,7 @@ html[data-reveal] .reveal:not(.is-visible) {
 
 .prose table {
   width: 100%;
+  font-family: var(--font-sans);
   border-collapse: separate;
   border-spacing: 0;
   margin-block: 2em;
@@ -668,12 +710,15 @@ html[data-reveal] .reveal:not(.is-visible) {
    gutter that is only reserved when the viewport can spare the room.
    --------------------------------------------------------------------------- */
 
-/* Declared on the root so the floating contents pill can size itself against
-   the same measure the essay column uses. */
+/* Two widths: the text keeps to --text-measure, and figures, code and
+   tables open out to --measure, the width the figures were drawn for.
+   Declared on the root so the floating contents pill can size itself
+   against the wider of the two. */
 :root {
   --measure: 58rem;
-  --rail-right: 14rem;
-  --rail-gap: 2.5rem;
+  --text-measure: 40rem;
+  --rail-right: 13rem;
+  --rail-gap: 1.75rem;
 }
 
 /* One column, always centred in the viewport. Margin notes overhang into the
@@ -682,7 +727,7 @@ html[data-reveal] .reveal:not(.is-visible) {
    mistake even when it is deliberate. */
 .essay {
   display: grid;
-  grid-template-columns: minmax(0, var(--measure));
+  grid-template-columns: minmax(0, var(--text-measure));
   justify-content: center;
   counter-reset: section subsection subpoint figure;
 }
@@ -690,6 +735,197 @@ html[data-reveal] .reveal:not(.is-visible) {
 .essay-body {
   grid-column: 1;
   min-width: 0;
+}
+
+/* Out to the figure width, evenly on both sides, and never past the page's
+   gutters: `100%` is the text column, so the margin is how much wider the
+   room is, halved, and zero once the screen is no wider than the text. */
+.essay .prose > :is(figure, pre, table):not(.figure-wide, .figure-bleed) {
+  margin-inline: min(0px, calc((100% - min(var(--measure), 100vw - 2.5rem)) / 2));
+}
+
+/* The post's own furniture ------------------------------------------------- */
+
+.read-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 80;
+  height: 2px;
+  background-color: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.post-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 200ms ease;
+}
+
+.post-back:hover {
+  color: var(--ink);
+}
+
+.post-head {
+  display: grid;
+  justify-items: center;
+  margin-top: clamp(2.5rem, 7vw, 4.5rem);
+  margin-bottom: clamp(3rem, 7vw, 4.5rem);
+  text-align: center;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 0.6rem;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.post-kicker {
+  color: var(--accent-deep);
+}
+
+.post-title {
+  margin-top: 1.4rem;
+  color: var(--ink);
+  /* CJK titles break at their spaces, not inside a word. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-size: clamp(2.35rem, 6vw, 4rem);
+  line-height: 1.04;
+}
+
+.post-dek {
+  max-width: 34rem;
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.post-mark {
+  width: 100%;
+  margin-top: 2.5rem;
+}
+
+.post-end {
+  margin-top: 5rem;
+}
+
+.post-byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 2.5rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.post-nav {
+  display: grid;
+  margin-top: 2.5rem;
+  border-block: 1px solid var(--border);
+}
+
+.post-nav-link {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.5rem 0;
+  transition: background-color 180ms ease;
+}
+
+.post-nav-link + .post-nav-link {
+  border-top: 1px solid var(--border);
+}
+
+.post-nav-link .label {
+  color: var(--accent);
+}
+
+.post-nav-title {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.3;
+  transition: color 180ms ease;
+}
+
+.post-nav-link:hover .post-nav-title {
+  color: var(--accent-deep);
+}
+
+@media (min-width: 40rem) {
+  .post-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .post-nav-link {
+    padding: 1.75rem 1.5rem 1.75rem 0;
+  }
+
+  .post-nav-link + .post-nav-link {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  .post-nav-next {
+    grid-column: 2;
+    padding: 1.75rem 0 1.75rem 1.5rem;
+    text-align: right;
+  }
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition:
+    opacity 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.prose pre:hover .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+}
+
+.code-copy:hover {
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+/* No hover to find it by, so it is simply there. */
+@media (hover: none) {
+  .code-copy {
+    opacity: 1;
+  }
 }
 
 /* Contents — a floating pill that opens the outline over the page ----------- */
@@ -902,11 +1138,15 @@ html[data-reveal] .reveal:not(.is-visible) {
   margin-block: 3em;
 }
 
+/* Under the text column, not the figure's edge, so it reads as text. */
 .prose figure > figcaption {
   counter-increment: figure;
+  max-width: var(--text-measure);
+  margin-inline: auto;
   margin-top: 0.9rem;
   padding-top: 0.8rem;
   border-top: 1px solid var(--border);
+  font-family: var(--font-sans);
   font-size: 0.85rem;
   line-height: 1.65;
   color: var(--muted);
@@ -943,6 +1183,7 @@ html[data-reveal] .reveal:not(.is-visible) {
 
 .margin-note {
   display: block;
+  font-family: var(--font-sans);
   margin-block: 1.5em;
   padding-left: 0.9rem;
   border-left: 1px solid var(--accent);
@@ -951,13 +1192,14 @@ html[data-reveal] .reveal:not(.is-visible) {
   color: var(--faint);
 }
 
-/* Needs measure + 2 × (gap + note width) = 91rem before a note can sit in the
-   margin without crowding the edge; 1500px leaves a little slack on top. */
-@media (min-width: 1500px) {
+/* Notes hang outside the figure width, not just the text, so a figure that
+   opens out beneath a note can never run into it. That needs measure +
+   2 × (gap + note) = 87.5rem; 1440px is the first common width with room. */
+@media (min-width: 1440px) {
   .margin-note {
     position: absolute;
-    left: calc(100% + var(--rail-gap, 2.5rem));
-    width: var(--rail-right, 14rem);
+    left: calc(50% + var(--measure) / 2 + var(--rail-gap));
+    width: var(--rail-right);
     margin-block: 0;
     padding-left: 0.8rem;
     transform: translateY(-1.4em);
@@ -1025,104 +1267,199 @@ body[data-landing] .paper-grain {
   z-index: 50;
   border-bottom: 1px solid transparent;
   background-color: var(--bg);
-  transition: border-color 200ms ease, background-color 200ms ease;
-}
-
-/* Landing header: no name, just a faint "Menu" in the corner of the plate. */
-body[data-landing] .site-header {
-  position: fixed;
-  inset-inline: 0;
-  background-color: transparent;
-}
-
-body[data-landing] .site-header > .shell {
-  height: auto;
-  min-height: 0;
-  padding-top: clamp(1.5rem, 3.2vw, 2.5rem);
-  padding-bottom: 0.75rem;
-  padding-inline: clamp(1.5rem, 3.2vw, 2.5rem);
-  max-width: none;
-  width: 100%;
-}
-
-body[data-landing] #menu-toggle {
-  margin-left: auto;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--ink);
-  opacity: 0.55;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  line-height: 1;
-  text-decoration: none;
-}
-
-body[data-landing] #menu-toggle {
-  text-transform: uppercase;
-  transition: opacity 200ms ease, color 200ms ease;
-}
-
-body[data-landing] #menu-toggle:is(:hover, :focus-visible, [aria-expanded='true']) {
-  color: var(--accent-deep);
-  opacity: 1;
-}
-
-body[data-landing] .site-header[data-scrolled='true'] {
-  background-color: var(--surface-glass);
-  backdrop-filter: blur(12px);
-}
-
-/* Open menu: a panel that drops from the bar, solid so it reads over the plate. */
-body[data-landing] .site-header[data-open='true'] {
-  background-color: var(--bg);
-}
-
-/* Once scrolled or open, the bar shrinks to the normal centred header. Only
-   the bar's own shell — the menu below it keeps its own padding. */
-body[data-landing] .site-header:is([data-scrolled='true'], [data-open='true']) > .shell {
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-inline: clamp(1.25rem, 4vw, 2rem);
-  height: 3.5rem;
-  max-width: 72rem;
-  margin-inline: auto;
-}
-
-body[data-landing] .site-header[data-open='true'] .site-menu {
-  background-color: var(--bg);
-  backdrop-filter: none;
+  transition: border-color 200ms ease;
 }
 
 .site-header[data-scrolled='true']:not([data-open='true']) {
   border-bottom-color: var(--border);
 }
 
+.site-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.5rem;
+}
+
+/* The name and the one word set alike, in the small capitals of the
+   landing's legend, so the header reads the same over a plate and over a
+   page. */
+.wordmark,
+.menu-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* A single lit cell of the print before the name. */
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink);
+  transition: color 200ms ease;
+}
+
+.wordmark::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  background-color: var(--accent-deep);
+}
+
+.wordmark:hover {
+  color: var(--accent-deep);
+}
+
+.menu-toggle {
+  /* A thumb-sized target round a small word. */
+  margin-right: -0.75rem;
+  padding: 0.85rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  opacity: 0.55;
+  cursor: pointer;
+  transition:
+    opacity 200ms ease,
+    color 200ms ease;
+}
+
+.menu-toggle:is(:hover, :focus-visible, [aria-expanded='true']) {
+  color: var(--accent-deep);
+  opacity: 1;
+}
+
+/* Landing header: no name, just the faint word in the corner of the plate. */
+body[data-landing] .site-header {
+  position: fixed;
+  inset-inline: 0;
+  background-color: transparent;
+}
+
+body[data-landing] .site-header > .site-bar {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  padding: clamp(1.5rem, 3.2vw, 2.5rem) clamp(1.5rem, 3.2vw, 2.5rem) 0.75rem;
+  justify-content: flex-end;
+}
+
+/* Open, the bar comes down to the normal centred header over solid black. */
+body[data-landing] .site-header[data-open='true'] {
+  background-color: var(--bg);
+}
+
+body[data-landing] .site-header[data-open='true'] > .site-bar {
+  width: min(72rem, 100% - 2.5rem);
+  height: 3.5rem;
+  padding: 0;
+}
+
+/* The menu: black, a hairline above and below, its entries numbered the way
+   a planet's plates are — and the one you are on marked by a lit cell. */
 .site-menu {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background-color: var(--surface-glass);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-lg);
-  animation: menu-drop 220ms var(--ease-out-quint) both;
+  border-block: 1px solid var(--border);
+  background-color: var(--bg);
 }
 
-@keyframes menu-drop {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.site-menu-grid {
+  display: grid;
+  gap: 2.5rem;
+  padding-block: 2.25rem 2.5rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .site-menu {
-    animation: none;
+.site-menu-links {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-menu-link {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  opacity: 0.75;
+  transition:
+    opacity 200ms ease,
+    color 200ms ease;
+}
+
+.site-menu-link:hover,
+.site-menu-link[aria-current] {
+  color: var(--accent-deep);
+  opacity: 1;
+}
+
+.site-menu-num {
+  position: relative;
+  min-width: 1.75rem;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.site-menu-link[aria-current] .site-menu-num::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -0.9rem;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  background-color: var(--accent-deep);
+}
+
+.site-menu-aside {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.site-menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-menu-row a {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: color 200ms ease;
+}
+
+.site-menu-row a:hover {
+  color: var(--ink);
+}
+
+.site-menu-row a[aria-current] {
+  color: var(--accent-deep);
+}
+
+@media (min-width: 40rem) {
+  .site-menu-grid {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .site-menu-aside {
+    justify-items: end;
   }
 }
 
@@ -1216,43 +1553,97 @@ body[data-landing] .site-header[data-open='true'] .site-menu {
   color: var(--ink);
 }
 
+/* A tag: a lit cell and the word, in the accent — no box round it. */
 .stamp {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.18rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
-  border-radius: 0;
-  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+  gap: 0.55rem;
   color: var(--accent-deep);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .stamp-dot {
-  width: 0.3rem;
-  height: 0.3rem;
-  background-color: var(--accent);
+  width: 4px;
+  height: 4px;
+  background-color: var(--accent-deep);
 }
 
-.wordmark {
-  font-family: var(--font-sans);
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+/* The writing list's filter: tags as words with a lit cell for the one in
+   force, and a search that is only a rule to write on. */
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 180ms ease;
 }
 
+.filter-tag::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background-color: currentColor;
+  opacity: 0.35;
+}
+
+.filter-tag:hover {
+  color: var(--ink);
+}
+
+.filter-tag[aria-pressed='true'] {
+  color: var(--accent-deep);
+}
+
+.filter-tag[aria-pressed='true']::before {
+  opacity: 1;
+}
+
+.filter-search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  border-bottom: 1px solid var(--border-strong);
+  transition: border-color 180ms ease;
+}
+
+.filter-search:focus-within {
+  border-color: var(--accent);
+}
+
+@media (min-width: 40rem) {
+  .filter-search {
+    max-width: 22rem;
+  }
+}
+
+.filter-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Pager controls: words, like everything else in the furniture. */
 .sketch-control {
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background-color: var(--surface);
-  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+  border: 0;
+  background: none;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  transition: color 180ms ease;
 }
 
 .sketch-control:hover {
-  border-color: var(--border-strong);
   color: var(--ink);
 }

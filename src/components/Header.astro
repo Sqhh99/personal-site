@@ -3,11 +3,14 @@
  * The header is a wordmark and one word, "Menu". Everything a visitor might
  * want — writing, briefs, GitHub, RSS, the language — waits behind that word
  * so the pages, and above all the landing plates, are not crowded by chrome.
- * Opening it drops a panel from the bar; it never takes over the viewport.
+ * Opening it prints a panel under the bar — in the same ordered dither the
+ * landing's plates and its bar of sigils come and go by — and it never takes
+ * over the viewport.
  */
 import { getLangFromUrl, getLocalizedPath, listLanguages, useTranslations } from '../i18n/utils';
 import { LANGUAGES, type Language } from '../i18n/ui';
 import { SITE } from '../consts';
+import { ROMAN } from '../lib/descent/plates';
 
 interface Props {
   lang?: Language;
@@ -38,66 +41,54 @@ const languages = listLanguages().map((code) => ({
 ---
 
 <header id="site-header" class="site-header" data-overlay={overlay ? 'true' : 'false'} data-scrolled="false" data-open="false">
-  <div class="shell flex h-14 items-center justify-between">
+  <div class="shell site-bar">
     {
       !overlay && (
-        <a href={homeHref} class="wordmark text-ink text-[1.15rem]" aria-label={`${t('site.name')} — home`}>
+        <a href={homeHref} class="wordmark" aria-label={`${t('site.name')} — home`}>
           {t('site.name')}
         </a>
       )
     }
 
-    <button
-      id="menu-toggle"
-      type="button"
-      aria-expanded="false"
-      aria-controls="site-menu"
-      class:list={[!overlay && 'label -mr-2 px-2 py-1 text-ink/80 transition-colors hover:text-ink']}
-    >
+    <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
       <span data-label-open>{t('nav.menu')}</span>
       <span data-label-close hidden>{t('nav.close')}</span>
     </button>
   </div>
 
   <nav id="site-menu" class="site-menu" hidden aria-label="Site">
-    <div class="shell grid gap-10 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
-      <ul class="flex flex-col gap-3">
+    <div class="shell site-menu-grid">
+      <ol class="site-menu-links">
         {
-          links.map((link) => (
+          links.map((link, i) => (
             <li>
-              <a
-                href={link.href}
-                aria-current={link.current ? 'page' : undefined}
-                class:list={['font-display text-3xl leading-none text-ink transition-colors sm:text-4xl', link.current ? 'underline underline-offset-8 decoration-1' : 'opacity-90 hover:opacity-100']}
-              >
-                {link.label}
+              <a href={link.href} aria-current={link.current ? 'page' : undefined} class="site-menu-link">
+                <span class="site-menu-num" aria-hidden="true">
+                  {ROMAN[i]}
+                </span>
+                <span>{link.label}</span>
               </a>
             </li>
           ))
         }
-      </ul>
-      <div class="flex flex-col gap-3 sm:items-end">
-        <ul class="flex gap-5">
+      </ol>
+      <div class="site-menu-aside">
+        <ul class="site-menu-row">
           {
             external.map((link) => (
               <li>
-                <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" class="label transition-colors hover:text-ink">
+                <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
                   {link.label}
                 </a>
               </li>
             ))
           }
         </ul>
-        <ul class="flex gap-4" aria-label={t('nav.language')}>
+        <ul class="site-menu-row" aria-label={t('nav.language')}>
           {
             languages.map((l) => (
               <li>
-                <a
-                  href={l.href}
-                  data-lang-btn={l.code}
-                  aria-current={l.current ? 'true' : undefined}
-                  class:list={['label transition-colors', l.current ? 'text-ink underline underline-offset-4' : 'hover:text-ink']}
-                >
+                <a href={l.href} data-lang-btn={l.code} aria-current={l.current ? 'true' : undefined}>
                   {l.label}
                 </a>
               </li>
@@ -110,21 +101,42 @@ const languages = listLanguages().map((code) => ({
 </header>
 
 <script>
+  import { createMasks } from '../lib/descent/chrome';
+
   const header = document.getElementById('site-header')!;
   const button = document.getElementById('menu-toggle')!;
   const menu = document.getElementById('site-menu')!;
   const labelOpen = button.querySelector<HTMLElement>('[data-label-open]')!;
   const labelClose = button.querySelector<HTMLElement>('[data-label-close]')!;
 
+  /** The size of one dither cell, in CSS px; the plates use about the same. */
+  const CELL = 3;
+  const masks = createMasks(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let dpr = 0;
+
   const setOpen = (open: boolean) => {
-    menu.hidden = !open;
+    if (open === (header.dataset.open === 'true')) return;
     header.dataset.open = String(open);
     button.setAttribute('aria-expanded', String(open));
     labelOpen.hidden = open;
     labelClose.hidden = !open;
+    if (open) {
+      if (dpr !== window.devicePixelRatio) {
+        dpr = window.devicePixelRatio || 1;
+        masks.resize(CELL, Math.max(1, Math.round(CELL * dpr)));
+      }
+      menu.hidden = false;
+      void masks.run([menu], 'in', 240);
+    } else {
+      // Reopened before it is gone, the later run takes the menu over and
+      // this one never finishes, so it never hides what is now open.
+      void masks.run([menu], 'out', 180).then(() => {
+        if (header.dataset.open !== 'true') menu.hidden = true;
+      });
+    }
   };
 
-  button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+  button.addEventListener('click', () => setOpen(header.dataset.open !== 'true'));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') setOpen(false);
   });
@@ -132,7 +144,13 @@ const languages = listLanguages().map((code) => ({
     if (!header.contains(e.target as Node)) setOpen(false);
   });
   menu.querySelectorAll<HTMLAnchorElement>('[data-lang-btn]').forEach((link) => {
-    link.addEventListener('click', () => localStorage.setItem('preferred-lang', link.dataset.langBtn ?? ''));
+    link.addEventListener('click', () => {
+      try {
+        localStorage.setItem('preferred-lang', link.dataset.langBtn ?? '');
+      } catch {
+        // Storage can be off; the link still goes where it says.
+      }
+    });
   });
 
   const syncScroll = () => {
